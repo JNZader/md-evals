@@ -11,25 +11,107 @@
     :root {
       --theme-color: #6366f1;
       --sidebar-width: 280px;
+      --text-color: #333;
+      --bg-color: #fff;
+      --heading-color: #1a1a1a;
+      --link-color: #6366f1;
     }
     
     /* Dark mode */
-    @media (prefers-color-scheme: dark) {
-      :root {
-        --theme-color: #818cf8;
-      }
-      .markdown-section {
-        color: #e2e8f0;
-      }
-      .sidebar-nav > ul > li > a {
-        color: #f1f5f9;
-      }
+    [data-theme="dark"] {
+      --theme-color: #818cf8;
+      --text-color: #e2e8f0;
+      --bg-color: #1a1a2e;
+      --heading-color: #f1f5f9;
+      --link-color: #818cf8;
+    }
+    
+    body {
+      background-color: var(--bg-color);
+      color: var(--text-color);
+    }
+    
+    .markdown-section {
+      color: var(--text-color);
+    }
+    
+    .markdown-section h1, 
+    .markdown-section h2,
+    .markdown-section h3,
+    .markdown-section h4 {
+      color: var(--heading-color);
+    }
+    
+    .markdown-section a {
+      color: var(--link-color);
+    }
+    
+    .sidebar-nav > ul > li > a {
+      color: var(--text-color);
+    }
+    
+    /* Theme toggle button */
+    .theme-toggle {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      z-index: 1000;
+      background: var(--theme-color);
+      color: white;
+      border: none;
+      padding: 8px 16px;
+      border-radius: 20px;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: bold;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+      transition: all 0.3s ease;
+    }
+    
+    .theme-toggle:hover {
+      transform: scale(1.05);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.3);
     }
   </style>
 </head>
 <body>
+  <button class="theme-toggle" onclick="toggleTheme()">🌙</button>
   <div id="app">Loading...</div>
   <script>
+    // Theme toggle
+    function toggleTheme() {
+      const html = document.documentElement;
+      const btn = document.querySelector('.theme-toggle');
+      const isDark = html.getAttribute('data-theme') === 'dark';
+      
+      if (isDark) {
+        html.setAttribute('data-theme', 'light');
+        btn.textContent = '🌙';
+        localStorage.setItem('theme', 'light');
+      } else {
+        html.setAttribute('data-theme', 'dark');
+        btn.textContent = '☀️';
+        localStorage.setItem('theme', 'dark');
+      }
+    }
+    
+    // Load saved theme
+    const savedTheme = localStorage.getItem('theme');
+    if (savedTheme === 'dark') {
+      document.documentElement.setAttribute('data-theme', 'dark');
+      document.querySelector('.theme-toggle').textContent = '☀️';
+    } else if (savedTheme === 'light') {
+      document.documentElement.setAttribute('data-theme', 'light');
+      document.querySelector('.theme-toggle').textContent = '🌙';
+    } else {
+      // Auto-detect
+      if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        document.documentElement.setAttribute('data-theme', 'dark');
+        document.querySelector('.theme-toggle').textContent = '☀️';
+      }
+    }
+    
+    // Docsify config
     window.$docsify = {
       name: 'md-evals',
       repo: 'https://github.com/JNZader/md-evals',
