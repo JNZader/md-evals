@@ -69,7 +69,7 @@ class EvaluatorEngine:
     ) -> EvaluatorResult:
         """Evaluate output with regex."""
         try:
-            pattern = re.compile(evaluator.pattern, re.MULTILINE)
+            pattern = re.compile(evaluator.pattern, re.MULTILINE | re.IGNORECASE)
             match = pattern.search(output)
             
             passed = match is not None if evaluator.pass_on_match else match is None

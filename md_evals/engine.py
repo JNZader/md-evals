@@ -6,7 +6,7 @@ from typing import TYPE_CHECKING
 
 from md_evals.models import (
     EvalConfig, ExecutionResult, Defaults,
-    Task, Treatment
+    Task, Treatment, LLMResponse
 )
 from md_evals.llm import LLMAdapter, inject_skill, LLMError
 
@@ -69,12 +69,18 @@ class ExecutionEngine:
                     system_prompt=system_prompt,
                 )
             except LLMError as e:
-                # Return error result
+                # Return error result with empty response
                 return ExecutionResult(
                     treatment=treatment_name,
                     test=task.name,
                     prompt=final_prompt,
-                    response=None,
+                    response=LLMResponse(
+                        content="",
+                        model="error",
+                        provider="error",
+                        duration_ms=0,
+                        raw_response={"error": str(e)}
+                    ),
                     passed=False,
                     evaluator_results=[],
                     timestamp=datetime.utcnow().isoformat()
@@ -154,13 +160,19 @@ class ExecutionEngine:
             # Handle exceptions
             for i, result in enumerate(results):
                 if isinstance(result, Exception):
-                    # Create error result
+                    # Create error result with minimal response
                     treatment, task, treatment_name = tasks_to_run[i]
                     error_result = ExecutionResult(
                         treatment=treatment_name,
                         test=task.name,
                         prompt=task.prompt,
-                        response=None,
+                        response=LLMResponse(
+                            content="",
+                            model="error",
+                            provider="error",
+                            duration_ms=0,
+                            raw_response={"error": str(result)}
+                        ),
                         passed=False,
                         evaluator_results=[],
                         timestamp=datetime.utcnow().isoformat()

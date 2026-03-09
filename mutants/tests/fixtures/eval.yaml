@@ -1,0 +1,23 @@
+name: "Example Evaluation"
+version: "1.0"
+
+defaults:
+  model: "gpt-4o"
+  temperature: 0.7
+
+treatments:
+  CONTROL:
+    description: "No skill context"
+    skill_path: null
+  
+  WITH_SKILL:
+    description: "With skill context"
+    skill_path: "./tests/fixtures/skill_short.md"
+
+tests:
+  - name: "example_test"
+    prompt: "Say hello"
+    evaluators:
+      - type: "regex"
+        name: "has_hello"
+        pattern: "hello"
