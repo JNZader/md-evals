@@ -31,8 +31,12 @@ jobs:
 
       - name: Generate Docs
         run: |
+          cp docs/_sidebar.md /tmp/_sidebar.md
+          cp docs/_coverpage.md /tmp/_coverpage.md 2>/dev/null || true
           cd docs
-          docsify generate . --sidebar _sidebar.md
+          rm -f _sidebar.md _coverpage.md
+          docsify generate . --sidebar /tmp/_sidebar.md
+          rm -rf .nojekyll 2>/dev/null || true
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3

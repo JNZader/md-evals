@@ -10,6 +10,20 @@
   <style>
     :root {
       --theme-color: #6366f1;
+      --sidebar-width: 280px;
+    }
+    
+    /* Dark mode */
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --theme-color: #818cf8;
+      }
+      .markdown-section {
+        color: #e2e8f0;
+      }
+      .sidebar-nav > ul > li > a {
+        color: #f1f5f9;
+      }
     }
   </style>
 </head>
@@ -20,10 +34,18 @@
       name: 'md-evals',
       repo: 'https://github.com/JNZader/md-evals',
       loadSidebar: true,
-      coverpage: false,
-      subMaxLevel: 3
+      subMaxLevel: 3,
+      auto2top: true,
+      themeColor: '#6366f1',
+      search: {
+        maxAge: 86400000,
+        paths: 'auto',
+        placeholder: 'Search'
+      }
     }
   </script>
   <script src="https://cdn.jsdelivr.net/npm/docsify@4"></script>
+  <script src="https://cdn.jsdelivr.net/npm/docsify-sidebar-collapse/dist/sidebar.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/docsify-pagination/dist/docsify-pagination.min.js"></script>
 </body>
 </html>
