@@ -30,7 +30,9 @@ jobs:
         run: npm install -g docsify-cli
 
       - name: Generate Docs
-        run: docsify build docs/
+        run: |
+          cd docs
+          docsify generate . --sidebar _sidebar.md
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
