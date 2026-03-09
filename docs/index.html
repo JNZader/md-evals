@@ -4,113 +4,12 @@
   <meta charset="UTF-8">
   <title>md-evals - AI Skill Evaluation</title>
   <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-  <meta name="description" content="Lightweight CLI tool for evaluating AI skills (SKILL.md) with Control vs Treatment testing using LiteLLM" />
+  <meta name="description" content="Lightweight CLI tool for evaluating AI skills" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/docsify@4/lib/themes/vue.css" />
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/docsify-sidebar-collapse/dist/sidebar.min.css" />
   <style>
     :root {
       --theme-color: #6366f1;
-      --sidebar-nav-element-color: #8b5cf6;
-      --sidebar-nav-element-active-color: #22d3ee;
-      --heading-color: #f8fafc;
-      --text-color: #cbd5e1;
-      --link-color: #22d3ee;
-      --link-hover-color: #67e8f9;
-      --code-background: #1e293b;
-      --blockquote-border-left-color: #6366f1;
-      --blockquote-background: #1e293b;
-    }
-    
-    .markdown-section code {
-      background-color: var(--code-background);
-      border-radius: 4px;
-      padding: 2px 6px;
-    }
-    
-    .markdown-section pre {
-      background-color: var(--code-background);
-    }
-    
-    .sidebar-nav > ul > li > a {
-      font-weight: bold;
-      color: var(--heading-color);
-    }
-    
-    .sidebar-nav li a {
-      color: var(--text-color);
-    }
-    
-    .sidebar-nav li a:hover {
-      color: var(--link-color);
-    }
-    
-    .sidebar-nav li a.active {
-      color: var(--link-color);
-      border-right: 3px solid var(--theme-color);
-    }
-    
-    .markdown-section > h1 {
-      color: var(--heading-color);
-    }
-    
-    .markdown-section > h2 {
-      color: var(--heading-color);
-      border-bottom: 1px solid #334155;
-      padding-bottom: 10px;
-    }
-    
-    .markdown-section > h3 {
-      color: var(--heading-color);
-    }
-    
-    .search .clear-button {
-      color: var(--text-color);
-    }
-    
-    /* Cover page customization */
-    .cover-main {
-      background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
-    }
-    
-    .cover-main h1 {
-      color: #f8fafc;
-    }
-    
-    .cover-main p {
-      color: #94a3b8;
-    }
-    
-    .cover-main .btn {
-      background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
-      border: none;
-      color: white;
-    }
-    
-    .cover-main .btn:hover {
-      background: linear-gradient(135deg, #818cf8 0%, #a78bfa 100%);
-    }
-    
-    /* Badges */
-    .badge {
-      display: inline-block;
-      padding: 4px 12px;
-      border-radius: 20px;
-      font-size: 12px;
-      font-weight: bold;
-      margin: 0 4px;
-    }
-    
-    .badge-primary {
-      background: rgba(99, 102, 241, 0.2);
-      color: #818cf8;
-      border: 1px solid #6366f1;
-    }
-    
-    .badge-success {
-      background: rgba(34, 211, 238, 0.2);
-      color: #22d3ee;
-      border: 1px solid #22d3ee;
     }
   </style>
 </head>
@@ -121,46 +20,10 @@
       name: 'md-evals',
       repo: 'https://github.com/JNZader/md-evals',
       loadSidebar: true,
-      loadNavbar: true,
       coverpage: true,
-      subMaxLevel: 3,
-      auto2top: true,
-      search: {
-        maxAge: 86400000,
-        paths: 'auto',
-        placeholder: 'Search',
-        noData: 'No Results!',
-        depth: 3
-      },
-      pagination: {
-        previousText: 'Previous',
-        nextText: 'Next',
-        crossChapter: true
-      },
-      copyCode: {
-        buttonText: 'Copy',
-        errorText: 'Error',
-        successText: 'Copied'
-      },
-      themeColor: '#6366f1'
+      subMaxLevel: 3
     }
   </script>
-  <!-- Docsify v4 -->
   <script src="https://cdn.jsdelivr.net/npm/docsify@4"></script>
-  <!-- Search plugin -->
-  <script src="https://cdn.jsdelivr.net/npm/docsify-search-pangu/dist/docsify-search-pangu.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/docsify-search@4/dist/docsify-search.min.js"></script>
-  <!-- Sidebar collapse -->
-  <script src="https://cdn.jsdelivr.net/npm/docsify-sidebar-collapse/dist/sidebar.min.js"></script>
-  <!-- Pagination -->
-  <script src="https://cdn.jsdelivr.net/npm/docsify-pagination/dist/docsify-pagination.min.js"></script>
-  <!-- Code copy -->
-  <script src="https://cdn.jsdelivr.net/npm/docsify-copy-code/dist/docsify-copy-code.min.js"></script>
-  <!-- Prism for syntax highlighting -->
-  <script src="https://cdn.jsdelivr.net/npm/prismjs@1/components/prism-bash.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/prismjs@1/components/prism-python.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/prismjs@1/components/prism-yaml.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/prismjs@1/components/prism-json.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/prismjs@1/components/prism-markdown.min.js"></script>
 </body>
 </html>
