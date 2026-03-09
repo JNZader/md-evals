@@ -1,15 +1,39 @@
 <!-- docs/guide/configuration.md -->
 # Configuration Guide
 
-This guide explains the complete `eval.yaml` configuration.
+The `eval.yaml` file is the heart of your md-evals project. It defines what to test, how to evaluate the results, and which skill variations (treatments) to compare.
 
-## Full Example
+## Architecture of eval.yaml
+
+```mermaid
+graph TD
+    A[eval.yaml] --> B[defaults]
+    A --> C[treatments]
+    A --> D[tests]
+    A --> E[lint]
+    A --> F[execution]
+    A --> G[output]
+    
+    B --> B1(LLM Provider Config)
+    C --> C1(Control / Baseline)
+    C --> C2(Skill Variations)
+    D --> D1(Prompts & Variables)
+    D --> D2(Evaluators)
+    D2 --> D2A(Regex)
+    D2 --> D2B(Exact Match)
+    D2 --> D2C(LLM Judge)
+```
+
+## Complete Example
+
+Here is a comprehensive example covering all possible fields:
 
 ```yaml
-name: "My Skill Evaluation"
+name: "Code Generation Skill Evaluation"
 version: "1.0"
-description: "Evaluating code generation skills"
+description: "Testing if our python-developer skill improves code quality"
 
+# 1. Default API settings
 defaults:
   model: "gpt-4o"
   provider: "openai"
@@ -18,87 +42,122 @@ defaults:
   timeout: 60
   retry_attempts: 3
 
+# 2. What to compare
 treatments:
+  # The baseline - absolutely no skill injected
   CONTROL:
-    description: "No skill context"
+    description: "Bare prompt without any skill context"
     skill_path: null
   
+  # Variation A
   CONCISE_SKILL:
-    description: "Concise skill"
+    description: "A very short, bullet-point skill"
     skill_path: "./skills/concise.md"
   
+  # Variation B
   DETAILED_SKILL:
-    description: "Detailed skill"
+    description: "A highly detailed skill with examples"
     skill_path: "./skills/detailed.md"
 
+# 3. What to test
 tests:
-  - name: "code_quality"
-    description: "Check code quality"
-    prompt: "Write a function to {task}"
+  - name: "python_function_generation"
+    description: "Check if the LLM generates a valid Python function"
+    prompt: "Write a function to {task}. Do not include markdown formatting."
     variables:
-      task: "sort a list"
+      task: "sort a list of integers"
+    
+    # 4. How to measure success
     evaluators:
       - type: "regex"
-        name: "has_def"
-        pattern: "def "
+        name: "has_def_keyword"
+        pattern: "^def "
         pass_on_match: true
-      - type: "regex"
-        name: "has_return"
-        pattern: "return "
+        fail_message: "Output must start with 'def'"
 
+# 5. Skill health checks
 lint:
   max_lines: 400
   fail_on_violation: true
 
+# 6. How to run it
+execution:
+  parallel_workers: 2
+  repetitions: 3
+  fail_fast: false
+
+# 7. Where to save results
 output:
   format: "table"
   save_results: true
   results_dir: "./results"
-  verbose: false
-
-execution:
-  parallel_workers: 1
-  repetitions: 1
-  fail_fast: false
 ```
 
-## Sections
+## Section Deep Dives
 
-### defaults
+### `defaults`
 
-Default values used for all API calls:
+Configures how md-evals talks to the LLM. Powered by [LiteLLM](https://docs.litellm.ai/), meaning you can use almost any provider.
 
 | Field | Type | Default | Description |
 |-------|------|---------|-------------|
-| `model` | string | `"gpt-4o"` | Model name |
-| `provider` | string | `"openai"` | Provider name |
-| `temperature` | float | `0.7` | Sampling temperature |
-| `max_tokens` | int | `2048` | Max tokens to generate |
-| `timeout` | int | `60` | Request timeout (seconds) |
-| `retry_attempts` | int | `3` | Number of retries |
+| `model` | string | `"gpt-4o"` | The model name exactly as expected by LiteLLM |
+| `provider` | string | `"openai"` | The provider name (`openai`, `anthropic`, `gemini`, `ollama`) |
+| `temperature` | float | `0.7` | Sampling temperature (0.0 = deterministic, 1.0 = creative) |
+| `max_tokens` | int | `2048` | Maximum tokens to generate |
+| `timeout` | int | `60` | Request timeout in seconds |
+| `retry_attempts` | int | `3` | How many times to retry on API errors/rate limits |
 
-### treatments
+### `treatments`
 
-Define skill configurations to test:
-
-| Field | Type | Description |
-|-------|------|-------------|
-| `description` | string | Human-readable description |
-| `skill_path` | string/null | Path to SKILL.md file |
-| `env` | object | Environment variables |
-
-### tests
-
-Define test cases:
+Treatments represent the different variations of your `SKILL.md` you want to test against the baseline.
 
 | Field | Type | Description |
 |-------|------|-------------|
-| `name` | string | Unique test name |
-| `description` | string | Test description |
-| `prompt` | string | Prompt template with `{variables}` |
-| `variables` | object | Variables to substitute |
-| `evaluators` | array | List of evaluators |
+| `description` | string | A human-readable description for reports |
+| `skill_path` | string/null | Path to the SKILL.md file. **Must be `null` for CONTROL**. |
+| `env` | object | Environment variables to inject (useful for advanced skills) |
 
-## Validators
+> 💡 **Best Practice**: Always define a `CONTROL` treatment. Without a baseline, you can't prove your skill is actually doing anything useful!
 
-See [Evaluators Guide](./evaluators.md) for details.
+### `tests`
+
+The actual scenarios you are putting the LLM through.
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `name` | string | Unique identifier for the test |
+| `description` | string | Human-readable explanation |
+| `prompt` | string | The prompt template. Use `{variable_name}` for interpolation. |
+| `variables` | object | Key-value pairs to inject into the prompt template |
+| `evaluators` | list | An array of Evaluator objects. See [Evaluators Guide](./evaluators.md). |
+
+### `lint`
+
+Configures the SKILL.md linter.
+
+| Field | Type | Default | Description |
+|-------|------|---------|-------------|
+| `max_lines` | int | `400` | The "Red Flag" threshold. Skills > 400 lines consume too much context. |
+| `fail_on_violation` | bool | `true` | If true, `md-evals run` will abort if the linter fails. |
+
+### `execution`
+
+Controls how tests are executed.
+
+| Field | Type | Default | Description |
+|-------|------|---------|-------------|
+| `parallel_workers` | int | `1` | Number of concurrent API requests. Increase to speed up testing. |
+| `repetitions` | int | `1` | How many times to run each test. LLMs are non-deterministic, so `repetitions: 5` gives you statistical significance. |
+| `fail_fast` | bool | `false` | Stop execution immediately if any test fails. |
+
+### `output`
+
+Controls reporting.
+
+| Field | Type | Default | Description |
+|-------|------|---------|-------------|
+| `format` | string | `"table"` | Terminal output format (`table`, `json`, `markdown`) |
+| `save_results` | bool | `true` | Whether to write results to disk |
+| `results_dir` | string | `"./results"`| Directory to save JSON/Markdown reports |
+| `verbose` | bool | `false` | Print detailed evaluator reasoning to the terminal |
