@@ -2,31 +2,128 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>md-evals - AI Skill Evaluation</title>
-  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-  <meta name="description" content="Lightweight CLI tool for evaluating AI skills" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/docsify@4/lib/themes/vue.css" />
+  <title>md-evals | Evaluate AI skills with ease</title>
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+  <meta name="description" content="Lightweight CLI tool for evaluating AI skills (SKILL.md) with Control vs Treatment testing using LiteLLM" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0" />
+  
+  <!-- Theme: Docsify default theme with modern tweaks -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/docsify-themeable@0/dist/css/theme-simple.css">
+
+  <style>
+    /* Custom Theme Overrides */
+    :root {
+      --theme-color: #6366f1; /* Indigo 500 */
+      --theme-hue: 243;
+      --theme-saturation: 75%;
+      --theme-lightness: 67%;
+      
+      --base-font-size: 16px;
+      --base-font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+      --heading-font-family: var(--base-font-family);
+      
+      --sidebar-width: 18rem;
+      --sidebar-nav-link-color--active: var(--theme-color);
+      --sidebar-nav-link-font-weight--active: 600;
+      
+      --content-max-width: 45rem;
+      
+      /* Code blocks */
+      --code-font-family: 'JetBrains Mono', 'Fira Code', Consolas, Monaco, monospace;
+      --code-font-size: 0.85em;
+      --code-theme-background: #f8fafc;
+      --code-inline-background: #f1f5f9;
+      --code-inline-color: #0f172a;
+    }
+    
+    /* Elegant badges */
+    .badge {
+      display: inline-block;
+      padding: 0.25em 0.6em;
+      font-size: 0.75em;
+      font-weight: 600;
+      border-radius: 9999px;
+      margin-right: 0.5em;
+      margin-bottom: 1em;
+    }
+    
+    .badge-primary {
+      background-color: #e0e7ff;
+      color: #4f46e5;
+      border: 1px solid #c7d2fe;
+    }
+    
+    .badge-success {
+      background-color: #dcfce7;
+      color: #0d9488;
+      border: 1px solid #ccfbf1;
+    }
+
+    /* Terminal output styling */
+    pre[data-lang="log"], pre[data-lang="text"] {
+      background-color: #1e293b !important;
+      color: #f8fafc !important;
+      border-radius: 8px;
+    }
+    
+    .markdown-section h1 { margin-top: 1rem; }
+    .markdown-section h2 { border-bottom: 1px solid #e2e8f0; padding-bottom: 0.5rem; }
+  </style>
 </head>
 <body>
-  <div id="app">Loading...</div>
+  <div id="app">Loading md-evals documentation...</div>
+  
   <script>
     window.$docsify = {
       name: 'md-evals',
-      repo: 'https://github.com/JNZader/md-evals',
+      repo: 'JNZader/md-evals',
+      
       loadSidebar: true,
       subMaxLevel: 3,
       auto2top: true,
+      
+      // Theme
       themeColor: '#6366f1',
+      
+      // Plugins
       search: {
-        maxAge: 86400000,
+        maxAge: 86400000, // Expiration time, the default one day
         paths: 'auto',
-        placeholder: 'Search'
+        placeholder: 'Search documentation...',
+        noData: 'No Results!',
+        depth: 3,
+        hideOtherSidebarContent: false,
+      },
+      
+      copyCode: {
+        buttonText: 'Copy',
+        errorText: 'Error',
+        successText: 'Copied'
+      },
+
+      pagination: {
+        previousText: 'PREVIOUS',
+        nextText: 'NEXT',
+        crossChapter: true,
+        crossChapterText: true,
       }
     }
   </script>
+  
+  <!-- Core Docsify -->
   <script src="https://cdn.jsdelivr.net/npm/docsify@4"></script>
-  <script src="https://cdn.jsdelivr.net/npm/docsify-sidebar-collapse/dist/sidebar.min.js"></script>
+  
+  <!-- Plugins -->
+  <script src="https://cdn.jsdelivr.net/npm/docsify-themeable@0/dist/js/docsify-themeable.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/docsify-search@4/dist/docsify-search.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/docsify-copy-code/dist/docsify-copy-code.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/docsify-pagination/dist/docsify-pagination.min.js"></script>
+  
+  <!-- Syntax Highlighting -->
+  <script src="https://cdn.jsdelivr.net/npm/prismjs@1/components/prism-bash.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/prismjs@1/components/prism-python.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/prismjs@1/components/prism-yaml.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/prismjs@1/components/prism-json.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/prismjs@1/components/prism-markdown.min.js"></script>
 </body>
 </html>
