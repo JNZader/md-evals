@@ -373,3 +373,548 @@ class TestCreateEvaluator:
         """Test creating unknown evaluator type."""
         with pytest.raises(ValueError, match="Unknown evaluator type"):
             create_evaluator("unknown_type", name="test")
+
+
+class TestRegexEvaluatorEdgeCases:
+    """Test edge cases for regex evaluator."""
+    
+    def test_case_insensitive_pattern(self):
+        """Test case insensitive regex matching."""
+        engine = EvaluatorEngine()
+        evaluator = RegexEvaluator(
+            name="case_test",
+            pattern="hello",
+            pass_on_match=True
+        )
+        
+        # Should match because pattern is compiled with re.IGNORECASE
+        result = engine._evaluate_regex("HELLO world!", evaluator)
+        assert result.passed
+    
+    def test_pattern_with_special_chars(self):
+        """Test regex with special characters."""
+        engine = EvaluatorEngine()
+        evaluator = RegexEvaluator(
+            name="special_chars",
+            pattern=r"\d+",
+            pass_on_match=True
+        )
+        
+        result = engine._evaluate_regex("Result: 42", evaluator)
+        assert result.passed
+    
+    def test_pattern_with_word_boundary(self):
+        """Test regex with word boundaries."""
+        engine = EvaluatorEngine()
+        evaluator = RegexEvaluator(
+            name="word_boundary",
+            pattern=r"\bhello\b",
+            pass_on_match=True
+        )
+        
+        result = engine._evaluate_regex("Say hello world", evaluator)
+        assert result.passed
+    
+    def test_pattern_not_matching_substring(self):
+        """Test pattern with substring that shouldn't match."""
+        engine = EvaluatorEngine()
+        evaluator = RegexEvaluator(
+            name="word_boundary",
+            pattern=r"\bhello\b",
+            pass_on_match=True
+        )
+        
+        result = engine._evaluate_regex("Say hello123 world", evaluator)
+        assert not result.passed
+    
+    def test_pass_on_match_false_with_match(self):
+        """Test pass_on_match=False when pattern matches."""
+        engine = EvaluatorEngine()
+        evaluator = RegexEvaluator(
+            name="negative",
+            pattern="error",
+            pass_on_match=False
+        )
+        
+        result = engine._evaluate_regex("No error here", evaluator)
+        assert not result.passed
+    
+    def test_pass_on_match_false_without_match(self):
+        """Test pass_on_match=False when pattern doesn't match."""
+        engine = EvaluatorEngine()
+        evaluator = RegexEvaluator(
+            name="negative",
+            pattern="error",
+            pass_on_match=False
+        )
+        
+        result = engine._evaluate_regex("All good", evaluator)
+        assert result.passed
+    
+    def test_regex_with_optional_group(self):
+        """Test regex with optional groups."""
+        engine = EvaluatorEngine()
+        evaluator = RegexEvaluator(
+            name="optional",
+            pattern=r"hello(\s+world)?",
+            pass_on_match=True
+        )
+        
+        # Should match "hello" alone
+        result = engine._evaluate_regex("hello", evaluator)
+        assert result.passed
+    
+    def test_regex_multiline_with_anchors(self):
+        """Test multiline regex with line anchors."""
+        engine = EvaluatorEngine()
+        evaluator = RegexEvaluator(
+            name="multiline",
+            pattern="^success",
+            pass_on_match=True
+        )
+        
+        result = engine._evaluate_regex("line1\nsuccess line2", evaluator)
+        assert result.passed
+    
+    def test_evaluator_name_returned(self):
+        """Test that evaluator name is returned in result."""
+        engine = EvaluatorEngine()
+        evaluator = RegexEvaluator(
+            name="my_evaluator",
+            pattern="test",
+            pass_on_match=True
+        )
+        
+        result = engine._evaluate_regex("test", evaluator)
+        assert result.evaluator_name == "my_evaluator"
+    
+    def test_default_fail_message_when_no_match(self):
+        """Test default fail message when no custom message."""
+        engine = EvaluatorEngine()
+        evaluator = RegexEvaluator(
+            name="test",
+            pattern="nonexistent",
+            pass_on_match=True,
+            fail_message=None
+        )
+        
+        result = engine._evaluate_regex("test content", evaluator)
+        assert not result.passed
+        assert "Pattern not found" in result.reason
+
+
+class TestExactMatchEvaluatorEdgeCases:
+    """Test edge cases for exact match evaluator."""
+    
+    def test_exact_match_full_string(self):
+        """Test exact match with full string content."""
+        engine = EvaluatorEngine()
+        evaluator = ExactMatchEvaluator(
+            name="exact",
+            expected="exact match",
+            case_sensitive=True
+        )
+        
+        result = engine._evaluate_exact_match("exact match", evaluator)
+        assert result.passed
+    
+    def test_exact_match_in_longer_string(self):
+        """Test exact match as substring in longer string."""
+        engine = EvaluatorEngine()
+        evaluator = ExactMatchEvaluator(
+            name="exact",
+            expected="test",
+            case_sensitive=True
+        )
+        
+        result = engine._evaluate_exact_match("this is a test string", evaluator)
+        assert result.passed
+    
+    def test_case_sensitive_mismatch(self):
+        """Test case sensitive match with different case."""
+        engine = EvaluatorEngine()
+        evaluator = ExactMatchEvaluator(
+            name="exact",
+            expected="hello",
+            case_sensitive=True
+        )
+        
+        result = engine._evaluate_exact_match("HELLO world", evaluator)
+        assert not result.passed
+    
+    def test_case_insensitive_match(self):
+        """Test case insensitive match with different case."""
+        engine = EvaluatorEngine()
+        evaluator = ExactMatchEvaluator(
+            name="exact",
+            expected="hello",
+            case_sensitive=False
+        )
+        
+        result = engine._evaluate_exact_match("HELLO world", evaluator)
+        assert result.passed
+    
+    def test_special_chars_in_expected(self):
+        """Test exact match with special characters."""
+        engine = EvaluatorEngine()
+        evaluator = ExactMatchEvaluator(
+            name="exact",
+            expected="test@example.com",
+            case_sensitive=True
+        )
+        
+        result = engine._evaluate_exact_match("Email: test@example.com", evaluator)
+        assert result.passed
+    
+    def test_exact_match_evaluator_name(self):
+        """Test exact match evaluator returns correct name."""
+        engine = EvaluatorEngine()
+        evaluator = ExactMatchEvaluator(
+            name="my_exact_test",
+            expected="test",
+            case_sensitive=True
+        )
+        
+        result = engine._evaluate_exact_match("test content", evaluator)
+        assert result.evaluator_name == "my_exact_test"
+    
+    def test_exact_match_score_on_pass(self):
+        """Test exact match score is 1.0 on pass."""
+        engine = EvaluatorEngine()
+        evaluator = ExactMatchEvaluator(
+            name="exact",
+            expected="test",
+            case_sensitive=True
+        )
+        
+        result = engine._evaluate_exact_match("test", evaluator)
+        assert result.score == 1.0
+    
+    def test_exact_match_score_on_fail(self):
+        """Test exact match score is 0.0 on fail."""
+        engine = EvaluatorEngine()
+        evaluator = ExactMatchEvaluator(
+            name="exact",
+            expected="missing",
+            case_sensitive=True
+        )
+        
+        result = engine._evaluate_exact_match("test content", evaluator)
+        assert result.score == 0.0
+
+
+class TestLLMJudgeEvaluatorEdgeCases:
+    """Test edge cases for LLM judge evaluator."""
+    
+    @pytest.mark.asyncio
+    async def test_llm_judge_score_1_to_5_scale(self):
+        """Test LLM judge with score on 1-5 scale."""
+        mock_adapter = MagicMock()
+        mock_response = MagicMock()
+        mock_response.content = '{"score": 4, "reasoning": "Good"}'
+        
+        mock_adapter.complete_with_json = AsyncMock(return_value=mock_response)
+        
+        engine = EvaluatorEngine(llm_adapter=mock_adapter)
+        evaluator = LLMJudgeEvaluator(
+            name="judge",
+            judge_model="gpt-4o",
+            criteria="Test",
+            output_schema={},
+            pass_threshold=0.7
+        )
+        
+        results = await engine.evaluate("output", [evaluator])
+        
+        # Score 4 on 1-5 scale = 0.8 (4/5)
+        assert results[0].score == 0.8
+        assert results[0].passed  # 0.8 > 0.7
+    
+    @pytest.mark.asyncio
+    async def test_llm_judge_score_1_to_10_scale(self):
+        """Test LLM judge with score on 1-10 scale."""
+        mock_adapter = MagicMock()
+        mock_response = MagicMock()
+        mock_response.content = '{"score": 8, "reasoning": "Good"}'
+        
+        mock_adapter.complete_with_json = AsyncMock(return_value=mock_response)
+        
+        engine = EvaluatorEngine(llm_adapter=mock_adapter)
+        evaluator = LLMJudgeEvaluator(
+            name="judge",
+            judge_model="gpt-4o",
+            criteria="Test",
+            output_schema={},
+            pass_threshold=0.75
+        )
+        
+        results = await engine.evaluate("output", [evaluator])
+        
+        # Score 8 on 1-10 scale = 0.8 (8/10)
+        assert results[0].score == 0.8
+        assert results[0].passed  # 0.8 > 0.75
+    
+    @pytest.mark.asyncio
+    async def test_llm_judge_score_as_string(self):
+        """Test LLM judge with score returned as string."""
+        mock_adapter = MagicMock()
+        mock_response = MagicMock()
+        mock_response.content = '{"score": "0.85", "reasoning": "Good"}'
+        
+        mock_adapter.complete_with_json = AsyncMock(return_value=mock_response)
+        
+        engine = EvaluatorEngine(llm_adapter=mock_adapter)
+        evaluator = LLMJudgeEvaluator(
+            name="judge",
+            judge_model="gpt-4o",
+            criteria="Test",
+            output_schema={},
+            pass_threshold=0.8
+        )
+        
+        results = await engine.evaluate("output", [evaluator])
+        
+        assert results[0].score == 0.85
+        assert results[0].passed
+    
+    @pytest.mark.asyncio
+    async def test_llm_judge_score_invalid_string(self):
+        """Test LLM judge with invalid score string."""
+        mock_adapter = MagicMock()
+        mock_response = MagicMock()
+        mock_response.content = '{"score": "invalid", "reasoning": "Bad"}'
+        
+        mock_adapter.complete_with_json = AsyncMock(return_value=mock_response)
+        
+        engine = EvaluatorEngine(llm_adapter=mock_adapter)
+        evaluator = LLMJudgeEvaluator(
+            name="judge",
+            judge_model="gpt-4o",
+            criteria="Test",
+            output_schema={},
+            pass_threshold=0.8
+        )
+        
+        results = await engine.evaluate("output", [evaluator])
+        
+        # Should handle invalid score and default to 0
+        assert results[0].score == 0
+        assert not results[0].passed
+    
+    @pytest.mark.asyncio
+    async def test_llm_judge_missing_score(self):
+        """Test LLM judge with missing score field."""
+        mock_adapter = MagicMock()
+        mock_response = MagicMock()
+        mock_response.content = '{"reasoning": "No score provided"}'
+        
+        mock_adapter.complete_with_json = AsyncMock(return_value=mock_response)
+        
+        engine = EvaluatorEngine(llm_adapter=mock_adapter)
+        evaluator = LLMJudgeEvaluator(
+            name="judge",
+            judge_model="gpt-4o",
+            criteria="Test",
+            output_schema={},
+            pass_threshold=0.8
+        )
+        
+        results = await engine.evaluate("output", [evaluator])
+        
+        # Should default to score 0
+        assert results[0].score == 0
+        assert not results[0].passed
+    
+    @pytest.mark.asyncio
+    async def test_llm_judge_returns_details(self):
+        """Test LLM judge returns full response in details."""
+        mock_adapter = MagicMock()
+        mock_response = MagicMock()
+        mock_response.content = '{"score": 0.9, "reasoning": "Excellent", "quality": "high"}'
+        
+        mock_adapter.complete_with_json = AsyncMock(return_value=mock_response)
+        
+        engine = EvaluatorEngine(llm_adapter=mock_adapter)
+        evaluator = LLMJudgeEvaluator(
+            name="judge",
+            judge_model="gpt-4o",
+            criteria="Test",
+            output_schema={},
+            pass_threshold=0.8
+        )
+        
+        results = await engine.evaluate("output", [evaluator])
+        
+        assert results[0].details is not None
+        assert results[0].details["quality"] == "high"
+    
+    @pytest.mark.asyncio
+    async def test_llm_judge_at_threshold(self):
+        """Test LLM judge score exactly at threshold."""
+        mock_adapter = MagicMock()
+        mock_response = MagicMock()
+        mock_response.content = '{"score": 0.8, "reasoning": "At threshold"}'
+        
+        mock_adapter.complete_with_json = AsyncMock(return_value=mock_response)
+        
+        engine = EvaluatorEngine(llm_adapter=mock_adapter)
+        evaluator = LLMJudgeEvaluator(
+            name="judge",
+            judge_model="gpt-4o",
+            criteria="Test",
+            output_schema={},
+            pass_threshold=0.8
+        )
+        
+        results = await engine.evaluate("output", [evaluator])
+        
+        # Should pass when score >= threshold (not just >)
+        assert results[0].passed
+    
+    @pytest.mark.asyncio
+    async def test_llm_judge_adapter_exception(self):
+        """Test LLM judge handles adapter exceptions."""
+        mock_adapter = MagicMock()
+        mock_adapter.complete_with_json = AsyncMock(side_effect=Exception("API Error"))
+        
+        engine = EvaluatorEngine(llm_adapter=mock_adapter)
+        evaluator = LLMJudgeEvaluator(
+            name="judge",
+            judge_model="gpt-4o",
+            criteria="Test",
+            output_schema={},
+            pass_threshold=0.8
+        )
+        
+        results = await engine.evaluate("output", [evaluator])
+        
+        assert not results[0].passed
+        assert "LLM judge error" in results[0].reason
+    
+    @pytest.mark.asyncio
+    async def test_llm_judge_returns_reasoning(self):
+        """Test LLM judge captures reasoning from response."""
+        mock_adapter = MagicMock()
+        mock_response = MagicMock()
+        mock_response.content = '{"score": 0.9, "reasoning": "This is excellent because..."}'
+        
+        mock_adapter.complete_with_json = AsyncMock(return_value=mock_response)
+        
+        engine = EvaluatorEngine(llm_adapter=mock_adapter)
+        evaluator = LLMJudgeEvaluator(
+            name="judge",
+            judge_model="gpt-4o",
+            criteria="Test",
+            output_schema={},
+            pass_threshold=0.8
+        )
+        
+        results = await engine.evaluate("output", [evaluator])
+        
+        assert results[0].reason == "This is excellent because..."
+    
+    @pytest.mark.asyncio
+    async def test_llm_judge_missing_reasoning(self):
+        """Test LLM judge with missing reasoning field."""
+        mock_adapter = MagicMock()
+        mock_response = MagicMock()
+        mock_response.content = '{"score": 0.9}'
+        
+        mock_adapter.complete_with_json = AsyncMock(return_value=mock_response)
+        
+        engine = EvaluatorEngine(llm_adapter=mock_adapter)
+        evaluator = LLMJudgeEvaluator(
+            name="judge",
+            judge_model="gpt-4o",
+            criteria="Test",
+            output_schema={},
+            pass_threshold=0.8
+        )
+        
+        results = await engine.evaluate("output", [evaluator])
+        
+        # Should default to empty string
+        assert results[0].reason == ""
+    
+    @pytest.mark.asyncio
+    async def test_llm_judge_evaluator_name(self):
+        """Test LLM judge returns evaluator name."""
+        mock_adapter = MagicMock()
+        mock_response = MagicMock()
+        mock_response.content = '{"score": 0.9, "reasoning": "Good"}'
+        
+        mock_adapter.complete_with_json = AsyncMock(return_value=mock_response)
+        
+        engine = EvaluatorEngine(llm_adapter=mock_adapter)
+        evaluator = LLMJudgeEvaluator(
+            name="my_judge",
+            judge_model="gpt-4o",
+            criteria="Test",
+            output_schema={},
+            pass_threshold=0.8
+        )
+        
+        results = await engine.evaluate("output", [evaluator])
+        
+        assert results[0].evaluator_name == "my_judge"
+
+
+class TestEvaluatorEngineIntegration:
+    """Test EvaluatorEngine integration scenarios."""
+    
+    @pytest.mark.asyncio
+    async def test_evaluate_single_regex(self):
+        """Test evaluate with single regex evaluator."""
+        engine = EvaluatorEngine()
+        evaluators = [
+            RegexEvaluator(name="test", pattern="hello", pass_on_match=True)
+        ]
+        
+        results = await engine.evaluate("hello world", evaluators)
+        
+        assert len(results) == 1
+        assert results[0].passed
+    
+    @pytest.mark.asyncio
+    async def test_evaluate_regex_then_exact_match(self):
+        """Test evaluate with regex then exact match."""
+        engine = EvaluatorEngine()
+        evaluators = [
+            RegexEvaluator(name="regex", pattern="hello"),
+            ExactMatchEvaluator(name="exact", expected="world")
+        ]
+        
+        results = await engine.evaluate("hello world", evaluators)
+        
+        assert len(results) == 2
+        assert results[0].passed
+        assert results[1].passed
+    
+    @pytest.mark.asyncio
+    async def test_evaluate_preserves_evaluator_order(self):
+        """Test that results preserve evaluator order."""
+        engine = EvaluatorEngine()
+        evaluators = [
+            RegexEvaluator(name="first", pattern="z"),
+            RegexEvaluator(name="second", pattern="a"),
+            RegexEvaluator(name="third", pattern="m")
+        ]
+        
+        results = await engine.evaluate("abcxyz", evaluators)
+        
+        assert results[0].evaluator_name == "first"
+        assert results[1].evaluator_name == "second"
+        assert results[2].evaluator_name == "third"
+    
+    @pytest.mark.asyncio
+    async def test_build_judge_prompt(self):
+        """Test judge prompt building."""
+        engine = EvaluatorEngine()
+        criteria = "Test if output is good"
+        output_schema = {"type": "object", "properties": {"score": {"type": "number"}}}
+        
+        prompt = engine._build_judge_prompt("test output", criteria, output_schema)
+        
+        assert "test output" in prompt
+        assert "Test if output is good" in prompt
+        assert "score" in prompt
