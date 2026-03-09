@@ -3,10 +3,10 @@
 import asyncio
 import sys
 from pathlib import Path
-from typing import Annotated, Optional
 
 import typer
 from rich.console import Console
+from typing_extensions import Annotated, Optional
 
 from md_evals import __version__
 from md_evals.config import ConfigLoader, ConfigLoaderError
@@ -33,7 +33,7 @@ def version():
 
 @app.command()
 def init(
-    directory: Annotated[str, typer.Argument(".", help="Directory to initialize")] = ".",
+    directory: Annotated[str, typer.Argument(help="Directory to initialize")] = ".",
     force: Annotated[bool, typer.Option("--force", "-f", help="Overwrite existing files")] = False,
 ):
     """Scaffold eval.yaml and SKILL.md template."""
@@ -136,8 +136,8 @@ Describe what this skill does and when it should be applied.
 @app.command()
 def run(
     config: Annotated[str, typer.Option("--config", "-c", help="Config file path")] = "eval.yaml",
-    treatment: Annotated[str | None, typer.Option("--treatment", "-t", help="Treatment(s) to run (comma-separated or wildcard)")] = None,
-    model: Annotated[str | None, typer.Option("--model", "-m", help="Override model")] = None,
+    treatment: Annotated[Optional[str], typer.Option("--treatment", "-t", help="Treatment(s) to run (comma-separated or wildcard)")] = None,
+    model: Annotated[Optional[str], typer.Option("--model", "-m", help="Override model")] = None,
     count: Annotated[int, typer.Option("--count", help="Number of repetitions")] = 1,
     workers: Annotated[int, typer.Option("-n", help="Number of parallel workers")] = 1,
     output: Annotated[str, typer.Option("--output", "-o", help="Output format")] = "table",
@@ -255,7 +255,7 @@ def run(
 
 @app.command()
 def lint(
-    skill_path: Annotated[str, typer.Argument("SKILL.md", help="Skill file to lint")] = "SKILL.md",
+    skill_path: Annotated[str, typer.Argument(help="Skill file to lint")] = "SKILL.md",
     fail: Annotated[bool, typer.Option("--fail", "-f", help="Exit with error on violations")] = True,
     verbose: Annotated[bool, typer.Option("--verbose", "-v", help="Show details")] = False,
 ):
