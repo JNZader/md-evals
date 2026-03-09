@@ -26,22 +26,10 @@ jobs:
         with:
           node-version: 20
 
-      - name: Install Docsify
-        run: npm install -g docsify-cli
-
-      - name: Generate Docs
-        run: |
-          cp docs/_sidebar.md /tmp/_sidebar.md
-          cp docs/_coverpage.md /tmp/_coverpage.md 2>/dev/null || true
-          cd docs
-          rm -f _sidebar.md _coverpage.md
-          docsify generate . --sidebar /tmp/_sidebar.md
-          rm -rf .nojekyll 2>/dev/null || true
-
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: docs/./
+          path: docs/
 
   deploy:
     needs: build
