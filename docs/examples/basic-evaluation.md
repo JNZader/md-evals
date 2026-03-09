@@ -1,11 +1,41 @@
 <!-- docs/examples/basic-evaluation.md -->
 # Basic Evaluation
 
-A simple example to test your first skill.
+A simple example to test your first skill. We will build a basic "Code Reviewer" agent and evaluate if giving it explicit instructions actually makes it provide better reviews.
+
+## The A/B Test Design
+
+```mermaid
+sequenceDiagram
+    participant User
+    participant md-evals
+    participant LLM
+    participant Evaluator
+    
+    User->>md-evals: Run `md-evals run`
+    
+    rect rgb(241, 245, 249)
+    note right of md-evals: CONTROL Treatment
+    md-evals->>LLM: "Review this code: def add(a,b):return a+b"
+    LLM-->>md-evals: "The code looks fine."
+    md-evals->>Evaluator: Check for suggestions
+    Evaluator-->>md-evals: FAIL (No suggestions found)
+    end
+    
+    rect rgb(224, 231, 255)
+    note right of md-evals: WITH_SKILL Treatment
+    md-evals->>LLM: "Review this code: def add(a,b):return a+b" + SKILL.md
+    LLM-->>md-evals: "I suggest adding type hints..."
+    md-evals->>Evaluator: Check for suggestions
+    Evaluator-->>md-evals: PASS (Suggestions found)
+    end
+    
+    md-evals->>User: Display Results Table
+```
 
 ## Project Structure
 
-```
+```text
 my-eval/
 ├── eval.yaml
 ├── SKILL.md
