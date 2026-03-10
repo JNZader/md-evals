@@ -4,6 +4,8 @@ Lightweight CLI tool for evaluating AI skills (SKILL.md) with Control vs Treatme
 
 Inspired by [LangChain skills-benchmarks](https://github.com/langchain-ai/skills-benchmarks).
 
+**📚 [Full Documentation](https://jnzader.github.io/md-evals/)** - Installation, guides, examples, and API reference
+
 ## Features
 
 - **A/B Testing**: Compare Control (no skill) vs Treatment (with skill) prompts
