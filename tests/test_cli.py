@@ -454,3 +454,152 @@ tests:
             ])
             
             assert "Error loading config" not in result.stdout
+
+
+class TestListModelsCommand:
+    """Test list-models command (Phase 3)."""
+    
+    def test_list_models_all_providers(self):
+        """Test listing models for all providers."""
+        from typer.testing import CliRunner
+        
+        runner = CliRunner()
+        result = runner.invoke(app, ["list-models"])
+        
+        assert result.exit_code == 0
+        # Should show at least the github-models provider
+        assert "github-models" in result.stdout or "github_models" in result.stdout.lower()
+    
+    def test_list_models_github_models(self):
+        """Test listing GitHub Models specifically."""
+        from typer.testing import CliRunner
+        
+        runner = CliRunner()
+        result = runner.invoke(app, ["list-models", "--provider", "github-models"])
+        
+        assert result.exit_code == 0
+        # Should show supported models
+        assert "claude-3.5-sonnet" in result.stdout or "Claude" in result.stdout
+    
+    def test_list_models_with_verbose(self):
+        """Test list-models with verbose output."""
+        from typer.testing import CliRunner
+        
+        runner = CliRunner()
+        result = runner.invoke(app, ["list-models", "--provider", "github-models", "--verbose"])
+        
+        assert result.exit_code == 0
+        # Verbose should show more details
+        assert "Model" in result.stdout or "model" in result.stdout.lower()
+    
+    def test_list_models_invalid_provider(self):
+        """Test list-models with invalid provider."""
+        from typer.testing import CliRunner
+        
+        runner = CliRunner()
+        result = runner.invoke(app, ["list-models", "--provider", "invalid-provider"])
+        
+        assert result.exit_code == 1
+        assert "Error" in result.stdout or "not found" in result.stdout.lower()
+
+
+class TestProviderFlags:
+    """Test --provider flag in run command (Phase 3)."""
+    
+    def test_run_with_provider_flag_github_models(self, tmp_path):
+        """Test run command with --provider github-models."""
+        from typer.testing import CliRunner
+        
+        eval_file = tmp_path / "eval.yaml"
+        eval_file.write_text("""
+name: Test
+treatments:
+  CONTROL:
+    skill_path: null
+tests:
+  - name: test1
+    prompt: "test"
+""")
+        
+        with patch("md_evals.cli.LLMAdapter"), \
+             patch("md_evals.cli.ExecutionEngine") as mock_engine, \
+             patch("md_evals.cli.Reporter"):
+            
+            mock_engine_instance = MagicMock()
+            mock_engine_instance.run_all = AsyncMock(return_value=[])
+            mock_engine.return_value = mock_engine_instance
+            
+            runner = CliRunner()
+            result = runner.invoke(app, [
+                "run", "--config", str(eval_file),
+                "--provider", "github-models",
+                "--no-lint"
+            ])
+            
+            # Should accept the provider flag
+            assert "not found" not in result.stdout.lower()
+    
+    def test_run_with_invalid_provider(self, tmp_path):
+        """Test run command with invalid provider."""
+        from typer.testing import CliRunner
+        
+        eval_file = tmp_path / "eval.yaml"
+        eval_file.write_text("""
+name: Test
+treatments:
+  CONTROL:
+    skill_path: null
+tests:
+  - name: test1
+    prompt: "test"
+""")
+        
+        runner = CliRunner()
+        result = runner.invoke(app, [
+            "run", "--config", str(eval_file),
+            "--provider", "completely-invalid-provider",
+            "--no-lint"
+        ])
+        
+        # Should fail with provider not found
+        assert result.exit_code == 1
+        assert "not found" in result.stdout.lower()
+
+
+class TestProviderConfigFile:
+    """Test provider specification in config files (Phase 3)."""
+    
+    def test_config_with_provider_field(self, tmp_path):
+        """Test eval.yaml with provider in defaults section."""
+        from typer.testing import CliRunner
+        
+        eval_file = tmp_path / "eval.yaml"
+        eval_file.write_text("""
+name: Test
+defaults:
+  provider: "github-models"
+  model: "claude-3.5-sonnet"
+treatments:
+  CONTROL:
+    skill_path: null
+tests:
+  - name: test1
+    prompt: "test"
+""")
+        
+        with patch("md_evals.cli.LLMAdapter"), \
+             patch("md_evals.cli.ExecutionEngine") as mock_engine, \
+             patch("md_evals.cli.Reporter"):
+            
+            mock_engine_instance = MagicMock()
+            mock_engine_instance.run_all = AsyncMock(return_value=[])
+            mock_engine.return_value = mock_engine_instance
+            
+            runner = CliRunner()
+            result = runner.invoke(app, [
+                "run", "--config", str(eval_file),
+                "--no-lint"
+            ])
+            
+            # Should load config with provider field
+            assert "Error loading config" not in result.stdout or result.exit_code == 0

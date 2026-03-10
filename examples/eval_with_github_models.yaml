@@ -1,45 +1,98 @@
-name: "GitHub Models Integration Test"
+# Example Evaluation Configuration with GitHub Models
+#
+# This example shows how to use GitHub Models (free LLM provider) for evaluations.
+# GitHub Models provides free access to Claude 3.5 Sonnet, GPT-4o, DeepSeek-R1, and Grok-3.
+#
+# Before running:
+#   1. Set your GitHub token: export GITHUB_TOKEN=github_pat_...
+#   2. Run: md-evals run examples/eval_with_github_models.yaml
+
+name: "GitHub Models Evaluation Example"
 version: "1.0"
-description: "Example evaluation using GitHub Models provider"
+description: "Example evaluation using GitHub Models provider (Claude 3.5 Sonnet)"
 
 defaults:
-  model: "claude-3.5-sonnet"
+  # Use GitHub Models provider with Claude 3.5 Sonnet model
   provider: "github-models"
+  model: "claude-3.5-sonnet"
   temperature: 0.7
   max_tokens: 1024
+  timeout: 60
+  retry_attempts: 3
 
 treatments:
   CONTROL:
     description: "Baseline response without skill injection"
+    skill_path: null
+  
   WITH_SKILL:
-    description: "Response with helpful reasoning skill"
-    skill_path: "./examples/reasoning_skill.md"
+    description: "Response with skill injection"
+    skill_path: "./SKILL.md"
 
 tests:
-  - name: "simple_question"
-    description: "Test a simple factual question"
-    prompt: "What is the capital of France?"
+  - name: "test_clear_explanation"
+    description: "Test if model provides clear explanation"
+    prompt: |
+      Explain the concept of {concept} in a way that a beginner can understand.
+    variables:
+      concept: "recursion in programming"
     evaluators:
       - type: "regex"
-        name: "contains_paris"
-        pattern: "(?i)paris"
+        name: "mentions_base_case"
+        pattern: "base case|termination|stopping condition"
         pass_on_match: true
-
-  - name: "code_explanation"
-    description: "Test code explanation task"
-    prompt: "Explain this Python code: print('hello world')"
+      - type: "regex"
+        name: "mentions_recursion"
+        pattern: "recursion|recursive|call itself|recursive call"
+        pass_on_match: true
+  
+  - name: "test_code_example"
+    description: "Test if model provides code examples"
+    prompt: |
+      Provide a {language} code example that demonstrates {concept}.
+    variables:
+      language: "Python"
+      concept: "list comprehension"
     evaluators:
       - type: "regex"
-        name: "explains_print"
-        pattern: "(?i)(print|output|hello)"
+        name: "has_code"
+        pattern: "```|def |for |in |\\["
         pass_on_match: true
+      - type: "regex"
+        name: "mentions_concept"
+        pattern: "comprehension|compact|concise"
+        pass_on_match: false
 
-execution:
-  parallel_workers: 1
-  repetitions: 1
+lint:
+  max_lines: 400
+  fail_on_violation: false
 
 output:
   format: "table"
   save_results: true
   results_dir: "./results"
-  verbose: true
+
+execution:
+  parallel_workers: 1
+  repetitions: 1
+  fail_fast: false
+
+# --- Usage Examples ---
+#
+# List available GitHub Models:
+#   md-evals list-models --provider github-models
+#
+# Run with GitHub Models (Claude 3.5 Sonnet):
+#   md-evals run examples/eval_with_github_models.yaml
+#
+# Run with a different GitHub Models model (GPT-4o):
+#   md-evals run examples/eval_with_github_models.yaml --model gpt-4o
+#
+# Run with override provider from command line:
+#   md-evals run examples/eval_with_github_models.yaml --provider github-models
+#
+# Run with verbose output:
+#   md-evals run examples/eval_with_github_models.yaml --verbose
+#
+# Run with debug logging:
+#   md-evals run examples/eval_with_github_models.yaml --debug

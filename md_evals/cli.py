@@ -2,10 +2,12 @@
 
 import asyncio
 import sys
+import logging
 from pathlib import Path
 
 import typer
 from rich.console import Console
+from rich.table import Table
 from typing_extensions import Annotated, Optional
 
 from md_evals import __version__
@@ -16,6 +18,10 @@ from md_evals.llm import LLMAdapter
 from md_evals.linter import LinterEngine
 from md_evals.models import LinterConfig, Defaults
 from md_evals.reporter import Reporter
+from md_evals.provider_registry import ProviderRegistry
+from md_evals.providers import GitHubModelsProvider
+
+logger = logging.getLogger(__name__)
 
 app = typer.Typer(
     name="md-evals",
@@ -141,13 +147,22 @@ def run(
     config: Annotated[str, typer.Option("--config", "-c", help="Config file path")] = "eval.yaml",
     treatment: Annotated[Optional[str], typer.Option("--treatment", "-t", help="Treatment(s) to run (comma-separated or wildcard)")] = None,
     model: Annotated[Optional[str], typer.Option("--model", "-m", help="Override model")] = None,
+    provider: Annotated[Optional[str], typer.Option("--provider", "-p", help="Override provider (e.g., github-models, openai, anthropic)")] = None,
     count: Annotated[int, typer.Option("--count", help="Number of repetitions")] = 1,
     workers: Annotated[int, typer.Option("-n", help="Number of parallel workers")] = 1,
     output: Annotated[str, typer.Option("--output", "-o", help="Output format")] = "table",
     no_lint: Annotated[bool, typer.Option("--no-lint", help="Skip linting")] = False,
     verbose: Annotated[bool, typer.Option("--verbose", "-v", help="Verbose output")] = False,
+    debug: Annotated[bool, typer.Option("--debug", help="Enable debug logging for provider initialization")] = False,
 ):
-    """Run evaluations."""
+    """Run evaluations with support for GitHub Models and other providers."""
+    # Configure logging if debug is enabled
+    if debug:
+        logging.basicConfig(
+            level=logging.DEBUG,
+            format="[%(levelname)s] %(name)s: %(message)s"
+        )
+        logger.debug(f"Debug logging enabled")
     try:
         # Load config
         config_obj = ConfigLoader.load(config)
@@ -162,6 +177,19 @@ def run(
         config_obj.execution.parallel_workers = workers
     if model:
         config_obj.defaults.model = model
+    if provider:
+        # Normalize provider name (github-models, GitHub Models, github_models)
+        config_obj.defaults.provider = provider
+        logger.debug(f"Provider override: {provider}")
+        # Validate provider exists in registry
+        try:
+            ProviderRegistry.get(provider)
+        except ValueError as e:
+            console.print(f"[red]Error: {e}[/red]")
+            console.print("[yellow]Available providers:[/yellow]")
+            for pname in ProviderRegistry.list_providers().keys():
+                console.print(f"  - {pname}")
+            raise typer.Exit(code=1)
     
     # Run linter first (optional)
     if not no_lint:
@@ -207,11 +235,26 @@ def run(
     console.print(f"[cyan]Running {len(treatments)} treatment(s)...[/cyan]")
     
     # Create LLM adapter
-    llm_adapter = LLMAdapter(
-        model=config_obj.defaults.model,
-        provider=config_obj.defaults.provider,
-        defaults=config_obj.defaults
-    )
+    try:
+        logger.debug(f"Initializing LLM adapter: provider={config_obj.defaults.provider}, model={config_obj.defaults.model}")
+        llm_adapter = LLMAdapter(
+            model=config_obj.defaults.model,
+            provider=config_obj.defaults.provider,
+            defaults=config_obj.defaults
+        )
+        logger.debug(f"LLM adapter initialized successfully")
+    except Exception as e:
+        # Enhanced error message for GitHub Models authentication
+        error_msg = str(e).lower()
+        if "github" in error_msg and "token" in error_msg:
+            console.print(f"[red]Authentication Error: {e}[/red]")
+            console.print("\n[yellow]GitHub Models Troubleshooting:[/yellow]")
+            console.print("1. Set your GitHub token: export GITHUB_TOKEN=github_pat_...")
+            console.print("2. Generate a token at: https://github.com/settings/tokens")
+            console.print("3. Check your .env file for GITHUB_TOKEN")
+        else:
+            console.print(f"[red]Error initializing provider: {e}[/red]")
+        raise typer.Exit(code=1)
     
     # Create evaluator engine
     evaluator_engine = EvaluatorEngine(llm_adapter=llm_adapter)
@@ -227,7 +270,25 @@ def run(
     try:
         results = asyncio.run(engine.run_all(treatments))
     except Exception as e:
-        console.print(f"[red]Error during execution: {e}[/red]")
+        # Enhanced error messages for various provider errors
+        error_msg = str(e)
+        error_lower = error_msg.lower()
+        
+        console.print(f"[red]Error during execution: {error_msg}[/red]")
+        
+        if "github" in error_lower and "rate" in error_lower:
+            console.print("\n[yellow]Rate Limit Help:[/yellow]")
+            console.print("- Free tier limit: 15 requests/minute")
+            console.print("- Consider: batching requests, caching responses, or waiting")
+        elif "github" in error_lower and "token" in error_lower:
+            console.print("\n[yellow]GitHub Token Help:[/yellow]")
+            console.print("- Check: export GITHUB_TOKEN=github_pat_...")
+            console.print("- Generate: https://github.com/settings/tokens")
+        elif "context" in error_lower or "token limit" in error_lower:
+            console.print("\n[yellow]Context Window Help:[/yellow]")
+            console.print("- Prompt too long for selected model")
+            console.print("- Try: shorter prompts or models with larger context windows")
+        
         raise typer.Exit(code=3)
     
     # Report
@@ -286,6 +347,99 @@ def lint(
             raise typer.Exit(code=2)
         else:
             raise typer.Exit(code=0)
+
+
+@app.command("list-models")
+def list_models(
+    provider: Annotated[Optional[str], typer.Option("--provider", "-p", help="Provider to list models for (default: all)")] = None,
+    verbose: Annotated[bool, typer.Option("--verbose", "-v", help="Show additional metadata")] = False,
+):
+    """List available models for providers.
+    
+    Examples:
+        md-evals list-models                          # Show all providers
+        md-evals list-models --provider github-models # Show GitHub Models only
+        md-evals list-models --provider openai        # Show OpenAI models
+    """
+    registry = ProviderRegistry()
+    
+    # If specific provider requested
+    if provider:
+        try:
+            provider_class = registry.get(provider)
+        except ValueError as e:
+            console.print(f"[red]Error: {e}[/red]")
+            raise typer.Exit(code=1)
+        
+        # Display models for this provider
+        if hasattr(provider_class, 'supported_models'):
+            models = provider_class.supported_models()
+            if models:
+                _display_provider_models(provider, provider_class, models, verbose)
+            else:
+                console.print(f"[yellow]No models found for provider '{provider}'[/yellow]")
+        else:
+            console.print(f"[yellow]Provider '{provider}' does not support model listing[/yellow]")
+    else:
+        # Display all providers and their models
+        providers = registry.list_providers()
+        if not providers:
+            console.print("[yellow]No providers registered[/yellow]")
+            raise typer.Exit(code=0)
+        
+        for pname, pclass in providers.items():
+            if hasattr(pclass, 'supported_models'):
+                models = pclass.supported_models()
+                if models:
+                    _display_provider_models(pname, pclass, models, verbose)
+
+
+def _display_provider_models(provider_name: str, provider_class, models: dict, verbose: bool = False):
+    """Display models for a specific provider in a formatted table.
+    
+    Args:
+        provider_name: Provider name (e.g., 'github-models')
+        provider_class: Provider class
+        models: Dict of model name -> metadata
+        verbose: Show detailed metadata
+    """
+    console.print(f"\n[bold cyan]{provider_name}:[/bold cyan]")
+    
+    # Create table
+    table = Table(title=f"{provider_name} Models", show_header=True, header_style="bold")
+    table.add_column("Model Name", style="cyan")
+    table.add_column("Provider", style="magenta")
+    table.add_column("Context Window", style="green")
+    table.add_column("Status", style="yellow")
+    
+    if verbose:
+        table.add_column("Temperature", style="blue")
+        table.add_column("Cost", style="red")
+        table.add_column("Rate Limit", style="white")
+        table.add_column("Notes", style="dim")
+    
+    # Add rows for each model
+    for model_name, metadata in models.items():
+        if verbose:
+            table.add_row(
+                model_name,
+                getattr(metadata, 'provider', 'unknown'),
+                f"{getattr(metadata, 'context_window', 'N/A'):,}",
+                getattr(metadata, 'status', 'unknown'),
+                f"{getattr(metadata, 'temperature_range', (0, 1))[0]:.1f}–{getattr(metadata, 'temperature_range', (0, 1))[1]:.1f}",
+                getattr(metadata, 'cost', 'unknown'),
+                getattr(metadata, 'rate_limit', 'unknown'),
+                getattr(metadata, 'notes', ''),
+            )
+        else:
+            table.add_row(
+                model_name,
+                getattr(metadata, 'provider', 'unknown'),
+                f"{getattr(metadata, 'context_window', 'N/A'):,}",
+                getattr(metadata, 'status', 'unknown'),
+            )
+    
+    console.print(table)
 
 
 @app.command()

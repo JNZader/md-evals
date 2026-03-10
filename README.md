@@ -109,6 +109,7 @@ tests:
 | `md-evals run` | Run evaluations |
 | `md-evals lint` | Validate SKILL.md |
 | `md-evals list` | List treatments and tasks |
+| `md-evals list-models` | List available models per provider |
 
 ## Options
 
@@ -116,14 +117,16 @@ tests:
 - `-c, --config`: Config file (default: eval.yaml)
 - `-t, --treatment`: Treatment(s) to run
 - `-m, --model`: Override model
+- `-p, --provider`: Override provider (e.g., github-models, openai, anthropic)
 - `-n`: Parallel workers
 - `--count`: Repetitions
 - `-o, --output`: Output format (table/json/markdown)
 - `--no-lint`: Skip linting
+- `--debug`: Enable debug logging for provider initialization
 
-### lint
-- `SKILL.md`: File to lint (default: SKILL.md)
-- `-f, --fail`: Exit with error on violations
+### list-models
+- `-p, --provider`: Filter by provider (shows all if not specified)
+- `-v, --verbose`: Show detailed metadata (temperature ranges, costs, etc.)
 
 ## Development
 
