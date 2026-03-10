@@ -5,6 +5,12 @@
   - [Installation](./guide/getting-started.md)
   - [Quick Start](./guide/quick-start.md)
 
+- **GitHub Models** 🎉
+  - [Setup Guide](./guide/github-models-setup.md)
+  - [Models Reference](./reference/github-models-models.md)
+  - [Example Configurations](./examples/github-models-evaluation.md)
+  - [Troubleshooting](./troubleshooting/github-models-issues.md)
+
 - **Guides**
   - [Configuration](./guide/configuration.md)
   - [Treatments](./guide/treatments.md)

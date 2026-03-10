@@ -14,6 +14,7 @@ Inspired by [LangChain skills-benchmarks](https://github.com/langchain-ai/skills
 - **Linter**: Enforce 400-line limit and other best practices
 - **Rich Output**: Beautiful terminal tables with pass rates and comparisons
 - **JSON/Markdown Export**: Save results for analysis
+- **🎉 GitHub Models Support**: Use free/low-cost models (Claude, GPT-4, DeepSeek, Grok) via GitHub
 
 ## Installation
 
@@ -45,6 +46,28 @@ md-evals lint
 md-evals list
 ```
 
+## 🎉 GitHub Models: Free/Low-Cost LLM Evaluation
+
+Evaluate your skills with **free or low-cost models** using GitHub Models:
+
+```bash
+# Set your GitHub token (once)
+export GITHUB_TOKEN="github_pat_..."
+
+# Use Claude 3.5 Sonnet for evaluation (free!)
+md-evals run eval.yaml --provider github-models --model claude-3.5-sonnet
+```
+
+**Available Models:**
+- `claude-3.5-sonnet` — 200k context, best for reasoning (free)
+- `gpt-4o` — Balanced general-purpose (free)
+- `deepseek-r1` — Fastest, lowest cost (free)
+- `grok-3` — Latest reasoning model (free)
+
+**Rate Limits:** 15 requests/min (public preview)
+
+→ **[Full GitHub Models Guide](https://jnzader.github.io/md-evals/#/guide/github-models-setup)**
+
 ## Configuration
 
 Create an `eval.yaml` file:
@@ -54,8 +77,8 @@ name: "My Evaluation"
 version: "1.0"
 
 defaults:
-  model: "gpt-4o"
-  provider: "openai"
+  model: "claude-3.5-sonnet"
+  provider: "github-models"  # ← New! Free/low-cost
   temperature: 0.7
 
 treatments:
