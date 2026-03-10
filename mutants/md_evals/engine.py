@@ -202,12 +202,18 @@ class ExecutionEngine:
                     system_prompt=system_prompt,
                 )
             except LLMError as e:
-                # Return error result
+                # Return error result with empty response
                 return ExecutionResult(
                     treatment=treatment_name,
                     test=task.name,
                     prompt=final_prompt,
-                    response=None,
+                    response=LLMResponse(
+                        content="",
+                        model="error",
+                        provider="error",
+                        duration_ms=0,
+                        raw_response={"error": str(e)}
+                    ),
                     passed=False,
                     evaluator_results=[],
                     timestamp=datetime.utcnow().isoformat()
@@ -266,12 +272,18 @@ class ExecutionEngine:
                     system_prompt=system_prompt,
                 )
             except LLMError as e:
-                # Return error result
+                # Return error result with empty response
                 return ExecutionResult(
                     treatment=treatment_name,
                     test=task.name,
                     prompt=final_prompt,
-                    response=None,
+                    response=LLMResponse(
+                        content="",
+                        model="error",
+                        provider="error",
+                        duration_ms=0,
+                        raw_response={"error": str(e)}
+                    ),
                     passed=False,
                     evaluator_results=[],
                     timestamp=datetime.utcnow().isoformat()
@@ -333,12 +345,18 @@ class ExecutionEngine:
                     system_prompt=system_prompt,
                 )
             except LLMError as e:
-                # Return error result
+                # Return error result with empty response
                 return ExecutionResult(
                     treatment=treatment_name,
                     test=task.name,
                     prompt=final_prompt,
-                    response=None,
+                    response=LLMResponse(
+                        content="",
+                        model="error",
+                        provider="error",
+                        duration_ms=0,
+                        raw_response={"error": str(e)}
+                    ),
                     passed=False,
                     evaluator_results=[],
                     timestamp=datetime.utcnow().isoformat()
@@ -400,12 +418,18 @@ class ExecutionEngine:
                     system_prompt=system_prompt,
                 )
             except LLMError as e:
-                # Return error result
+                # Return error result with empty response
                 return ExecutionResult(
                     treatment=treatment_name,
                     test=task.name,
                     prompt=final_prompt,
-                    response=None,
+                    response=LLMResponse(
+                        content="",
+                        model="error",
+                        provider="error",
+                        duration_ms=0,
+                        raw_response={"error": str(e)}
+                    ),
                     passed=False,
                     evaluator_results=[],
                     timestamp=datetime.utcnow().isoformat()
@@ -466,12 +490,18 @@ class ExecutionEngine:
                     system_prompt=system_prompt,
                 )
             except LLMError as e:
-                # Return error result
+                # Return error result with empty response
                 return ExecutionResult(
                     treatment=treatment_name,
                     test=task.name,
                     prompt=final_prompt,
-                    response=None,
+                    response=LLMResponse(
+                        content="",
+                        model="error",
+                        provider="error",
+                        duration_ms=0,
+                        raw_response={"error": str(e)}
+                    ),
                     passed=False,
                     evaluator_results=[],
                     timestamp=datetime.utcnow().isoformat()
@@ -532,12 +562,18 @@ class ExecutionEngine:
                     system_prompt=system_prompt,
                 )
             except LLMError as e:
-                # Return error result
+                # Return error result with empty response
                 return ExecutionResult(
                     treatment=treatment_name,
                     test=task.name,
                     prompt=final_prompt,
-                    response=None,
+                    response=LLMResponse(
+                        content="",
+                        model="error",
+                        provider="error",
+                        duration_ms=0,
+                        raw_response={"error": str(e)}
+                    ),
                     passed=False,
                     evaluator_results=[],
                     timestamp=datetime.utcnow().isoformat()
@@ -599,12 +635,18 @@ class ExecutionEngine:
                     system_prompt=system_prompt,
                 )
             except LLMError as e:
-                # Return error result
+                # Return error result with empty response
                 return ExecutionResult(
                     treatment=treatment_name,
                     test=task.name,
                     prompt=final_prompt,
-                    response=None,
+                    response=LLMResponse(
+                        content="",
+                        model="error",
+                        provider="error",
+                        duration_ms=0,
+                        raw_response={"error": str(e)}
+                    ),
                     passed=False,
                     evaluator_results=[],
                     timestamp=datetime.utcnow().isoformat()
@@ -666,12 +708,18 @@ class ExecutionEngine:
                     system_prompt=system_prompt,
                 )
             except LLMError as e:
-                # Return error result
+                # Return error result with empty response
                 return ExecutionResult(
                     treatment=treatment_name,
                     test=task.name,
                     prompt=final_prompt,
-                    response=None,
+                    response=LLMResponse(
+                        content="",
+                        model="error",
+                        provider="error",
+                        duration_ms=0,
+                        raw_response={"error": str(e)}
+                    ),
                     passed=False,
                     evaluator_results=[],
                     timestamp=datetime.utcnow().isoformat()
@@ -733,12 +781,18 @@ class ExecutionEngine:
                     system_prompt=system_prompt,
                 )
             except LLMError as e:
-                # Return error result
+                # Return error result with empty response
                 return ExecutionResult(
                     treatment=treatment_name,
                     test=task.name,
                     prompt=final_prompt,
-                    response=None,
+                    response=LLMResponse(
+                        content="",
+                        model="error",
+                        provider="error",
+                        duration_ms=0,
+                        raw_response={"error": str(e)}
+                    ),
                     passed=False,
                     evaluator_results=[],
                     timestamp=datetime.utcnow().isoformat()
@@ -800,12 +854,18 @@ class ExecutionEngine:
                     system_prompt=system_prompt,
                 )
             except LLMError as e:
-                # Return error result
+                # Return error result with empty response
                 return ExecutionResult(
                     treatment=treatment_name,
                     test=task.name,
                     prompt=final_prompt,
-                    response=None,
+                    response=LLMResponse(
+                        content="",
+                        model="error",
+                        provider="error",
+                        duration_ms=0,
+                        raw_response={"error": str(e)}
+                    ),
                     passed=False,
                     evaluator_results=[],
                     timestamp=datetime.utcnow().isoformat()
@@ -867,12 +927,18 @@ class ExecutionEngine:
                     system_prompt=system_prompt,
                 )
             except LLMError as e:
-                # Return error result
+                # Return error result with empty response
                 return ExecutionResult(
                     treatment=treatment_name,
                     test=task.name,
                     prompt=final_prompt,
-                    response=None,
+                    response=LLMResponse(
+                        content="",
+                        model="error",
+                        provider="error",
+                        duration_ms=0,
+                        raw_response={"error": str(e)}
+                    ),
                     passed=False,
                     evaluator_results=[],
                     timestamp=datetime.utcnow().isoformat()
@@ -934,12 +1000,18 @@ class ExecutionEngine:
                     system_prompt=system_prompt,
                 )
             except LLMError as e:
-                # Return error result
+                # Return error result with empty response
                 return ExecutionResult(
                     treatment=treatment_name,
                     test=task.name,
                     prompt=final_prompt,
-                    response=None,
+                    response=LLMResponse(
+                        content="",
+                        model="error",
+                        provider="error",
+                        duration_ms=0,
+                        raw_response={"error": str(e)}
+                    ),
                     passed=False,
                     evaluator_results=[],
                     timestamp=datetime.utcnow().isoformat()
@@ -998,12 +1070,18 @@ class ExecutionEngine:
             try:
                 response = None
             except LLMError as e:
-                # Return error result
+                # Return error result with empty response
                 return ExecutionResult(
                     treatment=treatment_name,
                     test=task.name,
                     prompt=final_prompt,
-                    response=None,
+                    response=LLMResponse(
+                        content="",
+                        model="error",
+                        provider="error",
+                        duration_ms=0,
+                        raw_response={"error": str(e)}
+                    ),
                     passed=False,
                     evaluator_results=[],
                     timestamp=datetime.utcnow().isoformat()
@@ -1065,12 +1143,18 @@ class ExecutionEngine:
                     system_prompt=system_prompt,
                 )
             except LLMError as e:
-                # Return error result
+                # Return error result with empty response
                 return ExecutionResult(
                     treatment=treatment_name,
                     test=task.name,
                     prompt=final_prompt,
-                    response=None,
+                    response=LLMResponse(
+                        content="",
+                        model="error",
+                        provider="error",
+                        duration_ms=0,
+                        raw_response={"error": str(e)}
+                    ),
                     passed=False,
                     evaluator_results=[],
                     timestamp=datetime.utcnow().isoformat()
@@ -1132,12 +1216,18 @@ class ExecutionEngine:
                     system_prompt=None,
                 )
             except LLMError as e:
-                # Return error result
+                # Return error result with empty response
                 return ExecutionResult(
                     treatment=treatment_name,
                     test=task.name,
                     prompt=final_prompt,
-                    response=None,
+                    response=LLMResponse(
+                        content="",
+                        model="error",
+                        provider="error",
+                        duration_ms=0,
+                        raw_response={"error": str(e)}
+                    ),
                     passed=False,
                     evaluator_results=[],
                     timestamp=datetime.utcnow().isoformat()
@@ -1198,12 +1288,18 @@ class ExecutionEngine:
                     system_prompt=system_prompt,
                 )
             except LLMError as e:
-                # Return error result
+                # Return error result with empty response
                 return ExecutionResult(
                     treatment=treatment_name,
                     test=task.name,
                     prompt=final_prompt,
-                    response=None,
+                    response=LLMResponse(
+                        content="",
+                        model="error",
+                        provider="error",
+                        duration_ms=0,
+                        raw_response={"error": str(e)}
+                    ),
                     passed=False,
                     evaluator_results=[],
                     timestamp=datetime.utcnow().isoformat()
@@ -1264,12 +1360,18 @@ class ExecutionEngine:
                     prompt=final_prompt,
                     )
             except LLMError as e:
-                # Return error result
+                # Return error result with empty response
                 return ExecutionResult(
                     treatment=treatment_name,
                     test=task.name,
                     prompt=final_prompt,
-                    response=None,
+                    response=LLMResponse(
+                        content="",
+                        model="error",
+                        provider="error",
+                        duration_ms=0,
+                        raw_response={"error": str(e)}
+                    ),
                     passed=False,
                     evaluator_results=[],
                     timestamp=datetime.utcnow().isoformat()
@@ -1331,12 +1433,18 @@ class ExecutionEngine:
                     system_prompt=system_prompt,
                 )
             except LLMError as e:
-                # Return error result
+                # Return error result with empty response
                 return ExecutionResult(
                     treatment=None,
                     test=task.name,
                     prompt=final_prompt,
-                    response=None,
+                    response=LLMResponse(
+                        content="",
+                        model="error",
+                        provider="error",
+                        duration_ms=0,
+                        raw_response={"error": str(e)}
+                    ),
                     passed=False,
                     evaluator_results=[],
                     timestamp=datetime.utcnow().isoformat()
@@ -1398,12 +1506,18 @@ class ExecutionEngine:
                     system_prompt=system_prompt,
                 )
             except LLMError as e:
-                # Return error result
+                # Return error result with empty response
                 return ExecutionResult(
                     treatment=treatment_name,
                     test=None,
                     prompt=final_prompt,
-                    response=None,
+                    response=LLMResponse(
+                        content="",
+                        model="error",
+                        provider="error",
+                        duration_ms=0,
+                        raw_response={"error": str(e)}
+                    ),
                     passed=False,
                     evaluator_results=[],
                     timestamp=datetime.utcnow().isoformat()
@@ -1465,12 +1579,18 @@ class ExecutionEngine:
                     system_prompt=system_prompt,
                 )
             except LLMError as e:
-                # Return error result
+                # Return error result with empty response
                 return ExecutionResult(
                     treatment=treatment_name,
                     test=task.name,
                     prompt=None,
-                    response=None,
+                    response=LLMResponse(
+                        content="",
+                        model="error",
+                        provider="error",
+                        duration_ms=0,
+                        raw_response={"error": str(e)}
+                    ),
                     passed=False,
                     evaluator_results=[],
                     timestamp=datetime.utcnow().isoformat()
@@ -1532,13 +1652,13 @@ class ExecutionEngine:
                     system_prompt=system_prompt,
                 )
             except LLMError as e:
-                # Return error result
+                # Return error result with empty response
                 return ExecutionResult(
                     treatment=treatment_name,
                     test=task.name,
                     prompt=final_prompt,
                     response=None,
-                    passed=None,
+                    passed=False,
                     evaluator_results=[],
                     timestamp=datetime.utcnow().isoformat()
                 )
@@ -1599,14 +1719,20 @@ class ExecutionEngine:
                     system_prompt=system_prompt,
                 )
             except LLMError as e:
-                # Return error result
+                # Return error result with empty response
                 return ExecutionResult(
                     treatment=treatment_name,
                     test=task.name,
                     prompt=final_prompt,
-                    response=None,
-                    passed=False,
-                    evaluator_results=None,
+                    response=LLMResponse(
+                        content="",
+                        model="error",
+                        provider="error",
+                        duration_ms=0,
+                        raw_response={"error": str(e)}
+                    ),
+                    passed=None,
+                    evaluator_results=[],
                     timestamp=datetime.utcnow().isoformat()
                 )
             
@@ -1666,15 +1792,21 @@ class ExecutionEngine:
                     system_prompt=system_prompt,
                 )
             except LLMError as e:
-                # Return error result
+                # Return error result with empty response
                 return ExecutionResult(
                     treatment=treatment_name,
                     test=task.name,
                     prompt=final_prompt,
-                    response=None,
+                    response=LLMResponse(
+                        content="",
+                        model="error",
+                        provider="error",
+                        duration_ms=0,
+                        raw_response={"error": str(e)}
+                    ),
                     passed=False,
-                    evaluator_results=[],
-                    timestamp=None
+                    evaluator_results=None,
+                    timestamp=datetime.utcnow().isoformat()
                 )
             
             # Evaluate if evaluator engine is available
@@ -1733,14 +1865,21 @@ class ExecutionEngine:
                     system_prompt=system_prompt,
                 )
             except LLMError as e:
-                # Return error result
+                # Return error result with empty response
                 return ExecutionResult(
+                    treatment=treatment_name,
                     test=task.name,
                     prompt=final_prompt,
-                    response=None,
+                    response=LLMResponse(
+                        content="",
+                        model="error",
+                        provider="error",
+                        duration_ms=0,
+                        raw_response={"error": str(e)}
+                    ),
                     passed=False,
                     evaluator_results=[],
-                    timestamp=datetime.utcnow().isoformat()
+                    timestamp=None
                 )
             
             # Evaluate if evaluator engine is available
@@ -1799,11 +1938,17 @@ class ExecutionEngine:
                     system_prompt=system_prompt,
                 )
             except LLMError as e:
-                # Return error result
+                # Return error result with empty response
                 return ExecutionResult(
-                    treatment=treatment_name,
+                    test=task.name,
                     prompt=final_prompt,
-                    response=None,
+                    response=LLMResponse(
+                        content="",
+                        model="error",
+                        provider="error",
+                        duration_ms=0,
+                        raw_response={"error": str(e)}
+                    ),
                     passed=False,
                     evaluator_results=[],
                     timestamp=datetime.utcnow().isoformat()
@@ -1865,11 +2010,17 @@ class ExecutionEngine:
                     system_prompt=system_prompt,
                 )
             except LLMError as e:
-                # Return error result
+                # Return error result with empty response
                 return ExecutionResult(
                     treatment=treatment_name,
-                    test=task.name,
-                    response=None,
+                    prompt=final_prompt,
+                    response=LLMResponse(
+                        content="",
+                        model="error",
+                        provider="error",
+                        duration_ms=0,
+                        raw_response={"error": str(e)}
+                    ),
                     passed=False,
                     evaluator_results=[],
                     timestamp=datetime.utcnow().isoformat()
@@ -1931,11 +2082,17 @@ class ExecutionEngine:
                     system_prompt=system_prompt,
                 )
             except LLMError as e:
-                # Return error result
+                # Return error result with empty response
                 return ExecutionResult(
                     treatment=treatment_name,
                     test=task.name,
-                    prompt=final_prompt,
+                    response=LLMResponse(
+                        content="",
+                        model="error",
+                        provider="error",
+                        duration_ms=0,
+                        raw_response={"error": str(e)}
+                    ),
                     passed=False,
                     evaluator_results=[],
                     timestamp=datetime.utcnow().isoformat()
@@ -1997,12 +2154,12 @@ class ExecutionEngine:
                     system_prompt=system_prompt,
                 )
             except LLMError as e:
-                # Return error result
+                # Return error result with empty response
                 return ExecutionResult(
                     treatment=treatment_name,
                     test=task.name,
                     prompt=final_prompt,
-                    response=None,
+                    passed=False,
                     evaluator_results=[],
                     timestamp=datetime.utcnow().isoformat()
                 )
@@ -2063,13 +2220,19 @@ class ExecutionEngine:
                     system_prompt=system_prompt,
                 )
             except LLMError as e:
-                # Return error result
+                # Return error result with empty response
                 return ExecutionResult(
                     treatment=treatment_name,
                     test=task.name,
                     prompt=final_prompt,
-                    response=None,
-                    passed=False,
+                    response=LLMResponse(
+                        content="",
+                        model="error",
+                        provider="error",
+                        duration_ms=0,
+                        raw_response={"error": str(e)}
+                    ),
+                    evaluator_results=[],
                     timestamp=datetime.utcnow().isoformat()
                 )
             
@@ -2129,15 +2292,21 @@ class ExecutionEngine:
                     system_prompt=system_prompt,
                 )
             except LLMError as e:
-                # Return error result
+                # Return error result with empty response
                 return ExecutionResult(
                     treatment=treatment_name,
                     test=task.name,
                     prompt=final_prompt,
-                    response=None,
+                    response=LLMResponse(
+                        content="",
+                        model="error",
+                        provider="error",
+                        duration_ms=0,
+                        raw_response={"error": str(e)}
+                    ),
                     passed=False,
-                    evaluator_results=[],
-                    )
+                    timestamp=datetime.utcnow().isoformat()
+                )
             
             # Evaluate if evaluator engine is available
             evaluator_results = []
@@ -2195,16 +2364,21 @@ class ExecutionEngine:
                     system_prompt=system_prompt,
                 )
             except LLMError as e:
-                # Return error result
+                # Return error result with empty response
                 return ExecutionResult(
                     treatment=treatment_name,
                     test=task.name,
                     prompt=final_prompt,
-                    response=None,
-                    passed=True,
+                    response=LLMResponse(
+                        content="",
+                        model="error",
+                        provider="error",
+                        duration_ms=0,
+                        raw_response={"error": str(e)}
+                    ),
+                    passed=False,
                     evaluator_results=[],
-                    timestamp=datetime.utcnow().isoformat()
-                )
+                    )
             
             # Evaluate if evaluator engine is available
             evaluator_results = []
@@ -2262,19 +2436,25 @@ class ExecutionEngine:
                     system_prompt=system_prompt,
                 )
             except LLMError as e:
-                # Return error result
+                # Return error result with empty response
                 return ExecutionResult(
                     treatment=treatment_name,
                     test=task.name,
                     prompt=final_prompt,
-                    response=None,
+                    response=LLMResponse(
+                        content=None,
+                        model="error",
+                        provider="error",
+                        duration_ms=0,
+                        raw_response={"error": str(e)}
+                    ),
                     passed=False,
                     evaluator_results=[],
                     timestamp=datetime.utcnow().isoformat()
                 )
             
             # Evaluate if evaluator engine is available
-            evaluator_results = None
+            evaluator_results = []
             if self.evaluator_engine and task.evaluators:
                 evaluator_results = await self.evaluator_engine.evaluate(
                     response.content,
@@ -2329,12 +2509,18 @@ class ExecutionEngine:
                     system_prompt=system_prompt,
                 )
             except LLMError as e:
-                # Return error result
+                # Return error result with empty response
                 return ExecutionResult(
                     treatment=treatment_name,
                     test=task.name,
                     prompt=final_prompt,
-                    response=None,
+                    response=LLMResponse(
+                        content="",
+                        model=None,
+                        provider="error",
+                        duration_ms=0,
+                        raw_response={"error": str(e)}
+                    ),
                     passed=False,
                     evaluator_results=[],
                     timestamp=datetime.utcnow().isoformat()
@@ -2342,7 +2528,7 @@ class ExecutionEngine:
             
             # Evaluate if evaluator engine is available
             evaluator_results = []
-            if self.evaluator_engine or task.evaluators:
+            if self.evaluator_engine and task.evaluators:
                 evaluator_results = await self.evaluator_engine.evaluate(
                     response.content,
                     task.evaluators
@@ -2396,12 +2582,18 @@ class ExecutionEngine:
                     system_prompt=system_prompt,
                 )
             except LLMError as e:
-                # Return error result
+                # Return error result with empty response
                 return ExecutionResult(
                     treatment=treatment_name,
                     test=task.name,
                     prompt=final_prompt,
-                    response=None,
+                    response=LLMResponse(
+                        content="",
+                        model="error",
+                        provider=None,
+                        duration_ms=0,
+                        raw_response={"error": str(e)}
+                    ),
                     passed=False,
                     evaluator_results=[],
                     timestamp=datetime.utcnow().isoformat()
@@ -2410,7 +2602,10 @@ class ExecutionEngine:
             # Evaluate if evaluator engine is available
             evaluator_results = []
             if self.evaluator_engine and task.evaluators:
-                evaluator_results = None
+                evaluator_results = await self.evaluator_engine.evaluate(
+                    response.content,
+                    task.evaluators
+                )
             
             # Determine if passed
             passed = all(r.passed for r in evaluator_results) if evaluator_results else True
@@ -2460,12 +2655,18 @@ class ExecutionEngine:
                     system_prompt=system_prompt,
                 )
             except LLMError as e:
-                # Return error result
+                # Return error result with empty response
                 return ExecutionResult(
                     treatment=treatment_name,
                     test=task.name,
                     prompt=final_prompt,
-                    response=None,
+                    response=LLMResponse(
+                        content="",
+                        model="error",
+                        provider="error",
+                        duration_ms=None,
+                        raw_response={"error": str(e)}
+                    ),
                     passed=False,
                     evaluator_results=[],
                     timestamp=datetime.utcnow().isoformat()
@@ -2475,7 +2676,7 @@ class ExecutionEngine:
             evaluator_results = []
             if self.evaluator_engine and task.evaluators:
                 evaluator_results = await self.evaluator_engine.evaluate(
-                    None,
+                    response.content,
                     task.evaluators
                 )
             
@@ -2527,12 +2728,18 @@ class ExecutionEngine:
                     system_prompt=system_prompt,
                 )
             except LLMError as e:
-                # Return error result
+                # Return error result with empty response
                 return ExecutionResult(
                     treatment=treatment_name,
                     test=task.name,
                     prompt=final_prompt,
-                    response=None,
+                    response=LLMResponse(
+                        content="",
+                        model="error",
+                        provider="error",
+                        duration_ms=0,
+                        raw_response=None
+                    ),
                     passed=False,
                     evaluator_results=[],
                     timestamp=datetime.utcnow().isoformat()
@@ -2543,7 +2750,7 @@ class ExecutionEngine:
             if self.evaluator_engine and task.evaluators:
                 evaluator_results = await self.evaluator_engine.evaluate(
                     response.content,
-                    None
+                    task.evaluators
                 )
             
             # Determine if passed
@@ -2594,12 +2801,17 @@ class ExecutionEngine:
                     system_prompt=system_prompt,
                 )
             except LLMError as e:
-                # Return error result
+                # Return error result with empty response
                 return ExecutionResult(
                     treatment=treatment_name,
                     test=task.name,
                     prompt=final_prompt,
-                    response=None,
+                    response=LLMResponse(
+                        model="error",
+                        provider="error",
+                        duration_ms=0,
+                        raw_response={"error": str(e)}
+                    ),
                     passed=False,
                     evaluator_results=[],
                     timestamp=datetime.utcnow().isoformat()
@@ -2609,6 +2821,7 @@ class ExecutionEngine:
             evaluator_results = []
             if self.evaluator_engine and task.evaluators:
                 evaluator_results = await self.evaluator_engine.evaluate(
+                    response.content,
                     task.evaluators
                 )
             
@@ -2660,12 +2873,17 @@ class ExecutionEngine:
                     system_prompt=system_prompt,
                 )
             except LLMError as e:
-                # Return error result
+                # Return error result with empty response
                 return ExecutionResult(
                     treatment=treatment_name,
                     test=task.name,
                     prompt=final_prompt,
-                    response=None,
+                    response=LLMResponse(
+                        content="",
+                        provider="error",
+                        duration_ms=0,
+                        raw_response={"error": str(e)}
+                    ),
                     passed=False,
                     evaluator_results=[],
                     timestamp=datetime.utcnow().isoformat()
@@ -2676,7 +2894,8 @@ class ExecutionEngine:
             if self.evaluator_engine and task.evaluators:
                 evaluator_results = await self.evaluator_engine.evaluate(
                     response.content,
-                    )
+                    task.evaluators
+                )
             
             # Determine if passed
             passed = all(r.passed for r in evaluator_results) if evaluator_results else True
@@ -2726,12 +2945,17 @@ class ExecutionEngine:
                     system_prompt=system_prompt,
                 )
             except LLMError as e:
-                # Return error result
+                # Return error result with empty response
                 return ExecutionResult(
                     treatment=treatment_name,
                     test=task.name,
                     prompt=final_prompt,
-                    response=None,
+                    response=LLMResponse(
+                        content="",
+                        model="error",
+                        duration_ms=0,
+                        raw_response={"error": str(e)}
+                    ),
                     passed=False,
                     evaluator_results=[],
                     timestamp=datetime.utcnow().isoformat()
@@ -2746,7 +2970,7 @@ class ExecutionEngine:
                 )
             
             # Determine if passed
-            passed = None
+            passed = all(r.passed for r in evaluator_results) if evaluator_results else True
             
             return ExecutionResult(
                 treatment=treatment_name,
@@ -2793,12 +3017,17 @@ class ExecutionEngine:
                     system_prompt=system_prompt,
                 )
             except LLMError as e:
-                # Return error result
+                # Return error result with empty response
                 return ExecutionResult(
                     treatment=treatment_name,
                     test=task.name,
                     prompt=final_prompt,
-                    response=None,
+                    response=LLMResponse(
+                        content="",
+                        model="error",
+                        provider="error",
+                        raw_response={"error": str(e)}
+                    ),
                     passed=False,
                     evaluator_results=[],
                     timestamp=datetime.utcnow().isoformat()
@@ -2813,7 +3042,7 @@ class ExecutionEngine:
                 )
             
             # Determine if passed
-            passed = all(None) if evaluator_results else True
+            passed = all(r.passed for r in evaluator_results) if evaluator_results else True
             
             return ExecutionResult(
                 treatment=treatment_name,
@@ -2860,12 +3089,17 @@ class ExecutionEngine:
                     system_prompt=system_prompt,
                 )
             except LLMError as e:
-                # Return error result
+                # Return error result with empty response
                 return ExecutionResult(
                     treatment=treatment_name,
                     test=task.name,
                     prompt=final_prompt,
-                    response=None,
+                    response=LLMResponse(
+                        content="",
+                        model="error",
+                        provider="error",
+                        duration_ms=0,
+                        ),
                     passed=False,
                     evaluator_results=[],
                     timestamp=datetime.utcnow().isoformat()
@@ -2880,7 +3114,7 @@ class ExecutionEngine:
                 )
             
             # Determine if passed
-            passed = all(r.passed for r in evaluator_results) if evaluator_results else False
+            passed = all(r.passed for r in evaluator_results) if evaluator_results else True
             
             return ExecutionResult(
                 treatment=treatment_name,
@@ -2927,12 +3161,18 @@ class ExecutionEngine:
                     system_prompt=system_prompt,
                 )
             except LLMError as e:
-                # Return error result
+                # Return error result with empty response
                 return ExecutionResult(
                     treatment=treatment_name,
                     test=task.name,
                     prompt=final_prompt,
-                    response=None,
+                    response=LLMResponse(
+                        content="XXXX",
+                        model="error",
+                        provider="error",
+                        duration_ms=0,
+                        raw_response={"error": str(e)}
+                    ),
                     passed=False,
                     evaluator_results=[],
                     timestamp=datetime.utcnow().isoformat()
@@ -2950,7 +3190,7 @@ class ExecutionEngine:
             passed = all(r.passed for r in evaluator_results) if evaluator_results else True
             
             return ExecutionResult(
-                treatment=None,
+                treatment=treatment_name,
                 test=task.name,
                 prompt=final_prompt,
                 response=response,
@@ -2994,12 +3234,18 @@ class ExecutionEngine:
                     system_prompt=system_prompt,
                 )
             except LLMError as e:
-                # Return error result
+                # Return error result with empty response
                 return ExecutionResult(
                     treatment=treatment_name,
                     test=task.name,
                     prompt=final_prompt,
-                    response=None,
+                    response=LLMResponse(
+                        content="",
+                        model="XXerrorXX",
+                        provider="error",
+                        duration_ms=0,
+                        raw_response={"error": str(e)}
+                    ),
                     passed=False,
                     evaluator_results=[],
                     timestamp=datetime.utcnow().isoformat()
@@ -3018,7 +3264,7 @@ class ExecutionEngine:
             
             return ExecutionResult(
                 treatment=treatment_name,
-                test=None,
+                test=task.name,
                 prompt=final_prompt,
                 response=response,
                 passed=passed,
@@ -3061,12 +3307,18 @@ class ExecutionEngine:
                     system_prompt=system_prompt,
                 )
             except LLMError as e:
-                # Return error result
+                # Return error result with empty response
                 return ExecutionResult(
                     treatment=treatment_name,
                     test=task.name,
                     prompt=final_prompt,
-                    response=None,
+                    response=LLMResponse(
+                        content="",
+                        model="ERROR",
+                        provider="error",
+                        duration_ms=0,
+                        raw_response={"error": str(e)}
+                    ),
                     passed=False,
                     evaluator_results=[],
                     timestamp=datetime.utcnow().isoformat()
@@ -3086,7 +3338,7 @@ class ExecutionEngine:
             return ExecutionResult(
                 treatment=treatment_name,
                 test=task.name,
-                prompt=None,
+                prompt=final_prompt,
                 response=response,
                 passed=passed,
                 evaluator_results=evaluator_results,
@@ -3128,12 +3380,18 @@ class ExecutionEngine:
                     system_prompt=system_prompt,
                 )
             except LLMError as e:
-                # Return error result
+                # Return error result with empty response
                 return ExecutionResult(
                     treatment=treatment_name,
                     test=task.name,
                     prompt=final_prompt,
-                    response=None,
+                    response=LLMResponse(
+                        content="",
+                        model="error",
+                        provider="XXerrorXX",
+                        duration_ms=0,
+                        raw_response={"error": str(e)}
+                    ),
                     passed=False,
                     evaluator_results=[],
                     timestamp=datetime.utcnow().isoformat()
@@ -3154,7 +3412,7 @@ class ExecutionEngine:
                 treatment=treatment_name,
                 test=task.name,
                 prompt=final_prompt,
-                response=None,
+                response=response,
                 passed=passed,
                 evaluator_results=evaluator_results,
                 timestamp=datetime.utcnow().isoformat()
@@ -3195,12 +3453,18 @@ class ExecutionEngine:
                     system_prompt=system_prompt,
                 )
             except LLMError as e:
-                # Return error result
+                # Return error result with empty response
                 return ExecutionResult(
                     treatment=treatment_name,
                     test=task.name,
                     prompt=final_prompt,
-                    response=None,
+                    response=LLMResponse(
+                        content="",
+                        model="error",
+                        provider="ERROR",
+                        duration_ms=0,
+                        raw_response={"error": str(e)}
+                    ),
                     passed=False,
                     evaluator_results=[],
                     timestamp=datetime.utcnow().isoformat()
@@ -3222,7 +3486,7 @@ class ExecutionEngine:
                 test=task.name,
                 prompt=final_prompt,
                 response=response,
-                passed=None,
+                passed=passed,
                 evaluator_results=evaluator_results,
                 timestamp=datetime.utcnow().isoformat()
             )
@@ -3262,12 +3526,18 @@ class ExecutionEngine:
                     system_prompt=system_prompt,
                 )
             except LLMError as e:
-                # Return error result
+                # Return error result with empty response
                 return ExecutionResult(
                     treatment=treatment_name,
                     test=task.name,
                     prompt=final_prompt,
-                    response=None,
+                    response=LLMResponse(
+                        content="",
+                        model="error",
+                        provider="error",
+                        duration_ms=1,
+                        raw_response={"error": str(e)}
+                    ),
                     passed=False,
                     evaluator_results=[],
                     timestamp=datetime.utcnow().isoformat()
@@ -3290,7 +3560,7 @@ class ExecutionEngine:
                 prompt=final_prompt,
                 response=response,
                 passed=passed,
-                evaluator_results=None,
+                evaluator_results=evaluator_results,
                 timestamp=datetime.utcnow().isoformat()
             )
     
@@ -3329,12 +3599,18 @@ class ExecutionEngine:
                     system_prompt=system_prompt,
                 )
             except LLMError as e:
-                # Return error result
+                # Return error result with empty response
                 return ExecutionResult(
                     treatment=treatment_name,
                     test=task.name,
                     prompt=final_prompt,
-                    response=None,
+                    response=LLMResponse(
+                        content="",
+                        model="error",
+                        provider="error",
+                        duration_ms=0,
+                        raw_response={"XXerrorXX": str(e)}
+                    ),
                     passed=False,
                     evaluator_results=[],
                     timestamp=datetime.utcnow().isoformat()
@@ -3358,7 +3634,7 @@ class ExecutionEngine:
                 response=response,
                 passed=passed,
                 evaluator_results=evaluator_results,
-                timestamp=None
+                timestamp=datetime.utcnow().isoformat()
             )
     
     async def xǁExecutionEngineǁrun_single__mutmut_48(
@@ -3396,12 +3672,18 @@ class ExecutionEngine:
                     system_prompt=system_prompt,
                 )
             except LLMError as e:
-                # Return error result
+                # Return error result with empty response
                 return ExecutionResult(
                     treatment=treatment_name,
                     test=task.name,
                     prompt=final_prompt,
-                    response=None,
+                    response=LLMResponse(
+                        content="",
+                        model="error",
+                        provider="error",
+                        duration_ms=0,
+                        raw_response={"ERROR": str(e)}
+                    ),
                     passed=False,
                     evaluator_results=[],
                     timestamp=datetime.utcnow().isoformat()
@@ -3419,6 +3701,7 @@ class ExecutionEngine:
             passed = all(r.passed for r in evaluator_results) if evaluator_results else True
             
             return ExecutionResult(
+                treatment=treatment_name,
                 test=task.name,
                 prompt=final_prompt,
                 response=response,
@@ -3462,12 +3745,18 @@ class ExecutionEngine:
                     system_prompt=system_prompt,
                 )
             except LLMError as e:
-                # Return error result
+                # Return error result with empty response
                 return ExecutionResult(
                     treatment=treatment_name,
                     test=task.name,
                     prompt=final_prompt,
-                    response=None,
+                    response=LLMResponse(
+                        content="",
+                        model="error",
+                        provider="error",
+                        duration_ms=0,
+                        raw_response={"error": str(None)}
+                    ),
                     passed=False,
                     evaluator_results=[],
                     timestamp=datetime.utcnow().isoformat()
@@ -3486,6 +3775,7 @@ class ExecutionEngine:
             
             return ExecutionResult(
                 treatment=treatment_name,
+                test=task.name,
                 prompt=final_prompt,
                 response=response,
                 passed=passed,
@@ -3528,13 +3818,19 @@ class ExecutionEngine:
                     system_prompt=system_prompt,
                 )
             except LLMError as e:
-                # Return error result
+                # Return error result with empty response
                 return ExecutionResult(
                     treatment=treatment_name,
                     test=task.name,
                     prompt=final_prompt,
-                    response=None,
-                    passed=False,
+                    response=LLMResponse(
+                        content="",
+                        model="error",
+                        provider="error",
+                        duration_ms=0,
+                        raw_response={"error": str(e)}
+                    ),
+                    passed=True,
                     evaluator_results=[],
                     timestamp=datetime.utcnow().isoformat()
                 )
@@ -3553,6 +3849,7 @@ class ExecutionEngine:
             return ExecutionResult(
                 treatment=treatment_name,
                 test=task.name,
+                prompt=final_prompt,
                 response=response,
                 passed=passed,
                 evaluator_results=evaluator_results,
@@ -3594,19 +3891,25 @@ class ExecutionEngine:
                     system_prompt=system_prompt,
                 )
             except LLMError as e:
-                # Return error result
+                # Return error result with empty response
                 return ExecutionResult(
                     treatment=treatment_name,
                     test=task.name,
                     prompt=final_prompt,
-                    response=None,
+                    response=LLMResponse(
+                        content="",
+                        model="error",
+                        provider="error",
+                        duration_ms=0,
+                        raw_response={"error": str(e)}
+                    ),
                     passed=False,
                     evaluator_results=[],
                     timestamp=datetime.utcnow().isoformat()
                 )
             
             # Evaluate if evaluator engine is available
-            evaluator_results = []
+            evaluator_results = None
             if self.evaluator_engine and task.evaluators:
                 evaluator_results = await self.evaluator_engine.evaluate(
                     response.content,
@@ -3620,6 +3923,7 @@ class ExecutionEngine:
                 treatment=treatment_name,
                 test=task.name,
                 prompt=final_prompt,
+                response=response,
                 passed=passed,
                 evaluator_results=evaluator_results,
                 timestamp=datetime.utcnow().isoformat()
@@ -3660,12 +3964,18 @@ class ExecutionEngine:
                     system_prompt=system_prompt,
                 )
             except LLMError as e:
-                # Return error result
+                # Return error result with empty response
                 return ExecutionResult(
                     treatment=treatment_name,
                     test=task.name,
                     prompt=final_prompt,
-                    response=None,
+                    response=LLMResponse(
+                        content="",
+                        model="error",
+                        provider="error",
+                        duration_ms=0,
+                        raw_response={"error": str(e)}
+                    ),
                     passed=False,
                     evaluator_results=[],
                     timestamp=datetime.utcnow().isoformat()
@@ -3673,7 +3983,7 @@ class ExecutionEngine:
             
             # Evaluate if evaluator engine is available
             evaluator_results = []
-            if self.evaluator_engine and task.evaluators:
+            if self.evaluator_engine or task.evaluators:
                 evaluator_results = await self.evaluator_engine.evaluate(
                     response.content,
                     task.evaluators
@@ -3687,6 +3997,7 @@ class ExecutionEngine:
                 test=task.name,
                 prompt=final_prompt,
                 response=response,
+                passed=passed,
                 evaluator_results=evaluator_results,
                 timestamp=datetime.utcnow().isoformat()
             )
@@ -3726,12 +4037,18 @@ class ExecutionEngine:
                     system_prompt=system_prompt,
                 )
             except LLMError as e:
-                # Return error result
+                # Return error result with empty response
                 return ExecutionResult(
                     treatment=treatment_name,
                     test=task.name,
                     prompt=final_prompt,
-                    response=None,
+                    response=LLMResponse(
+                        content="",
+                        model="error",
+                        provider="error",
+                        duration_ms=0,
+                        raw_response={"error": str(e)}
+                    ),
                     passed=False,
                     evaluator_results=[],
                     timestamp=datetime.utcnow().isoformat()
@@ -3740,10 +4057,7 @@ class ExecutionEngine:
             # Evaluate if evaluator engine is available
             evaluator_results = []
             if self.evaluator_engine and task.evaluators:
-                evaluator_results = await self.evaluator_engine.evaluate(
-                    response.content,
-                    task.evaluators
-                )
+                evaluator_results = None
             
             # Determine if passed
             passed = all(r.passed for r in evaluator_results) if evaluator_results else True
@@ -3754,6 +4068,7 @@ class ExecutionEngine:
                 prompt=final_prompt,
                 response=response,
                 passed=passed,
+                evaluator_results=evaluator_results,
                 timestamp=datetime.utcnow().isoformat()
             )
     
@@ -3792,12 +4107,1470 @@ class ExecutionEngine:
                     system_prompt=system_prompt,
                 )
             except LLMError as e:
-                # Return error result
+                # Return error result with empty response
                 return ExecutionResult(
                     treatment=treatment_name,
                     test=task.name,
                     prompt=final_prompt,
-                    response=None,
+                    response=LLMResponse(
+                        content="",
+                        model="error",
+                        provider="error",
+                        duration_ms=0,
+                        raw_response={"error": str(e)}
+                    ),
+                    passed=False,
+                    evaluator_results=[],
+                    timestamp=datetime.utcnow().isoformat()
+                )
+            
+            # Evaluate if evaluator engine is available
+            evaluator_results = []
+            if self.evaluator_engine and task.evaluators:
+                evaluator_results = await self.evaluator_engine.evaluate(
+                    None,
+                    task.evaluators
+                )
+            
+            # Determine if passed
+            passed = all(r.passed for r in evaluator_results) if evaluator_results else True
+            
+            return ExecutionResult(
+                treatment=treatment_name,
+                test=task.name,
+                prompt=final_prompt,
+                response=response,
+                passed=passed,
+                evaluator_results=evaluator_results,
+                timestamp=datetime.utcnow().isoformat()
+            )
+    
+    async def xǁExecutionEngineǁrun_single__mutmut_55(
+        self,
+        treatment: Treatment,
+        task: Task,
+        treatment_name: str,
+    ) -> ExecutionResult:
+        """Run a single evaluation.
+        
+        Args:
+            treatment: Treatment configuration
+            task: Task configuration
+            treatment_name: Name of treatment
+            
+        Returns:
+            ExecutionResult
+        """
+        async with self._get_semaphore():
+            # Inject skill if present
+            final_prompt, system_prompt = inject_skill(
+                task.prompt,
+                treatment.skill_path
+            )
+            
+            # Replace variables in prompt
+            for key, value in task.variables.items():
+                placeholder = f"{{{key}}}"
+                final_prompt = final_prompt.replace(placeholder, value)
+            
+            # Call LLM
+            try:
+                response = await self.llm_adapter.complete(
+                    prompt=final_prompt,
+                    system_prompt=system_prompt,
+                )
+            except LLMError as e:
+                # Return error result with empty response
+                return ExecutionResult(
+                    treatment=treatment_name,
+                    test=task.name,
+                    prompt=final_prompt,
+                    response=LLMResponse(
+                        content="",
+                        model="error",
+                        provider="error",
+                        duration_ms=0,
+                        raw_response={"error": str(e)}
+                    ),
+                    passed=False,
+                    evaluator_results=[],
+                    timestamp=datetime.utcnow().isoformat()
+                )
+            
+            # Evaluate if evaluator engine is available
+            evaluator_results = []
+            if self.evaluator_engine and task.evaluators:
+                evaluator_results = await self.evaluator_engine.evaluate(
+                    response.content,
+                    None
+                )
+            
+            # Determine if passed
+            passed = all(r.passed for r in evaluator_results) if evaluator_results else True
+            
+            return ExecutionResult(
+                treatment=treatment_name,
+                test=task.name,
+                prompt=final_prompt,
+                response=response,
+                passed=passed,
+                evaluator_results=evaluator_results,
+                timestamp=datetime.utcnow().isoformat()
+            )
+    
+    async def xǁExecutionEngineǁrun_single__mutmut_56(
+        self,
+        treatment: Treatment,
+        task: Task,
+        treatment_name: str,
+    ) -> ExecutionResult:
+        """Run a single evaluation.
+        
+        Args:
+            treatment: Treatment configuration
+            task: Task configuration
+            treatment_name: Name of treatment
+            
+        Returns:
+            ExecutionResult
+        """
+        async with self._get_semaphore():
+            # Inject skill if present
+            final_prompt, system_prompt = inject_skill(
+                task.prompt,
+                treatment.skill_path
+            )
+            
+            # Replace variables in prompt
+            for key, value in task.variables.items():
+                placeholder = f"{{{key}}}"
+                final_prompt = final_prompt.replace(placeholder, value)
+            
+            # Call LLM
+            try:
+                response = await self.llm_adapter.complete(
+                    prompt=final_prompt,
+                    system_prompt=system_prompt,
+                )
+            except LLMError as e:
+                # Return error result with empty response
+                return ExecutionResult(
+                    treatment=treatment_name,
+                    test=task.name,
+                    prompt=final_prompt,
+                    response=LLMResponse(
+                        content="",
+                        model="error",
+                        provider="error",
+                        duration_ms=0,
+                        raw_response={"error": str(e)}
+                    ),
+                    passed=False,
+                    evaluator_results=[],
+                    timestamp=datetime.utcnow().isoformat()
+                )
+            
+            # Evaluate if evaluator engine is available
+            evaluator_results = []
+            if self.evaluator_engine and task.evaluators:
+                evaluator_results = await self.evaluator_engine.evaluate(
+                    task.evaluators
+                )
+            
+            # Determine if passed
+            passed = all(r.passed for r in evaluator_results) if evaluator_results else True
+            
+            return ExecutionResult(
+                treatment=treatment_name,
+                test=task.name,
+                prompt=final_prompt,
+                response=response,
+                passed=passed,
+                evaluator_results=evaluator_results,
+                timestamp=datetime.utcnow().isoformat()
+            )
+    
+    async def xǁExecutionEngineǁrun_single__mutmut_57(
+        self,
+        treatment: Treatment,
+        task: Task,
+        treatment_name: str,
+    ) -> ExecutionResult:
+        """Run a single evaluation.
+        
+        Args:
+            treatment: Treatment configuration
+            task: Task configuration
+            treatment_name: Name of treatment
+            
+        Returns:
+            ExecutionResult
+        """
+        async with self._get_semaphore():
+            # Inject skill if present
+            final_prompt, system_prompt = inject_skill(
+                task.prompt,
+                treatment.skill_path
+            )
+            
+            # Replace variables in prompt
+            for key, value in task.variables.items():
+                placeholder = f"{{{key}}}"
+                final_prompt = final_prompt.replace(placeholder, value)
+            
+            # Call LLM
+            try:
+                response = await self.llm_adapter.complete(
+                    prompt=final_prompt,
+                    system_prompt=system_prompt,
+                )
+            except LLMError as e:
+                # Return error result with empty response
+                return ExecutionResult(
+                    treatment=treatment_name,
+                    test=task.name,
+                    prompt=final_prompt,
+                    response=LLMResponse(
+                        content="",
+                        model="error",
+                        provider="error",
+                        duration_ms=0,
+                        raw_response={"error": str(e)}
+                    ),
+                    passed=False,
+                    evaluator_results=[],
+                    timestamp=datetime.utcnow().isoformat()
+                )
+            
+            # Evaluate if evaluator engine is available
+            evaluator_results = []
+            if self.evaluator_engine and task.evaluators:
+                evaluator_results = await self.evaluator_engine.evaluate(
+                    response.content,
+                    )
+            
+            # Determine if passed
+            passed = all(r.passed for r in evaluator_results) if evaluator_results else True
+            
+            return ExecutionResult(
+                treatment=treatment_name,
+                test=task.name,
+                prompt=final_prompt,
+                response=response,
+                passed=passed,
+                evaluator_results=evaluator_results,
+                timestamp=datetime.utcnow().isoformat()
+            )
+    
+    async def xǁExecutionEngineǁrun_single__mutmut_58(
+        self,
+        treatment: Treatment,
+        task: Task,
+        treatment_name: str,
+    ) -> ExecutionResult:
+        """Run a single evaluation.
+        
+        Args:
+            treatment: Treatment configuration
+            task: Task configuration
+            treatment_name: Name of treatment
+            
+        Returns:
+            ExecutionResult
+        """
+        async with self._get_semaphore():
+            # Inject skill if present
+            final_prompt, system_prompt = inject_skill(
+                task.prompt,
+                treatment.skill_path
+            )
+            
+            # Replace variables in prompt
+            for key, value in task.variables.items():
+                placeholder = f"{{{key}}}"
+                final_prompt = final_prompt.replace(placeholder, value)
+            
+            # Call LLM
+            try:
+                response = await self.llm_adapter.complete(
+                    prompt=final_prompt,
+                    system_prompt=system_prompt,
+                )
+            except LLMError as e:
+                # Return error result with empty response
+                return ExecutionResult(
+                    treatment=treatment_name,
+                    test=task.name,
+                    prompt=final_prompt,
+                    response=LLMResponse(
+                        content="",
+                        model="error",
+                        provider="error",
+                        duration_ms=0,
+                        raw_response={"error": str(e)}
+                    ),
+                    passed=False,
+                    evaluator_results=[],
+                    timestamp=datetime.utcnow().isoformat()
+                )
+            
+            # Evaluate if evaluator engine is available
+            evaluator_results = []
+            if self.evaluator_engine and task.evaluators:
+                evaluator_results = await self.evaluator_engine.evaluate(
+                    response.content,
+                    task.evaluators
+                )
+            
+            # Determine if passed
+            passed = None
+            
+            return ExecutionResult(
+                treatment=treatment_name,
+                test=task.name,
+                prompt=final_prompt,
+                response=response,
+                passed=passed,
+                evaluator_results=evaluator_results,
+                timestamp=datetime.utcnow().isoformat()
+            )
+    
+    async def xǁExecutionEngineǁrun_single__mutmut_59(
+        self,
+        treatment: Treatment,
+        task: Task,
+        treatment_name: str,
+    ) -> ExecutionResult:
+        """Run a single evaluation.
+        
+        Args:
+            treatment: Treatment configuration
+            task: Task configuration
+            treatment_name: Name of treatment
+            
+        Returns:
+            ExecutionResult
+        """
+        async with self._get_semaphore():
+            # Inject skill if present
+            final_prompt, system_prompt = inject_skill(
+                task.prompt,
+                treatment.skill_path
+            )
+            
+            # Replace variables in prompt
+            for key, value in task.variables.items():
+                placeholder = f"{{{key}}}"
+                final_prompt = final_prompt.replace(placeholder, value)
+            
+            # Call LLM
+            try:
+                response = await self.llm_adapter.complete(
+                    prompt=final_prompt,
+                    system_prompt=system_prompt,
+                )
+            except LLMError as e:
+                # Return error result with empty response
+                return ExecutionResult(
+                    treatment=treatment_name,
+                    test=task.name,
+                    prompt=final_prompt,
+                    response=LLMResponse(
+                        content="",
+                        model="error",
+                        provider="error",
+                        duration_ms=0,
+                        raw_response={"error": str(e)}
+                    ),
+                    passed=False,
+                    evaluator_results=[],
+                    timestamp=datetime.utcnow().isoformat()
+                )
+            
+            # Evaluate if evaluator engine is available
+            evaluator_results = []
+            if self.evaluator_engine and task.evaluators:
+                evaluator_results = await self.evaluator_engine.evaluate(
+                    response.content,
+                    task.evaluators
+                )
+            
+            # Determine if passed
+            passed = all(None) if evaluator_results else True
+            
+            return ExecutionResult(
+                treatment=treatment_name,
+                test=task.name,
+                prompt=final_prompt,
+                response=response,
+                passed=passed,
+                evaluator_results=evaluator_results,
+                timestamp=datetime.utcnow().isoformat()
+            )
+    
+    async def xǁExecutionEngineǁrun_single__mutmut_60(
+        self,
+        treatment: Treatment,
+        task: Task,
+        treatment_name: str,
+    ) -> ExecutionResult:
+        """Run a single evaluation.
+        
+        Args:
+            treatment: Treatment configuration
+            task: Task configuration
+            treatment_name: Name of treatment
+            
+        Returns:
+            ExecutionResult
+        """
+        async with self._get_semaphore():
+            # Inject skill if present
+            final_prompt, system_prompt = inject_skill(
+                task.prompt,
+                treatment.skill_path
+            )
+            
+            # Replace variables in prompt
+            for key, value in task.variables.items():
+                placeholder = f"{{{key}}}"
+                final_prompt = final_prompt.replace(placeholder, value)
+            
+            # Call LLM
+            try:
+                response = await self.llm_adapter.complete(
+                    prompt=final_prompt,
+                    system_prompt=system_prompt,
+                )
+            except LLMError as e:
+                # Return error result with empty response
+                return ExecutionResult(
+                    treatment=treatment_name,
+                    test=task.name,
+                    prompt=final_prompt,
+                    response=LLMResponse(
+                        content="",
+                        model="error",
+                        provider="error",
+                        duration_ms=0,
+                        raw_response={"error": str(e)}
+                    ),
+                    passed=False,
+                    evaluator_results=[],
+                    timestamp=datetime.utcnow().isoformat()
+                )
+            
+            # Evaluate if evaluator engine is available
+            evaluator_results = []
+            if self.evaluator_engine and task.evaluators:
+                evaluator_results = await self.evaluator_engine.evaluate(
+                    response.content,
+                    task.evaluators
+                )
+            
+            # Determine if passed
+            passed = all(r.passed for r in evaluator_results) if evaluator_results else False
+            
+            return ExecutionResult(
+                treatment=treatment_name,
+                test=task.name,
+                prompt=final_prompt,
+                response=response,
+                passed=passed,
+                evaluator_results=evaluator_results,
+                timestamp=datetime.utcnow().isoformat()
+            )
+    
+    async def xǁExecutionEngineǁrun_single__mutmut_61(
+        self,
+        treatment: Treatment,
+        task: Task,
+        treatment_name: str,
+    ) -> ExecutionResult:
+        """Run a single evaluation.
+        
+        Args:
+            treatment: Treatment configuration
+            task: Task configuration
+            treatment_name: Name of treatment
+            
+        Returns:
+            ExecutionResult
+        """
+        async with self._get_semaphore():
+            # Inject skill if present
+            final_prompt, system_prompt = inject_skill(
+                task.prompt,
+                treatment.skill_path
+            )
+            
+            # Replace variables in prompt
+            for key, value in task.variables.items():
+                placeholder = f"{{{key}}}"
+                final_prompt = final_prompt.replace(placeholder, value)
+            
+            # Call LLM
+            try:
+                response = await self.llm_adapter.complete(
+                    prompt=final_prompt,
+                    system_prompt=system_prompt,
+                )
+            except LLMError as e:
+                # Return error result with empty response
+                return ExecutionResult(
+                    treatment=treatment_name,
+                    test=task.name,
+                    prompt=final_prompt,
+                    response=LLMResponse(
+                        content="",
+                        model="error",
+                        provider="error",
+                        duration_ms=0,
+                        raw_response={"error": str(e)}
+                    ),
+                    passed=False,
+                    evaluator_results=[],
+                    timestamp=datetime.utcnow().isoformat()
+                )
+            
+            # Evaluate if evaluator engine is available
+            evaluator_results = []
+            if self.evaluator_engine and task.evaluators:
+                evaluator_results = await self.evaluator_engine.evaluate(
+                    response.content,
+                    task.evaluators
+                )
+            
+            # Determine if passed
+            passed = all(r.passed for r in evaluator_results) if evaluator_results else True
+            
+            return ExecutionResult(
+                treatment=None,
+                test=task.name,
+                prompt=final_prompt,
+                response=response,
+                passed=passed,
+                evaluator_results=evaluator_results,
+                timestamp=datetime.utcnow().isoformat()
+            )
+    
+    async def xǁExecutionEngineǁrun_single__mutmut_62(
+        self,
+        treatment: Treatment,
+        task: Task,
+        treatment_name: str,
+    ) -> ExecutionResult:
+        """Run a single evaluation.
+        
+        Args:
+            treatment: Treatment configuration
+            task: Task configuration
+            treatment_name: Name of treatment
+            
+        Returns:
+            ExecutionResult
+        """
+        async with self._get_semaphore():
+            # Inject skill if present
+            final_prompt, system_prompt = inject_skill(
+                task.prompt,
+                treatment.skill_path
+            )
+            
+            # Replace variables in prompt
+            for key, value in task.variables.items():
+                placeholder = f"{{{key}}}"
+                final_prompt = final_prompt.replace(placeholder, value)
+            
+            # Call LLM
+            try:
+                response = await self.llm_adapter.complete(
+                    prompt=final_prompt,
+                    system_prompt=system_prompt,
+                )
+            except LLMError as e:
+                # Return error result with empty response
+                return ExecutionResult(
+                    treatment=treatment_name,
+                    test=task.name,
+                    prompt=final_prompt,
+                    response=LLMResponse(
+                        content="",
+                        model="error",
+                        provider="error",
+                        duration_ms=0,
+                        raw_response={"error": str(e)}
+                    ),
+                    passed=False,
+                    evaluator_results=[],
+                    timestamp=datetime.utcnow().isoformat()
+                )
+            
+            # Evaluate if evaluator engine is available
+            evaluator_results = []
+            if self.evaluator_engine and task.evaluators:
+                evaluator_results = await self.evaluator_engine.evaluate(
+                    response.content,
+                    task.evaluators
+                )
+            
+            # Determine if passed
+            passed = all(r.passed for r in evaluator_results) if evaluator_results else True
+            
+            return ExecutionResult(
+                treatment=treatment_name,
+                test=None,
+                prompt=final_prompt,
+                response=response,
+                passed=passed,
+                evaluator_results=evaluator_results,
+                timestamp=datetime.utcnow().isoformat()
+            )
+    
+    async def xǁExecutionEngineǁrun_single__mutmut_63(
+        self,
+        treatment: Treatment,
+        task: Task,
+        treatment_name: str,
+    ) -> ExecutionResult:
+        """Run a single evaluation.
+        
+        Args:
+            treatment: Treatment configuration
+            task: Task configuration
+            treatment_name: Name of treatment
+            
+        Returns:
+            ExecutionResult
+        """
+        async with self._get_semaphore():
+            # Inject skill if present
+            final_prompt, system_prompt = inject_skill(
+                task.prompt,
+                treatment.skill_path
+            )
+            
+            # Replace variables in prompt
+            for key, value in task.variables.items():
+                placeholder = f"{{{key}}}"
+                final_prompt = final_prompt.replace(placeholder, value)
+            
+            # Call LLM
+            try:
+                response = await self.llm_adapter.complete(
+                    prompt=final_prompt,
+                    system_prompt=system_prompt,
+                )
+            except LLMError as e:
+                # Return error result with empty response
+                return ExecutionResult(
+                    treatment=treatment_name,
+                    test=task.name,
+                    prompt=final_prompt,
+                    response=LLMResponse(
+                        content="",
+                        model="error",
+                        provider="error",
+                        duration_ms=0,
+                        raw_response={"error": str(e)}
+                    ),
+                    passed=False,
+                    evaluator_results=[],
+                    timestamp=datetime.utcnow().isoformat()
+                )
+            
+            # Evaluate if evaluator engine is available
+            evaluator_results = []
+            if self.evaluator_engine and task.evaluators:
+                evaluator_results = await self.evaluator_engine.evaluate(
+                    response.content,
+                    task.evaluators
+                )
+            
+            # Determine if passed
+            passed = all(r.passed for r in evaluator_results) if evaluator_results else True
+            
+            return ExecutionResult(
+                treatment=treatment_name,
+                test=task.name,
+                prompt=None,
+                response=response,
+                passed=passed,
+                evaluator_results=evaluator_results,
+                timestamp=datetime.utcnow().isoformat()
+            )
+    
+    async def xǁExecutionEngineǁrun_single__mutmut_64(
+        self,
+        treatment: Treatment,
+        task: Task,
+        treatment_name: str,
+    ) -> ExecutionResult:
+        """Run a single evaluation.
+        
+        Args:
+            treatment: Treatment configuration
+            task: Task configuration
+            treatment_name: Name of treatment
+            
+        Returns:
+            ExecutionResult
+        """
+        async with self._get_semaphore():
+            # Inject skill if present
+            final_prompt, system_prompt = inject_skill(
+                task.prompt,
+                treatment.skill_path
+            )
+            
+            # Replace variables in prompt
+            for key, value in task.variables.items():
+                placeholder = f"{{{key}}}"
+                final_prompt = final_prompt.replace(placeholder, value)
+            
+            # Call LLM
+            try:
+                response = await self.llm_adapter.complete(
+                    prompt=final_prompt,
+                    system_prompt=system_prompt,
+                )
+            except LLMError as e:
+                # Return error result with empty response
+                return ExecutionResult(
+                    treatment=treatment_name,
+                    test=task.name,
+                    prompt=final_prompt,
+                    response=LLMResponse(
+                        content="",
+                        model="error",
+                        provider="error",
+                        duration_ms=0,
+                        raw_response={"error": str(e)}
+                    ),
+                    passed=False,
+                    evaluator_results=[],
+                    timestamp=datetime.utcnow().isoformat()
+                )
+            
+            # Evaluate if evaluator engine is available
+            evaluator_results = []
+            if self.evaluator_engine and task.evaluators:
+                evaluator_results = await self.evaluator_engine.evaluate(
+                    response.content,
+                    task.evaluators
+                )
+            
+            # Determine if passed
+            passed = all(r.passed for r in evaluator_results) if evaluator_results else True
+            
+            return ExecutionResult(
+                treatment=treatment_name,
+                test=task.name,
+                prompt=final_prompt,
+                response=None,
+                passed=passed,
+                evaluator_results=evaluator_results,
+                timestamp=datetime.utcnow().isoformat()
+            )
+    
+    async def xǁExecutionEngineǁrun_single__mutmut_65(
+        self,
+        treatment: Treatment,
+        task: Task,
+        treatment_name: str,
+    ) -> ExecutionResult:
+        """Run a single evaluation.
+        
+        Args:
+            treatment: Treatment configuration
+            task: Task configuration
+            treatment_name: Name of treatment
+            
+        Returns:
+            ExecutionResult
+        """
+        async with self._get_semaphore():
+            # Inject skill if present
+            final_prompt, system_prompt = inject_skill(
+                task.prompt,
+                treatment.skill_path
+            )
+            
+            # Replace variables in prompt
+            for key, value in task.variables.items():
+                placeholder = f"{{{key}}}"
+                final_prompt = final_prompt.replace(placeholder, value)
+            
+            # Call LLM
+            try:
+                response = await self.llm_adapter.complete(
+                    prompt=final_prompt,
+                    system_prompt=system_prompt,
+                )
+            except LLMError as e:
+                # Return error result with empty response
+                return ExecutionResult(
+                    treatment=treatment_name,
+                    test=task.name,
+                    prompt=final_prompt,
+                    response=LLMResponse(
+                        content="",
+                        model="error",
+                        provider="error",
+                        duration_ms=0,
+                        raw_response={"error": str(e)}
+                    ),
+                    passed=False,
+                    evaluator_results=[],
+                    timestamp=datetime.utcnow().isoformat()
+                )
+            
+            # Evaluate if evaluator engine is available
+            evaluator_results = []
+            if self.evaluator_engine and task.evaluators:
+                evaluator_results = await self.evaluator_engine.evaluate(
+                    response.content,
+                    task.evaluators
+                )
+            
+            # Determine if passed
+            passed = all(r.passed for r in evaluator_results) if evaluator_results else True
+            
+            return ExecutionResult(
+                treatment=treatment_name,
+                test=task.name,
+                prompt=final_prompt,
+                response=response,
+                passed=None,
+                evaluator_results=evaluator_results,
+                timestamp=datetime.utcnow().isoformat()
+            )
+    
+    async def xǁExecutionEngineǁrun_single__mutmut_66(
+        self,
+        treatment: Treatment,
+        task: Task,
+        treatment_name: str,
+    ) -> ExecutionResult:
+        """Run a single evaluation.
+        
+        Args:
+            treatment: Treatment configuration
+            task: Task configuration
+            treatment_name: Name of treatment
+            
+        Returns:
+            ExecutionResult
+        """
+        async with self._get_semaphore():
+            # Inject skill if present
+            final_prompt, system_prompt = inject_skill(
+                task.prompt,
+                treatment.skill_path
+            )
+            
+            # Replace variables in prompt
+            for key, value in task.variables.items():
+                placeholder = f"{{{key}}}"
+                final_prompt = final_prompt.replace(placeholder, value)
+            
+            # Call LLM
+            try:
+                response = await self.llm_adapter.complete(
+                    prompt=final_prompt,
+                    system_prompt=system_prompt,
+                )
+            except LLMError as e:
+                # Return error result with empty response
+                return ExecutionResult(
+                    treatment=treatment_name,
+                    test=task.name,
+                    prompt=final_prompt,
+                    response=LLMResponse(
+                        content="",
+                        model="error",
+                        provider="error",
+                        duration_ms=0,
+                        raw_response={"error": str(e)}
+                    ),
+                    passed=False,
+                    evaluator_results=[],
+                    timestamp=datetime.utcnow().isoformat()
+                )
+            
+            # Evaluate if evaluator engine is available
+            evaluator_results = []
+            if self.evaluator_engine and task.evaluators:
+                evaluator_results = await self.evaluator_engine.evaluate(
+                    response.content,
+                    task.evaluators
+                )
+            
+            # Determine if passed
+            passed = all(r.passed for r in evaluator_results) if evaluator_results else True
+            
+            return ExecutionResult(
+                treatment=treatment_name,
+                test=task.name,
+                prompt=final_prompt,
+                response=response,
+                passed=passed,
+                evaluator_results=None,
+                timestamp=datetime.utcnow().isoformat()
+            )
+    
+    async def xǁExecutionEngineǁrun_single__mutmut_67(
+        self,
+        treatment: Treatment,
+        task: Task,
+        treatment_name: str,
+    ) -> ExecutionResult:
+        """Run a single evaluation.
+        
+        Args:
+            treatment: Treatment configuration
+            task: Task configuration
+            treatment_name: Name of treatment
+            
+        Returns:
+            ExecutionResult
+        """
+        async with self._get_semaphore():
+            # Inject skill if present
+            final_prompt, system_prompt = inject_skill(
+                task.prompt,
+                treatment.skill_path
+            )
+            
+            # Replace variables in prompt
+            for key, value in task.variables.items():
+                placeholder = f"{{{key}}}"
+                final_prompt = final_prompt.replace(placeholder, value)
+            
+            # Call LLM
+            try:
+                response = await self.llm_adapter.complete(
+                    prompt=final_prompt,
+                    system_prompt=system_prompt,
+                )
+            except LLMError as e:
+                # Return error result with empty response
+                return ExecutionResult(
+                    treatment=treatment_name,
+                    test=task.name,
+                    prompt=final_prompt,
+                    response=LLMResponse(
+                        content="",
+                        model="error",
+                        provider="error",
+                        duration_ms=0,
+                        raw_response={"error": str(e)}
+                    ),
+                    passed=False,
+                    evaluator_results=[],
+                    timestamp=datetime.utcnow().isoformat()
+                )
+            
+            # Evaluate if evaluator engine is available
+            evaluator_results = []
+            if self.evaluator_engine and task.evaluators:
+                evaluator_results = await self.evaluator_engine.evaluate(
+                    response.content,
+                    task.evaluators
+                )
+            
+            # Determine if passed
+            passed = all(r.passed for r in evaluator_results) if evaluator_results else True
+            
+            return ExecutionResult(
+                treatment=treatment_name,
+                test=task.name,
+                prompt=final_prompt,
+                response=response,
+                passed=passed,
+                evaluator_results=evaluator_results,
+                timestamp=None
+            )
+    
+    async def xǁExecutionEngineǁrun_single__mutmut_68(
+        self,
+        treatment: Treatment,
+        task: Task,
+        treatment_name: str,
+    ) -> ExecutionResult:
+        """Run a single evaluation.
+        
+        Args:
+            treatment: Treatment configuration
+            task: Task configuration
+            treatment_name: Name of treatment
+            
+        Returns:
+            ExecutionResult
+        """
+        async with self._get_semaphore():
+            # Inject skill if present
+            final_prompt, system_prompt = inject_skill(
+                task.prompt,
+                treatment.skill_path
+            )
+            
+            # Replace variables in prompt
+            for key, value in task.variables.items():
+                placeholder = f"{{{key}}}"
+                final_prompt = final_prompt.replace(placeholder, value)
+            
+            # Call LLM
+            try:
+                response = await self.llm_adapter.complete(
+                    prompt=final_prompt,
+                    system_prompt=system_prompt,
+                )
+            except LLMError as e:
+                # Return error result with empty response
+                return ExecutionResult(
+                    treatment=treatment_name,
+                    test=task.name,
+                    prompt=final_prompt,
+                    response=LLMResponse(
+                        content="",
+                        model="error",
+                        provider="error",
+                        duration_ms=0,
+                        raw_response={"error": str(e)}
+                    ),
+                    passed=False,
+                    evaluator_results=[],
+                    timestamp=datetime.utcnow().isoformat()
+                )
+            
+            # Evaluate if evaluator engine is available
+            evaluator_results = []
+            if self.evaluator_engine and task.evaluators:
+                evaluator_results = await self.evaluator_engine.evaluate(
+                    response.content,
+                    task.evaluators
+                )
+            
+            # Determine if passed
+            passed = all(r.passed for r in evaluator_results) if evaluator_results else True
+            
+            return ExecutionResult(
+                test=task.name,
+                prompt=final_prompt,
+                response=response,
+                passed=passed,
+                evaluator_results=evaluator_results,
+                timestamp=datetime.utcnow().isoformat()
+            )
+    
+    async def xǁExecutionEngineǁrun_single__mutmut_69(
+        self,
+        treatment: Treatment,
+        task: Task,
+        treatment_name: str,
+    ) -> ExecutionResult:
+        """Run a single evaluation.
+        
+        Args:
+            treatment: Treatment configuration
+            task: Task configuration
+            treatment_name: Name of treatment
+            
+        Returns:
+            ExecutionResult
+        """
+        async with self._get_semaphore():
+            # Inject skill if present
+            final_prompt, system_prompt = inject_skill(
+                task.prompt,
+                treatment.skill_path
+            )
+            
+            # Replace variables in prompt
+            for key, value in task.variables.items():
+                placeholder = f"{{{key}}}"
+                final_prompt = final_prompt.replace(placeholder, value)
+            
+            # Call LLM
+            try:
+                response = await self.llm_adapter.complete(
+                    prompt=final_prompt,
+                    system_prompt=system_prompt,
+                )
+            except LLMError as e:
+                # Return error result with empty response
+                return ExecutionResult(
+                    treatment=treatment_name,
+                    test=task.name,
+                    prompt=final_prompt,
+                    response=LLMResponse(
+                        content="",
+                        model="error",
+                        provider="error",
+                        duration_ms=0,
+                        raw_response={"error": str(e)}
+                    ),
+                    passed=False,
+                    evaluator_results=[],
+                    timestamp=datetime.utcnow().isoformat()
+                )
+            
+            # Evaluate if evaluator engine is available
+            evaluator_results = []
+            if self.evaluator_engine and task.evaluators:
+                evaluator_results = await self.evaluator_engine.evaluate(
+                    response.content,
+                    task.evaluators
+                )
+            
+            # Determine if passed
+            passed = all(r.passed for r in evaluator_results) if evaluator_results else True
+            
+            return ExecutionResult(
+                treatment=treatment_name,
+                prompt=final_prompt,
+                response=response,
+                passed=passed,
+                evaluator_results=evaluator_results,
+                timestamp=datetime.utcnow().isoformat()
+            )
+    
+    async def xǁExecutionEngineǁrun_single__mutmut_70(
+        self,
+        treatment: Treatment,
+        task: Task,
+        treatment_name: str,
+    ) -> ExecutionResult:
+        """Run a single evaluation.
+        
+        Args:
+            treatment: Treatment configuration
+            task: Task configuration
+            treatment_name: Name of treatment
+            
+        Returns:
+            ExecutionResult
+        """
+        async with self._get_semaphore():
+            # Inject skill if present
+            final_prompt, system_prompt = inject_skill(
+                task.prompt,
+                treatment.skill_path
+            )
+            
+            # Replace variables in prompt
+            for key, value in task.variables.items():
+                placeholder = f"{{{key}}}"
+                final_prompt = final_prompt.replace(placeholder, value)
+            
+            # Call LLM
+            try:
+                response = await self.llm_adapter.complete(
+                    prompt=final_prompt,
+                    system_prompt=system_prompt,
+                )
+            except LLMError as e:
+                # Return error result with empty response
+                return ExecutionResult(
+                    treatment=treatment_name,
+                    test=task.name,
+                    prompt=final_prompt,
+                    response=LLMResponse(
+                        content="",
+                        model="error",
+                        provider="error",
+                        duration_ms=0,
+                        raw_response={"error": str(e)}
+                    ),
+                    passed=False,
+                    evaluator_results=[],
+                    timestamp=datetime.utcnow().isoformat()
+                )
+            
+            # Evaluate if evaluator engine is available
+            evaluator_results = []
+            if self.evaluator_engine and task.evaluators:
+                evaluator_results = await self.evaluator_engine.evaluate(
+                    response.content,
+                    task.evaluators
+                )
+            
+            # Determine if passed
+            passed = all(r.passed for r in evaluator_results) if evaluator_results else True
+            
+            return ExecutionResult(
+                treatment=treatment_name,
+                test=task.name,
+                response=response,
+                passed=passed,
+                evaluator_results=evaluator_results,
+                timestamp=datetime.utcnow().isoformat()
+            )
+    
+    async def xǁExecutionEngineǁrun_single__mutmut_71(
+        self,
+        treatment: Treatment,
+        task: Task,
+        treatment_name: str,
+    ) -> ExecutionResult:
+        """Run a single evaluation.
+        
+        Args:
+            treatment: Treatment configuration
+            task: Task configuration
+            treatment_name: Name of treatment
+            
+        Returns:
+            ExecutionResult
+        """
+        async with self._get_semaphore():
+            # Inject skill if present
+            final_prompt, system_prompt = inject_skill(
+                task.prompt,
+                treatment.skill_path
+            )
+            
+            # Replace variables in prompt
+            for key, value in task.variables.items():
+                placeholder = f"{{{key}}}"
+                final_prompt = final_prompt.replace(placeholder, value)
+            
+            # Call LLM
+            try:
+                response = await self.llm_adapter.complete(
+                    prompt=final_prompt,
+                    system_prompt=system_prompt,
+                )
+            except LLMError as e:
+                # Return error result with empty response
+                return ExecutionResult(
+                    treatment=treatment_name,
+                    test=task.name,
+                    prompt=final_prompt,
+                    response=LLMResponse(
+                        content="",
+                        model="error",
+                        provider="error",
+                        duration_ms=0,
+                        raw_response={"error": str(e)}
+                    ),
+                    passed=False,
+                    evaluator_results=[],
+                    timestamp=datetime.utcnow().isoformat()
+                )
+            
+            # Evaluate if evaluator engine is available
+            evaluator_results = []
+            if self.evaluator_engine and task.evaluators:
+                evaluator_results = await self.evaluator_engine.evaluate(
+                    response.content,
+                    task.evaluators
+                )
+            
+            # Determine if passed
+            passed = all(r.passed for r in evaluator_results) if evaluator_results else True
+            
+            return ExecutionResult(
+                treatment=treatment_name,
+                test=task.name,
+                prompt=final_prompt,
+                passed=passed,
+                evaluator_results=evaluator_results,
+                timestamp=datetime.utcnow().isoformat()
+            )
+    
+    async def xǁExecutionEngineǁrun_single__mutmut_72(
+        self,
+        treatment: Treatment,
+        task: Task,
+        treatment_name: str,
+    ) -> ExecutionResult:
+        """Run a single evaluation.
+        
+        Args:
+            treatment: Treatment configuration
+            task: Task configuration
+            treatment_name: Name of treatment
+            
+        Returns:
+            ExecutionResult
+        """
+        async with self._get_semaphore():
+            # Inject skill if present
+            final_prompt, system_prompt = inject_skill(
+                task.prompt,
+                treatment.skill_path
+            )
+            
+            # Replace variables in prompt
+            for key, value in task.variables.items():
+                placeholder = f"{{{key}}}"
+                final_prompt = final_prompt.replace(placeholder, value)
+            
+            # Call LLM
+            try:
+                response = await self.llm_adapter.complete(
+                    prompt=final_prompt,
+                    system_prompt=system_prompt,
+                )
+            except LLMError as e:
+                # Return error result with empty response
+                return ExecutionResult(
+                    treatment=treatment_name,
+                    test=task.name,
+                    prompt=final_prompt,
+                    response=LLMResponse(
+                        content="",
+                        model="error",
+                        provider="error",
+                        duration_ms=0,
+                        raw_response={"error": str(e)}
+                    ),
+                    passed=False,
+                    evaluator_results=[],
+                    timestamp=datetime.utcnow().isoformat()
+                )
+            
+            # Evaluate if evaluator engine is available
+            evaluator_results = []
+            if self.evaluator_engine and task.evaluators:
+                evaluator_results = await self.evaluator_engine.evaluate(
+                    response.content,
+                    task.evaluators
+                )
+            
+            # Determine if passed
+            passed = all(r.passed for r in evaluator_results) if evaluator_results else True
+            
+            return ExecutionResult(
+                treatment=treatment_name,
+                test=task.name,
+                prompt=final_prompt,
+                response=response,
+                evaluator_results=evaluator_results,
+                timestamp=datetime.utcnow().isoformat()
+            )
+    
+    async def xǁExecutionEngineǁrun_single__mutmut_73(
+        self,
+        treatment: Treatment,
+        task: Task,
+        treatment_name: str,
+    ) -> ExecutionResult:
+        """Run a single evaluation.
+        
+        Args:
+            treatment: Treatment configuration
+            task: Task configuration
+            treatment_name: Name of treatment
+            
+        Returns:
+            ExecutionResult
+        """
+        async with self._get_semaphore():
+            # Inject skill if present
+            final_prompt, system_prompt = inject_skill(
+                task.prompt,
+                treatment.skill_path
+            )
+            
+            # Replace variables in prompt
+            for key, value in task.variables.items():
+                placeholder = f"{{{key}}}"
+                final_prompt = final_prompt.replace(placeholder, value)
+            
+            # Call LLM
+            try:
+                response = await self.llm_adapter.complete(
+                    prompt=final_prompt,
+                    system_prompt=system_prompt,
+                )
+            except LLMError as e:
+                # Return error result with empty response
+                return ExecutionResult(
+                    treatment=treatment_name,
+                    test=task.name,
+                    prompt=final_prompt,
+                    response=LLMResponse(
+                        content="",
+                        model="error",
+                        provider="error",
+                        duration_ms=0,
+                        raw_response={"error": str(e)}
+                    ),
+                    passed=False,
+                    evaluator_results=[],
+                    timestamp=datetime.utcnow().isoformat()
+                )
+            
+            # Evaluate if evaluator engine is available
+            evaluator_results = []
+            if self.evaluator_engine and task.evaluators:
+                evaluator_results = await self.evaluator_engine.evaluate(
+                    response.content,
+                    task.evaluators
+                )
+            
+            # Determine if passed
+            passed = all(r.passed for r in evaluator_results) if evaluator_results else True
+            
+            return ExecutionResult(
+                treatment=treatment_name,
+                test=task.name,
+                prompt=final_prompt,
+                response=response,
+                passed=passed,
+                timestamp=datetime.utcnow().isoformat()
+            )
+    
+    async def xǁExecutionEngineǁrun_single__mutmut_74(
+        self,
+        treatment: Treatment,
+        task: Task,
+        treatment_name: str,
+    ) -> ExecutionResult:
+        """Run a single evaluation.
+        
+        Args:
+            treatment: Treatment configuration
+            task: Task configuration
+            treatment_name: Name of treatment
+            
+        Returns:
+            ExecutionResult
+        """
+        async with self._get_semaphore():
+            # Inject skill if present
+            final_prompt, system_prompt = inject_skill(
+                task.prompt,
+                treatment.skill_path
+            )
+            
+            # Replace variables in prompt
+            for key, value in task.variables.items():
+                placeholder = f"{{{key}}}"
+                final_prompt = final_prompt.replace(placeholder, value)
+            
+            # Call LLM
+            try:
+                response = await self.llm_adapter.complete(
+                    prompt=final_prompt,
+                    system_prompt=system_prompt,
+                )
+            except LLMError as e:
+                # Return error result with empty response
+                return ExecutionResult(
+                    treatment=treatment_name,
+                    test=task.name,
+                    prompt=final_prompt,
+                    response=LLMResponse(
+                        content="",
+                        model="error",
+                        provider="error",
+                        duration_ms=0,
+                        raw_response={"error": str(e)}
+                    ),
                     passed=False,
                     evaluator_results=[],
                     timestamp=datetime.utcnow().isoformat()
@@ -3877,7 +5650,27 @@ class ExecutionEngine:
         'xǁExecutionEngineǁrun_single__mutmut_51': xǁExecutionEngineǁrun_single__mutmut_51, 
         'xǁExecutionEngineǁrun_single__mutmut_52': xǁExecutionEngineǁrun_single__mutmut_52, 
         'xǁExecutionEngineǁrun_single__mutmut_53': xǁExecutionEngineǁrun_single__mutmut_53, 
-        'xǁExecutionEngineǁrun_single__mutmut_54': xǁExecutionEngineǁrun_single__mutmut_54
+        'xǁExecutionEngineǁrun_single__mutmut_54': xǁExecutionEngineǁrun_single__mutmut_54, 
+        'xǁExecutionEngineǁrun_single__mutmut_55': xǁExecutionEngineǁrun_single__mutmut_55, 
+        'xǁExecutionEngineǁrun_single__mutmut_56': xǁExecutionEngineǁrun_single__mutmut_56, 
+        'xǁExecutionEngineǁrun_single__mutmut_57': xǁExecutionEngineǁrun_single__mutmut_57, 
+        'xǁExecutionEngineǁrun_single__mutmut_58': xǁExecutionEngineǁrun_single__mutmut_58, 
+        'xǁExecutionEngineǁrun_single__mutmut_59': xǁExecutionEngineǁrun_single__mutmut_59, 
+        'xǁExecutionEngineǁrun_single__mutmut_60': xǁExecutionEngineǁrun_single__mutmut_60, 
+        'xǁExecutionEngineǁrun_single__mutmut_61': xǁExecutionEngineǁrun_single__mutmut_61, 
+        'xǁExecutionEngineǁrun_single__mutmut_62': xǁExecutionEngineǁrun_single__mutmut_62, 
+        'xǁExecutionEngineǁrun_single__mutmut_63': xǁExecutionEngineǁrun_single__mutmut_63, 
+        'xǁExecutionEngineǁrun_single__mutmut_64': xǁExecutionEngineǁrun_single__mutmut_64, 
+        'xǁExecutionEngineǁrun_single__mutmut_65': xǁExecutionEngineǁrun_single__mutmut_65, 
+        'xǁExecutionEngineǁrun_single__mutmut_66': xǁExecutionEngineǁrun_single__mutmut_66, 
+        'xǁExecutionEngineǁrun_single__mutmut_67': xǁExecutionEngineǁrun_single__mutmut_67, 
+        'xǁExecutionEngineǁrun_single__mutmut_68': xǁExecutionEngineǁrun_single__mutmut_68, 
+        'xǁExecutionEngineǁrun_single__mutmut_69': xǁExecutionEngineǁrun_single__mutmut_69, 
+        'xǁExecutionEngineǁrun_single__mutmut_70': xǁExecutionEngineǁrun_single__mutmut_70, 
+        'xǁExecutionEngineǁrun_single__mutmut_71': xǁExecutionEngineǁrun_single__mutmut_71, 
+        'xǁExecutionEngineǁrun_single__mutmut_72': xǁExecutionEngineǁrun_single__mutmut_72, 
+        'xǁExecutionEngineǁrun_single__mutmut_73': xǁExecutionEngineǁrun_single__mutmut_73, 
+        'xǁExecutionEngineǁrun_single__mutmut_74': xǁExecutionEngineǁrun_single__mutmut_74
     }
     xǁExecutionEngineǁrun_single__mutmut_orig.__name__ = 'xǁExecutionEngineǁrun_single'
     

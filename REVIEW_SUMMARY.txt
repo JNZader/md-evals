@@ -1,0 +1,232 @@
+================================================================================
+                    EDGE CASE TESTS REVIEW - EXECUTIVE SUMMARY
+================================================================================
+
+PROJECT: md-evals
+REVIEW DATE: 2026-03-09
+REVIEWER: Code Quality Analyst
+SCOPE: 67 new edge case tests (test_engine.py, test_reporter.py, test_evaluator.py)
+
+================================================================================
+                                KEY METRICS
+================================================================================
+
+Test Count:                67 tests
+Quality Score:             7/10
+Current Coverage:          Good breadth, weak depth
+Mutation Kill Rate:        ~60% (estimated)
+Critical Gaps:             6 major areas
+High-Impact Refinements:   6 concrete suggestions
+
+================================================================================
+                              QUALITY BREAKDOWN
+================================================================================
+
+TEST_ENGINE.PY (38 tests)
+├─ Variable Substitution:     ✅ GOOD (but missing exact verification)
+├─ Error Handling:            ⚠️  FAIR (only checks passed=False)
+├─ Evaluator Integration:     ✅ GOOD (covers multiple scenarios)
+├─ Response Structure:        ✅ GOOD (validates all fields)
+└─ Edge Cases:                ✅ GOOD (newlines, special chars)
+
+TEST_REPORTER.PY (23 tests)
+├─ Console Output:            ❌ CRITICAL GAP (all mocked, no real output)
+├─ JSON Output:               ✅ GOOD (structure verified)
+├─ Markdown Output:           ⚠️  FAIR (basic checks only)
+├─ Pass Rate Calculation:     ✅ GOOD (values verified)
+├─ Color Styling:             ❌ CRITICAL GAP (not verified)
+├─ Duration Aggregation:      ⚠️  FAIR (edge cases missing)
+└─ Token Calculation:         ⚠️  FAIR (None values not tested)
+
+TEST_EVALUATOR.PY (48 tests)
+├─ Regex Matching:            ✅ GOOD (8/10)
+├─ Exact Match:               ✅ GOOD (8/10)
+├─ LLM Judge Basics:          ⚠️  FAIR (6/10)
+├─ Score Normalization:       ❌ CRITICAL GAP (boundaries untested)
+├─ Threshold Comparison:      ⚠️  FAIR (>= vs > not verified)
+└─ Error Handling:            ✅ GOOD (7/10)
+
+================================================================================
+                           CRITICAL GAPS IDENTIFIED
+================================================================================
+
+CRITICAL (Will let many mutations survive):
+
+1. REPORTER - Console Output Not Verified
+   • All report_terminal tests mock Console class
+   • Actual formatting mutations won't be caught
+   • IMPACT: 5-8 mutations survive
+   • FIX: Add real console capture test (Refinement 1)
+
+2. EVALUATOR - Score Normalization Boundaries
+   • Score=1, 5, 6, 10 edge cases not tested
+   • Boundary conditions (1<=score<=5 vs 1<=score<=10) exploitable
+   • IMPACT: 4-6 mutations survive
+   • FIX: Add boundary condition tests (Refinement 3)
+
+3. REPORTER - Pass Rate Coloring Not Verified
+   • Color thresholds (>=80%, >=50%) not in actual output tests
+   • Could swap green/yellow/red assignments
+   • IMPACT: 2-3 mutations survive
+   • FIX: Add color verification test (Refinement 4)
+
+4. ENGINE - Variable Substitution Not Exact
+   • Tests only check placeholders are gone, not values are correct
+   • Off-by-one replacement bugs could survive
+   • IMPACT: 3-5 mutations survive
+   • FIX: Assert exact prompt content (Refinement 2)
+
+5. REPORTER - Duration Aggregation Edge Cases
+   • Empty durations, None values not tested
+   • Sum/average calculation bugs could survive
+   • IMPACT: 2-3 mutations survive
+   • FIX: Test edge cases (Refinement 5)
+
+6. ENGINE - Evaluator Aggregation Logic
+   • Multiple evaluator with mixed pass/fail not tested
+   • all() vs any() mutations could survive
+   • IMPACT: 1-2 mutations survive
+   • FIX: Test specific orderings (Refinement 6)
+
+================================================================================
+                          RECOMMENDED REFINEMENTS
+================================================================================
+
+PHASE 1 - CRITICAL (Do immediately, +12-15 mutations killed)
+────────────────────────────────────────────────────────────
+
+✓ Refinement 1: Real Console Output Capture (Reporter)
+  File: tests/test_reporter.py
+  Tests: Add test_report_terminal_actual_output_* methods
+  Impact: Catches formatting, color, percentage mutations
+  Time: ~5 minutes
+
+✓ Refinement 2: Exact Prompt Substitution (Engine)
+  File: tests/test_engine.py
+  Tests: Add test_run_single_variables_exact_substitution*
+  Impact: Catches variable replacement mutations
+  Time: ~5 minutes
+
+✓ Refinement 3: Score Normalization Boundaries (Evaluator)
+  File: tests/test_evaluator.py
+  Tests: Add test_llm_judge_score_*_normalizes* (1,5,6,10,11,0)
+  Impact: Catches boundary condition mutations
+  Time: ~10 minutes
+
+PHASE 2 - HIGH (Add next, +5-7 mutations killed)
+────────────────────────────────────────────────
+
+✓ Refinement 4: Pass Rate Coloring (Reporter)
+  File: tests/test_reporter.py
+  Tests: Add test_report_terminal_color_* methods
+  Impact: Catches color assignment mutations
+  Time: ~8 minutes
+
+✓ Refinement 5: Duration Aggregation Edge Cases (Reporter)
+  File: tests/test_reporter.py
+  Tests: Add test_calculate_summary_duration_* methods
+  Impact: Catches calculation mutations
+  Time: ~5 minutes
+
+✓ Refinement 6: Evaluator Aggregation (Engine)
+  File: tests/test_engine.py
+  Tests: Add test_run_single_multiple_evaluators_middle_fails
+  Impact: Catches all() vs any() mutations
+  Time: ~5 minutes
+
+TOTAL EFFORT: ~38 minutes
+TOTAL IMPACT: +17-25 mutations killed
+KILL RATE IMPROVEMENT: 60% → 85-90%
+
+================================================================================
+                         BEFORE vs AFTER COMPARISON
+================================================================================
+
+BEFORE:
+  • 67 tests with validation-focus (does it run?)
+  • ~60% mutation kill rate
+  • Many assertions check existence, not correctness
+  • Console output completely mocked
+  • Boundary conditions untested
+
+AFTER (with refinements):
+  • 73 tests with mutation-focus (is it correct?)
+  • ~85-90% mutation kill rate
+  • Assertions check exact values
+  • Real console output verified
+  • All boundary conditions tested
+
+================================================================================
+                            IMPLEMENTATION GUIDE
+================================================================================
+
+SEE: TEST_REFINEMENT_IMPLEMENTATION.md
+
+That file contains:
+✓ Copy-paste ready test code
+✓ Exact file locations and line numbers
+✓ Explanation of why each test kills mutations
+✓ Implementation checklist
+
+Quick start:
+  1. Open TEST_REFINEMENT_IMPLEMENTATION.md
+  2. Copy tests from each section
+  3. Paste into appropriate test file
+  4. Run: pytest tests/test_*.py -v
+  5. Run mutation testing
+
+================================================================================
+                              SUCCESS CRITERIA
+================================================================================
+
+Before mutation testing:
+  ✅ All 73 new tests pass
+  ✅ No assertion failures
+  ✅ Coverage includes all 6 refinements
+  
+After mutation testing:
+  ✅ >85% mutation kill rate
+  ✅ No surviving mutations in critical paths
+  ✅ Only low-risk mutations survive (nitpick-level)
+
+================================================================================
+                                CONCLUSION
+================================================================================
+
+The existing 67 tests provide SOLID FOUNDATIONAL COVERAGE but lack the
+ASSERTION DEPTH needed to catch mutations effectively.
+
+The 6 recommended refinements are FOCUSED AND HIGH-IMPACT, targeting the
+exact areas where mutations are most likely to survive.
+
+Implementation is STRAIGHTFORWARD: copy-paste code, run tests, verify results.
+
+NEXT STEPS:
+  1. Review EDGE_CASE_TEST_REVIEW.md for detailed analysis
+  2. Review TEST_REFINEMENT_IMPLEMENTATION.md for code examples
+  3. Implement all 6 refinements
+  4. Run: pytest tests/ -v
+  5. Run mutation testing
+  6. Verify 85%+ kill rate
+
+================================================================================
+                          DOCUMENT REFERENCES
+================================================================================
+
+1. EDGE_CASE_TEST_REVIEW.md (Main Analysis)
+   - Comprehensive gap analysis
+   - Why each gap matters
+   - Detailed refinement suggestions
+   - Impact estimates
+
+2. TEST_REFINEMENT_IMPLEMENTATION.md (Implementation Guide)
+   - Copy-paste ready code
+   - Exact file locations
+   - Quick start checklist
+   - Implementation timeline
+
+3. REVIEW_SUMMARY.txt (This file)
+   - Executive overview
+   - Key metrics
+   - Quick reference guide
+

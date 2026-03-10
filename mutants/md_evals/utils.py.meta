@@ -1,14 +1,14 @@
 {
     "exit_code_by_key": {
-        "md_evals.utils.x_read_file__mutmut_1": 1,
-        "md_evals.utils.x_ensure_dir__mutmut_1": 1,
-        "md_evals.utils.x_ensure_dir__mutmut_2": 1,
-        "md_evals.utils.x_ensure_dir__mutmut_3": 1,
-        "md_evals.utils.x_ensure_dir__mutmut_4": 1,
-        "md_evals.utils.x_ensure_dir__mutmut_5": 1,
-        "md_evals.utils.x_ensure_dir__mutmut_6": 1,
-        "md_evals.utils.x_ensure_dir__mutmut_7": 1,
-        "md_evals.utils.x_ensure_dir__mutmut_8": 1
+        "md_evals.utils.x_read_file__mutmut_1": null,
+        "md_evals.utils.x_ensure_dir__mutmut_1": null,
+        "md_evals.utils.x_ensure_dir__mutmut_2": null,
+        "md_evals.utils.x_ensure_dir__mutmut_3": null,
+        "md_evals.utils.x_ensure_dir__mutmut_4": null,
+        "md_evals.utils.x_ensure_dir__mutmut_5": null,
+        "md_evals.utils.x_ensure_dir__mutmut_6": null,
+        "md_evals.utils.x_ensure_dir__mutmut_7": null,
+        "md_evals.utils.x_ensure_dir__mutmut_8": null
     },
     "durations_by_key": {
         "md_evals.utils.x_read_file__mutmut_1": 0.603114,
