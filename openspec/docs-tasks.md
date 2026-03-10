@@ -47,6 +47,6 @@
 ## Phase 7: Polish
 
 - [x] **7.1** Add custom CSS theme
-- [ ] **7.2** Verify all links work
+- [x] **7.2** Verify all links work
 - [ ] **7.3** Test search functionality
-- [ ] **7.4** Update main README with docs link
+- [x] **7.4** Update main README with docs link
