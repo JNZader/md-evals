@@ -1,0 +1,45 @@
+name: "GitHub Models Integration Test"
+version: "1.0"
+description: "Example evaluation using GitHub Models provider"
+
+defaults:
+  model: "claude-3.5-sonnet"
+  provider: "github-models"
+  temperature: 0.7
+  max_tokens: 1024
+
+treatments:
+  CONTROL:
+    description: "Baseline response without skill injection"
+  WITH_SKILL:
+    description: "Response with helpful reasoning skill"
+    skill_path: "./examples/reasoning_skill.md"
+
+tests:
+  - name: "simple_question"
+    description: "Test a simple factual question"
+    prompt: "What is the capital of France?"
+    evaluators:
+      - type: "regex"
+        name: "contains_paris"
+        pattern: "(?i)paris"
+        pass_on_match: true
+
+  - name: "code_explanation"
+    description: "Test code explanation task"
+    prompt: "Explain this Python code: print('hello world')"
+    evaluators:
+      - type: "regex"
+        name: "explains_print"
+        pattern: "(?i)(print|output|hello)"
+        pass_on_match: true
+
+execution:
+  parallel_workers: 1
+  repetitions: 1
+
+output:
+  format: "table"
+  save_results: true
+  results_dir: "./results"
+  verbose: true
