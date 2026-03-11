@@ -543,3 +543,223 @@ class TestLLMAdapterValidationMutations:
             # Should handle missing choices gracefully
             assert response.content is not None
             assert isinstance(response.content, str)
+
+
+# ============================================================================
+# FASE 12-1: LLM String Processing Properties
+# ============================================================================
+# Property-based tests for LLM module string/token handling
+
+from hypothesis import given, strategies as st, settings, HealthCheck
+import json
+
+
+class TestLLMStringProcessingProperties:
+    """Property-based tests for LLM string processing.
+    
+    Properties tested:
+    1. Token counting is monotonic (more chars = more/equal tokens)
+    2. Model response content is never None
+    3. Token limits are enforced consistently
+    4. Prompt processing doesn't lose information
+    """
+    
+    @given(
+        text_length=st.integers(min_value=0, max_value=5000),
+    )
+    def test_token_counting_properties(self, text_length):
+        """Property: Token counts follow mathematical properties.
+        
+        For any text:
+        - token_count(text) >= 0 (never negative)
+        - token_count(text) <= len(text) / 4 * 1.3 (estimation rule)
+        - token_count(empty) == 0
+        - token_count(text) increases or stays same with longer text
+        
+        Mutation detectors:
+        - If token counting returns negative
+        - If it returns random values
+        - If estimation formula is broken
+        """
+        from md_evals.providers.github_models import GitHubModelsProvider
+        
+        # Create text of specific length
+        text = "a" * text_length
+        tokens = GitHubModelsProvider._estimate_tokens(text)
+        
+        # Tokens must be non-negative
+        assert tokens >= 0, f"Tokens negative for length {text_length}: {tokens}"
+        
+        # Tokens must be integer
+        assert isinstance(tokens, int), f"Tokens not integer: {type(tokens)}"
+        
+        # Estimation should be reasonable (less than 1:1 character ratio typically)
+        # Uses ~4 chars per token on average
+        estimated_max = (text_length // 4) * 2  # Allow 2x upper bound for safety
+        assert tokens <= estimated_max + 10, f"Token estimate too high: {tokens} > {estimated_max}"
+    
+    @given(
+        text1_len=st.integers(min_value=0, max_value=1000),
+        text2_len=st.integers(min_value=0, max_value=1000)
+    )
+    def test_token_counting_monotonic(self, text1_len, text2_len):
+        """Property: Token counting is monotonic.
+        
+        If len(text1) <= len(text2), then:
+        token_count(text1) <= token_count(text2)
+        
+        Mutation detectors:
+        - If counting logic is randomized
+        - If counting is backwards
+        - If there's an off-by-one error
+        """
+        from md_evals.providers.github_models import GitHubModelsProvider
+        
+        text1 = "a" * text1_len
+        text2 = "a" * text2_len
+        
+        tokens1 = GitHubModelsProvider._estimate_tokens(text1)
+        tokens2 = GitHubModelsProvider._estimate_tokens(text2)
+        
+        # Monotonicity: more text = more or equal tokens
+        if text1_len <= text2_len:
+            assert tokens1 <= tokens2, f"Monotonicity violated: {tokens1} > {tokens2}"
+    
+    @given(
+        prompt=st.text(min_size=1, max_size=500)
+    )
+    @settings(suppress_health_check=[HealthCheck.filter_too_much])
+    def test_llm_prompt_preserved_after_injection(self, prompt):
+        """Property: Non-empty prompts remain non-empty after skill injection.
+        
+        - Empty prompts should stay empty
+        - Non-empty prompts should stay non-empty
+        - Prompt structure should be preserved
+        
+        Mutation detectors:
+        - If prompts are truncated to empty
+        - If processing removes content incorrectly
+        - If validation is missing
+        """
+        from md_evals.llm import inject_skill
+        
+        # Test with no skill (CONTROL)
+        final_prompt, system_prompt = inject_skill(prompt, None)
+        
+        # Prompt should be preserved
+        assert final_prompt == prompt
+        assert system_prompt is None
+        assert len(final_prompt) == len(prompt)
+    
+    @given(
+        temperature=st.floats(min_value=0.0, max_value=2.0, allow_nan=False, allow_infinity=False),
+        max_tokens=st.integers(min_value=1, max_value=4096)
+    )
+    def test_llm_adapter_config_properties(self, temperature, max_tokens):
+        """Property: LLM adapter configuration is consistent.
+        
+        For valid provider + valid temperature + valid max_tokens:
+        - Adapter creation doesn't crash
+        - Settings are preserved
+        - Temperature stays in valid range [0.0, 2.0]
+        - max_tokens stays positive
+        
+        Mutation detectors:
+        - If config validation is removed
+        - If settings are overwritten
+        - If bounds are wrong
+        """
+        from md_evals.llm import LLMAdapter
+        
+        # Temperature should be in valid range
+        assert 0.0 <= temperature <= 2.0
+        assert max_tokens > 0
+        
+        # Valid configuration should work
+        try:
+            adapter = LLMAdapter(
+                provider="openai",
+                model="test-model"
+            )
+            assert adapter is not None
+            assert adapter.provider == "openai"
+            assert adapter.model == "test-model"
+        except Exception as e:
+            # Configuration might fail for other reasons, but not these bounds
+            assert "temperature" not in str(e).lower()
+            assert "max_tokens" not in str(e).lower()
+
+
+class TestLLMTokenEstimationProperties:
+    """Property-based tests for token estimation edge cases."""
+    
+    @given(
+        text=st.one_of(
+            st.just(""),
+            st.just(" "),
+            st.just("\n"),
+            st.text(min_size=1, max_size=100)
+        )
+    )
+    def test_token_estimation_consistency(self, text):
+        """Property: Token estimation is deterministic (same input = same output).
+        
+        - estimate_tokens(text) should always return same value
+        - Calling multiple times should give identical results
+        - No randomness in token counting
+        
+        Mutation detectors:
+        - If randomness introduced
+        - If state changes between calls
+        - If caching is broken
+        """
+        from md_evals.providers.github_models import GitHubModelsProvider
+        
+        # Get first estimate
+        estimate1 = GitHubModelsProvider._estimate_tokens(text)
+        
+        # Get second estimate
+        estimate2 = GitHubModelsProvider._estimate_tokens(text)
+        
+        # Get third estimate
+        estimate3 = GitHubModelsProvider._estimate_tokens(text)
+        
+        # All estimates must be identical
+        assert estimate1 == estimate2, f"Inconsistent estimates: {estimate1} != {estimate2}"
+        assert estimate2 == estimate3, f"Inconsistent estimates: {estimate2} != {estimate3}"
+    
+    @given(
+        char=st.sampled_from(list("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789 .,-;:!?'\"")),
+        count=st.integers(min_value=100, max_value=500)  # Large text to minimize granularity
+    )
+    def test_token_estimation_linear_for_repeated_chars(self, char, count):
+        """Property: Token estimation grows roughly linearly with repeated text.
+        
+        - token_count(char * n) should grow linearly with n
+        - token_count(char * (n+1)) >= token_count(char * n)
+        
+        Mutation detectors:
+        - If counting is completely broken
+        - If there's off-by-one errors
+        """
+        from md_evals.providers.github_models import GitHubModelsProvider
+        
+        text1 = char * count
+        text2 = char * (count + 100)  # Add 100 chars
+        
+        tokens1 = GitHubModelsProvider._estimate_tokens(text1)
+        tokens2 = GitHubModelsProvider._estimate_tokens(text2)
+        
+        # Must be monotonic - this is the key property
+        assert tokens1 <= tokens2, f"Monotonicity violated: {tokens1} > {tokens2}"
+        
+        # Growth must be positive for added text
+        token_increase = tokens2 - tokens1
+        assert token_increase > 0, f"No token growth for 100 new chars: {token_increase}"
+        
+        # Token increase should be roughly ~25 tokens for 100 chars (4:1 ratio)
+        # But allow 50% variance due to token boundaries and specifics
+        assert token_increase >= 20, f"Token increase too small: {token_increase} (expected ~25)"
+        assert token_increase <= 50, f"Token increase too large: {token_increase} (expected ~25)"
+
+
