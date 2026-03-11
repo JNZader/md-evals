@@ -1,7 +1,7 @@
 """Reporter for formatting evaluation results."""
 
 import json
-from datetime import datetime
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
@@ -191,8 +191,8 @@ class Reporter:
             }
         
         return {
-            "experiment_id": f"eval_{datetime.utcnow().strftime('%Y%m%d_%H%M%S')}",
-            "timestamp": datetime.utcnow().isoformat(),
+            "experiment_id": f"eval_{datetime.now(timezone.utc).strftime('%Y%m%d_%H%M%S')}",
+            "timestamp": datetime.now(timezone.utc).isoformat(),
             "config": {
                 "name": self.config.name,
                 "version": self.config.version
@@ -227,7 +227,7 @@ class Reporter:
         md_lines = [
             "# md-evals Results",
             "",
-            f"**Generated:** {datetime.utcnow().isoformat()}",
+            f"**Generated:** {datetime.now(timezone.utc).isoformat()}",
             f"**Config:** {self.config.name} (v{self.config.version})",
             "",
             "## Summary",

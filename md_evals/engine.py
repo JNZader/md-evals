@@ -1,7 +1,7 @@
 """Execution engine for running evaluations."""
 
 import asyncio
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import TYPE_CHECKING
 
 from md_evals.models import (
@@ -83,7 +83,7 @@ class ExecutionEngine:
                     ),
                     passed=False,
                     evaluator_results=[],
-                    timestamp=datetime.utcnow().isoformat()
+                timestamp=datetime.now(timezone.utc).isoformat()
                 )
             
             # Evaluate if evaluator engine is available
@@ -104,7 +104,7 @@ class ExecutionEngine:
                 response=response,
                 passed=passed,
                 evaluator_results=evaluator_results,
-                timestamp=datetime.utcnow().isoformat()
+                timestamp=datetime.now(timezone.utc).isoformat()
             )
     
     async def run_all(
@@ -175,7 +175,7 @@ class ExecutionEngine:
                         ),
                         passed=False,
                         evaluator_results=[],
-                        timestamp=datetime.utcnow().isoformat()
+                    timestamp=datetime.now(timezone.utc).isoformat()
                     )
                     all_results.append(error_result)
                 else:
