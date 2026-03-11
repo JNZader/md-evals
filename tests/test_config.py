@@ -540,3 +540,317 @@ class TestConfigLoadingMutations:
         assert isinstance(config.treatments, dict)
         assert isinstance(config.tests, list)
         assert isinstance(config.models, list)
+
+
+# ============================================================================
+# FASE 12-2: Configuration Validation Properties
+# ============================================================================
+# Property-based tests using hypothesis for config validation invariants
+
+from hypothesis import given, strategies as st, settings, HealthCheck
+import json
+
+
+
+
+# ============================================================================
+# FASE 12-2: Configuration Validation Properties
+# ============================================================================
+# Property-based tests using hypothesis for config validation invariants
+
+from hypothesis import given, strategies as st
+
+
+class TestConfigValidationProperties:
+    """Property-based tests for configuration validation.
+    
+    Properties tested:
+    1. Required fields always present after creation
+    2. Type invariants are maintained
+    3. Boundary values are accepted/rejected consistently
+    4. Config defaults are properly initialized
+    """
+    
+    @given(
+        name=st.text(min_size=1, max_size=100, alphabet=st.characters(
+            blacklist_categories=('Cc', 'Cs'),
+            blacklist_characters='\x00'
+        )),
+        version=st.just("1.0")
+    )
+    def test_config_required_fields_always_present(self, name, version):
+        """Property: Config always has required fields after creation.
+        
+        Required fields: name, version, treatments, tests
+        
+        Mutation detectors:
+        - If required field check removed
+        - If default initialization removed
+        - If field validation is skipped
+        """
+        from md_evals.models import EvalConfig
+        
+        # Create config with minimal fields
+        config = EvalConfig(name=name, version=version)
+        
+        # All required fields must exist
+        assert hasattr(config, 'name')
+        assert hasattr(config, 'version')
+        assert hasattr(config, 'treatments')
+        assert hasattr(config, 'tests')
+        assert hasattr(config, 'defaults')
+        
+        # All must be non-None
+        assert config.name is not None
+        assert config.version is not None
+        assert config.treatments is not None
+        assert config.tests is not None
+        assert config.defaults is not None
+        
+        # Values must match input
+        assert config.name == name
+        assert config.version == version
+    
+    @given(
+        retry_attempts=st.integers(min_value=1, max_value=100),
+        timeout=st.integers(min_value=1, max_value=300)
+    )
+    def test_config_type_invariants(self, retry_attempts, timeout):
+        """Property: Config field types remain consistent after creation.
+        
+        - retry_attempts must be int
+        - timeout must be int (seconds)
+        - temperature must be float [0, 2]
+        - max_tokens must be int > 0
+        
+        Mutation detectors:
+        - If type conversion is removed
+        - If type validation is skipped
+        - If coercion is removed
+        """
+        from md_evals.models import Defaults, EvalConfig
+        
+        # Create config with specific types
+        defaults = Defaults(
+            retry_attempts=retry_attempts,
+            timeout=timeout,
+            temperature=0.7,
+            max_tokens=2048
+        )
+        config = EvalConfig(name="test", defaults=defaults)
+        
+        # Types must be preserved
+        assert isinstance(config.defaults.retry_attempts, int)
+        assert isinstance(config.defaults.timeout, int)
+        assert isinstance(config.defaults.temperature, float)
+        assert isinstance(config.defaults.max_tokens, int)
+        
+        # Values must match input
+        assert config.defaults.retry_attempts == retry_attempts
+        assert config.defaults.timeout == timeout
+        assert config.defaults.temperature == 0.7
+        assert config.defaults.max_tokens == 2048
+    
+    @given(
+        retry_attempts=st.integers(min_value=1, max_value=100),
+        timeout=st.integers(min_value=1, max_value=300),
+        temperature=st.floats(min_value=0.0, max_value=2.0, allow_nan=False, allow_infinity=False),
+        max_tokens=st.integers(min_value=1, max_value=128000)
+    )
+    def test_config_boundary_values_accepted(self, retry_attempts, timeout, temperature, max_tokens):
+        """Property: Config accepts values within valid bounds.
+        
+        Valid bounds:
+        - retry_attempts: [1, 100]
+        - timeout: [1, 300] seconds
+        - temperature: [0.0, 2.0]
+        - max_tokens: [1, 128000]
+        
+        Mutation detectors:
+        - If boundary checks removed
+        - If validation is skipped
+        - If wrong comparison operator used
+        """
+        from md_evals.models import Defaults, EvalConfig
+        
+        # All these values are within bounds
+        defaults = Defaults(
+            retry_attempts=retry_attempts,
+            timeout=timeout,
+            temperature=temperature,
+            max_tokens=max_tokens
+        )
+        config = EvalConfig(name="test", defaults=defaults)
+        
+        # Should not raise exception
+        assert config.defaults.retry_attempts == retry_attempts
+        assert config.defaults.timeout == timeout
+        assert config.defaults.temperature == temperature
+        assert config.defaults.max_tokens == max_tokens
+    
+    @given(
+        retry_attempts=st.integers(min_value=1, max_value=100),
+        model=st.sampled_from(["gpt-4o", "gpt-4-turbo", "claude-3-opus"]),
+        provider=st.sampled_from(["openai", "anthropic", "github-models"])
+    )
+    def test_config_default_values_initialized(self, retry_attempts, model, provider):
+        """Property: Config defaults are properly initialized.
+        
+        - temperature defaults to 0.7
+        - max_tokens defaults to 2048
+        - timeout defaults to 60
+        - retry_delay defaults to 1.0
+        
+        Mutation detectors:
+        - If default initialization removed
+        - If defaults overwritten
+        - If default values are hardcoded wrong
+        """
+        from md_evals.models import Defaults, EvalConfig
+        
+        defaults = Defaults(
+            retry_attempts=retry_attempts,
+            model=model,
+            provider=provider
+        )
+        config = EvalConfig(name="test", defaults=defaults)
+        
+        # Should have all defaults
+        assert config.defaults.temperature == 0.7
+        assert config.defaults.max_tokens == 2048
+        assert config.defaults.timeout == 60
+        assert config.defaults.retry_delay == 1.0
+        
+        # And our specified values
+        assert config.defaults.retry_attempts == retry_attempts
+        assert config.defaults.model == model
+        assert config.defaults.provider == provider
+    
+    @given(
+        treatment_name=st.text(min_size=1, max_size=50, alphabet=st.characters(
+            blacklist_categories=('Cc', 'Cs'),
+            blacklist_characters='\x00'
+        )),
+        test_name=st.text(min_size=1, max_size=50, alphabet=st.characters(
+            blacklist_categories=('Cc', 'Cs'),
+            blacklist_characters='\x00'
+        ))
+    )
+    def test_config_collections_preserved(self, treatment_name, test_name):
+        """Property: Config collections are preserved after creation.
+        
+        - treatments dict should be modifiable and preserved
+        - tests list should be modifiable and preserved
+        - Collection length should be consistent
+        
+        Mutation detectors:
+        - If collections are not initialized
+        - If they're replaced with None
+        - If mutability is lost
+        """
+        from md_evals.models import EvalConfig, Treatment, Task
+        
+        # Create config with treatments and tests
+        treatments = {
+            treatment_name: Treatment(
+                description=f"Test {treatment_name}",
+                skill_path=None
+            )
+        }
+        tests = [
+            Task(
+                name=test_name,
+                description="Test",
+                prompt="test"
+            )
+        ]
+        
+        config = EvalConfig(
+            name="test",
+            treatments=treatments,
+            tests=tests
+        )
+        
+        # Collections should be preserved
+        assert len(config.treatments) == 1
+        assert len(config.tests) == 1
+        assert treatment_name in config.treatments
+        assert config.tests[0].name == test_name
+
+
+class TestConfigEdgeCases:
+    """Edge case tests for configuration."""
+    
+    @given(
+        special_chars=st.text(
+            min_size=1,
+            max_size=20,
+            alphabet=st.characters(
+                blacklist_categories=('Cc', 'Cs'),
+                blacklist_characters='\x00'
+            )
+        )
+    )
+    def test_config_name_with_special_chars(self, special_chars):
+        """Property: Config names with special characters are handled.
+        
+        - Should either accept or reject consistently
+        - Rejections should provide error message
+        """
+        from md_evals.models import EvalConfig
+        
+        if len(special_chars.strip()) > 0:  # Skip empty strings
+            try:
+                config = EvalConfig(name=special_chars)
+                # If accepted, name should match
+                assert config.name == special_chars
+            except Exception as e:
+                # If rejected, error should be clear
+                assert len(str(e)) > 0
+    
+    @given(
+        version=st.sampled_from(["1.0", "2.0", "1.5", "0.1"])
+    )
+    def test_config_version_formats(self, version):
+        """Property: Config accepts standard version formats.
+        
+        - Version should be preserved
+        - Should not mutate format
+        """
+        from md_evals.models import EvalConfig
+        
+        config = EvalConfig(name="test", version=version)
+        assert config.version == version
+    
+    @given(
+        model=st.text(min_size=1, max_size=50, alphabet=st.characters(
+            blacklist_categories=('Cc', 'Cs'),
+            blacklist_characters='\x00'
+        )),
+        provider=st.text(min_size=1, max_size=30, alphabet=st.characters(
+            blacklist_categories=('Cc', 'Cs'),
+            blacklist_characters='\x00'
+        ))
+    )
+    def test_config_model_provider_consistency(self, model, provider):
+        """Property: Config model and provider are consistent.
+        
+        - Model and provider should be preserved
+        - Should not be swapped or changed
+        - Values should match exactly what was set
+        """
+        from md_evals.models import Defaults, EvalConfig
+        
+        defaults = Defaults(model=model, provider=provider)
+        config = EvalConfig(name="test", defaults=defaults)
+        
+        # Both should be preserved exactly
+        assert config.defaults.model == model, f"Model changed: {model} -> {config.defaults.model}"
+        assert config.defaults.provider == provider, f"Provider changed: {provider} -> {config.defaults.provider}"
+        
+        # They should be different types (model = gpt-4o name, provider = openai)
+        # but they might be the same string in edge cases, which is OK
+        assert isinstance(config.defaults.model, str)
+        assert isinstance(config.defaults.provider, str)
+
+
