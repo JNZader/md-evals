@@ -99,7 +99,7 @@ class LLMAdapter:
         
         # Count tokens (approximate)
         tokens = 0
-        if hasattr(response, "usage"):
+        if hasattr(response, "usage") and response.usage:
             tokens = response.usage.completion_tokens or 0
         
         return LLMResponse(

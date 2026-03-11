@@ -435,3 +435,244 @@ class TestIntegrationGitHubModelsAPI:
 
 if __name__ == "__main__":
     pytest.main([__file__, "-v"])
+
+
+# ============================================================================
+# PHASE 3: GitHub Models Error Handling Coverage Expansion
+# ============================================================================
+
+class TestErrorPathsCoverage:
+    """Test error paths and exception handling (lines 224-230, 288-312, 343-354)."""
+    
+    @pytest.mark.asyncio
+    async def test_complete_with_rate_limit_error(self, provider_with_mock_client, mock_azure_client):
+        """Test rate limit error detection and handling."""
+        # Simulate rate limit error (429 status code)
+        mock_azure_client.complete.side_effect = Exception("429 Too Many Requests: Rate limit exceeded")
+        
+        with patch.object(provider_with_mock_client, '_stream_completion', new_callable=AsyncMock) as mock_stream:
+            mock_stream.side_effect = Exception("429 Too Many Requests: Rate limit exceeded")
+            
+            with pytest.raises(RateLimitError) as exc_info:
+                await provider_with_mock_client.complete("Test prompt")
+            
+            error = exc_info.value
+            assert error.retry_after == 60
+            assert "rate limit" in str(error).lower()
+    
+    @pytest.mark.asyncio
+    async def test_complete_with_context_window_error(self, provider_with_mock_client, mock_azure_client):
+        """Test context window exceeded error detection."""
+        # Simulate context window error
+        mock_azure_client.complete.side_effect = Exception("Token limit exceeded in context window")
+        
+        with patch.object(provider_with_mock_client, '_stream_completion', new_callable=AsyncMock) as mock_stream:
+            mock_stream.side_effect = Exception("Token limit exceeded in context window")
+            
+            with pytest.raises(ContextWindowError) as exc_info:
+                await provider_with_mock_client.complete("Test prompt")
+            
+            error = exc_info.value
+            assert "context window" in str(error).lower() or "context" in str(error).lower()
+    
+    @pytest.mark.asyncio
+    async def test_complete_with_network_error(self, provider_with_mock_client, mock_azure_client):
+        """Test network/timeout error detection."""
+        # Simulate timeout error
+        mock_azure_client.complete.side_effect = Exception("Connection timeout during request")
+        
+        with patch.object(provider_with_mock_client, '_stream_completion', new_callable=AsyncMock) as mock_stream:
+            mock_stream.side_effect = Exception("Connection timeout during request")
+            
+            with pytest.raises(StreamingError) as exc_info:
+                await provider_with_mock_client.complete("Test prompt")
+            
+            error = exc_info.value
+            assert "network" in str(error).lower() or "timeout" in str(error).lower()
+    
+    @pytest.mark.asyncio
+    async def test_complete_with_authentication_error(self, provider_with_mock_client, mock_azure_client):
+        """Test authentication error detection."""
+        # Simulate auth error
+        mock_azure_client.complete.side_effect = Exception("401 Unauthorized: Invalid GitHub token")
+        
+        with patch.object(provider_with_mock_client, '_stream_completion', new_callable=AsyncMock) as mock_stream:
+            mock_stream.side_effect = Exception("401 Unauthorized: Invalid GitHub token")
+            
+            with pytest.raises(AuthenticationError) as exc_info:
+                await provider_with_mock_client.complete("Test prompt")
+            
+            error = exc_info.value
+            assert "authentication" in str(error).lower() or "token" in str(error).lower()
+    
+    @pytest.mark.asyncio
+    async def test_complete_with_generic_api_error(self, provider_with_mock_client, mock_azure_client):
+        """Test generic API error that doesn't match specific patterns."""
+        # Simulate generic error
+        mock_azure_client.complete.side_effect = Exception("Unknown API error occurred")
+        
+        with patch.object(provider_with_mock_client, '_stream_completion', new_callable=AsyncMock) as mock_stream:
+            mock_stream.side_effect = Exception("Unknown API error occurred")
+            
+            with pytest.raises(APIError) as exc_info:
+                await provider_with_mock_client.complete("Test prompt")
+            
+            error = exc_info.value
+            assert "API error" in str(error) or "Unknown" in str(error)
+
+
+class TestStreamingErrorHandling:
+    """Test streaming response handling and edge cases."""
+    
+    @pytest.mark.asyncio
+    async def test_handle_stream_with_no_usage_data(self, provider_with_mock_client):
+        """Test handling response without usage data."""
+        # Response without usage field
+        response = Mock(
+            choices=[Mock(message=Mock(content="Test content"))],
+            usage=None
+        )
+        
+        content, token_count = await provider_with_mock_client._handle_stream(response)
+        
+        assert content == "Test content"
+        assert token_count > 0  # Should estimate tokens
+    
+    @pytest.mark.asyncio
+    async def test_handle_stream_with_empty_content(self, provider_with_mock_client):
+        """Test handling empty streaming response."""
+        response = Mock(
+            choices=[Mock(message=Mock(content=""))],
+            usage=Mock(completion_tokens=0)
+        )
+        
+        content, token_count = await provider_with_mock_client._handle_stream(response)
+        
+        assert content == ""
+        assert token_count == 0
+    
+    @pytest.mark.asyncio
+    async def test_handle_stream_with_different_response_format(self, provider_with_mock_client):
+        """Test handling response in different format."""
+        # Response without choices field
+        response = Mock(spec=['__str__'])
+        response.__str__ = lambda self: "Alternative response format"
+        
+        # Should handle fallback format
+        try:
+            content, token_count = await provider_with_mock_client._handle_stream(response)
+            assert content == "Alternative response format"
+        except StreamingError:
+            # This is acceptable - StreamingError for unexpected format
+            pass
+    
+    @pytest.mark.asyncio
+    async def test_handle_stream_with_stream_error(self, provider_with_mock_client):
+        """Test StreamingError during stream processing."""
+        response = Mock(side_effect=Exception("Stream processing failed"))
+        
+        with pytest.raises(StreamingError) as exc_info:
+            await provider_with_mock_client._handle_stream(response)
+        
+        assert "stream" in str(exc_info.value).lower()
+
+
+class TestTokenEstimation:
+    """Test token estimation for responses without usage data."""
+    
+    def test_estimate_tokens_simple(self):
+        """Test basic token estimation."""
+        content = "Hello world"
+        tokens = GitHubModelsProvider._estimate_tokens(content)
+        
+        # Simple estimate: ~1 token per word, roughly 4 chars per token
+        assert tokens > 0
+        assert tokens <= len(content)  // 2
+    
+    def test_estimate_tokens_empty(self):
+        """Test token estimation with empty content."""
+        tokens = GitHubModelsProvider._estimate_tokens("")
+        assert tokens == 0
+    
+    def test_estimate_tokens_long_text(self):
+        """Test token estimation with longer content."""
+        content = "This is a longer piece of content. " * 10
+        tokens = GitHubModelsProvider._estimate_tokens(content)
+        
+        assert tokens > 0
+        # Should be roughly proportional to content length
+        assert tokens > len(content) // 10
+    
+    def test_estimate_tokens_special_chars(self):
+        """Test token estimation with special characters."""
+        content = "Test: [special] {chars} (here) <and> \"quotes\" 'too'"
+        tokens = GitHubModelsProvider._estimate_tokens(content)
+        
+        assert tokens > 0
+
+
+class TestAzureClientInitialization:
+    """Test Azure client initialization error handling."""
+    
+
+class TestResponseFormats:
+    """Test handling different Azure SDK response formats."""
+    
+    @pytest.mark.asyncio
+    async def test_complete_with_usage_tokens(self, provider_with_mock_client, mock_azure_client):
+        """Test response with full usage information."""
+        mock_azure_client.complete.return_value = Mock(
+            choices=[Mock(message=Mock(content="Response with tokens"))],
+            usage=Mock(completion_tokens=42)
+        )
+        
+        with patch.object(provider_with_mock_client, '_stream_completion', new_callable=AsyncMock) as mock_stream:
+            mock_stream.return_value = mock_azure_client.complete.return_value
+            
+            response = await provider_with_mock_client.complete("Test")
+            
+            assert response.tokens == 42
+            assert response.content == "Response with tokens"
+    
+    @pytest.mark.asyncio
+    async def test_complete_with_estimated_tokens(self, provider_with_mock_client, mock_azure_client):
+        """Test response with estimated tokens (no usage data)."""
+        mock_azure_client.complete.return_value = Mock(
+            choices=[Mock(message=Mock(content="Response without usage"))],
+            usage=None
+        )
+        
+        with patch.object(provider_with_mock_client, '_stream_completion', new_callable=AsyncMock) as mock_stream:
+            mock_stream.return_value = mock_azure_client.complete.return_value
+            
+            response = await provider_with_mock_client.complete("Test")
+            
+            # Should have estimated tokens
+            assert response.tokens > 0
+            assert response.content == "Response without usage"
+
+
+class TestProviderInitializationErrors:
+    """Test provider initialization with various error conditions."""
+    
+    def test_unsupported_model_error_lists_supported(self):
+        """Test that unsupported model error lists supported models."""
+        with pytest.raises(ModelNotSupportedError) as exc_info:
+            GitHubModelsProvider("unsupported-model")
+        
+        error_msg = str(exc_info.value)
+        # Should list at least one supported model
+        assert "gpt" in error_msg.lower() or "claude" in error_msg.lower() or "supported" in error_msg.lower()
+    
+    def test_missing_github_token_error(self):
+        """Test error when GITHUB_TOKEN is not set."""
+        with patch.dict(os.environ, {}, clear=True):
+            # Make sure GITHUB_TOKEN is not set
+            with pytest.raises(AuthenticationError) as exc_info:
+                provider = GitHubModelsProvider("claude-3.5-sonnet")
+                # This should fail during initialization
+                if os.getenv("GITHUB_TOKEN"):
+                    pytest.skip("GITHUB_TOKEN is set")
+            
+            error_msg = str(exc_info.value)
+            assert "token" in error_msg.lower() or "github" in error_msg.lower()
