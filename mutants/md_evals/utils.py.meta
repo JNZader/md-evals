@@ -10,27 +10,7 @@
         "md_evals.utils.x_ensure_dir__mutmut_7": null,
         "md_evals.utils.x_ensure_dir__mutmut_8": null
     },
-    "durations_by_key": {
-        "md_evals.utils.x_read_file__mutmut_1": 0.603114,
-        "md_evals.utils.x_ensure_dir__mutmut_1": 0.637193,
-        "md_evals.utils.x_ensure_dir__mutmut_2": 0.635217,
-        "md_evals.utils.x_ensure_dir__mutmut_3": 0.631846,
-        "md_evals.utils.x_ensure_dir__mutmut_4": 0.627914,
-        "md_evals.utils.x_ensure_dir__mutmut_5": 0.62791,
-        "md_evals.utils.x_ensure_dir__mutmut_6": 0.625707,
-        "md_evals.utils.x_ensure_dir__mutmut_7": 0.623086,
-        "md_evals.utils.x_ensure_dir__mutmut_8": 0.621986
-    },
+    "durations_by_key": {},
     "type_check_error_by_key": {},
-    "estimated_durations_by_key": {
-        "md_evals.utils.x_read_file__mutmut_1": 0.002420417033135891,
-        "md_evals.utils.x_ensure_dir__mutmut_1": 0.0034712940105237067,
-        "md_evals.utils.x_ensure_dir__mutmut_2": 0.0034712940105237067,
-        "md_evals.utils.x_ensure_dir__mutmut_3": 0.0034712940105237067,
-        "md_evals.utils.x_ensure_dir__mutmut_4": 0.0034712940105237067,
-        "md_evals.utils.x_ensure_dir__mutmut_5": 0.0034712940105237067,
-        "md_evals.utils.x_ensure_dir__mutmut_6": 0.0034712940105237067,
-        "md_evals.utils.x_ensure_dir__mutmut_7": 0.0034712940105237067,
-        "md_evals.utils.x_ensure_dir__mutmut_8": 0.0034712940105237067
-    }
+    "estimated_durations_by_key": {}
 }

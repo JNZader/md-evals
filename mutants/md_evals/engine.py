@@ -1,7 +1,7 @@
 """Execution engine for running evaluations."""
 
 import asyncio
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import TYPE_CHECKING
 
 from md_evals.models import (
@@ -216,7 +216,7 @@ class ExecutionEngine:
                     ),
                     passed=False,
                     evaluator_results=[],
-                    timestamp=datetime.utcnow().isoformat()
+                timestamp=datetime.now(timezone.utc).isoformat()
                 )
             
             # Evaluate if evaluator engine is available
@@ -237,7 +237,7 @@ class ExecutionEngine:
                 response=response,
                 passed=passed,
                 evaluator_results=evaluator_results,
-                timestamp=datetime.utcnow().isoformat()
+                timestamp=datetime.now(timezone.utc).isoformat()
             )
     
     async def xǁExecutionEngineǁrun_single__mutmut_1(
@@ -286,7 +286,7 @@ class ExecutionEngine:
                     ),
                     passed=False,
                     evaluator_results=[],
-                    timestamp=datetime.utcnow().isoformat()
+                timestamp=datetime.now(timezone.utc).isoformat()
                 )
             
             # Evaluate if evaluator engine is available
@@ -307,7 +307,7 @@ class ExecutionEngine:
                 response=response,
                 passed=passed,
                 evaluator_results=evaluator_results,
-                timestamp=datetime.utcnow().isoformat()
+                timestamp=datetime.now(timezone.utc).isoformat()
             )
     
     async def xǁExecutionEngineǁrun_single__mutmut_2(
@@ -359,7 +359,7 @@ class ExecutionEngine:
                     ),
                     passed=False,
                     evaluator_results=[],
-                    timestamp=datetime.utcnow().isoformat()
+                timestamp=datetime.now(timezone.utc).isoformat()
                 )
             
             # Evaluate if evaluator engine is available
@@ -380,7 +380,7 @@ class ExecutionEngine:
                 response=response,
                 passed=passed,
                 evaluator_results=evaluator_results,
-                timestamp=datetime.utcnow().isoformat()
+                timestamp=datetime.now(timezone.utc).isoformat()
             )
     
     async def xǁExecutionEngineǁrun_single__mutmut_3(
@@ -432,7 +432,7 @@ class ExecutionEngine:
                     ),
                     passed=False,
                     evaluator_results=[],
-                    timestamp=datetime.utcnow().isoformat()
+                timestamp=datetime.now(timezone.utc).isoformat()
                 )
             
             # Evaluate if evaluator engine is available
@@ -453,7 +453,7 @@ class ExecutionEngine:
                 response=response,
                 passed=passed,
                 evaluator_results=evaluator_results,
-                timestamp=datetime.utcnow().isoformat()
+                timestamp=datetime.now(timezone.utc).isoformat()
             )
     
     async def xǁExecutionEngineǁrun_single__mutmut_4(
@@ -504,7 +504,7 @@ class ExecutionEngine:
                     ),
                     passed=False,
                     evaluator_results=[],
-                    timestamp=datetime.utcnow().isoformat()
+                timestamp=datetime.now(timezone.utc).isoformat()
                 )
             
             # Evaluate if evaluator engine is available
@@ -525,7 +525,7 @@ class ExecutionEngine:
                 response=response,
                 passed=passed,
                 evaluator_results=evaluator_results,
-                timestamp=datetime.utcnow().isoformat()
+                timestamp=datetime.now(timezone.utc).isoformat()
             )
     
     async def xǁExecutionEngineǁrun_single__mutmut_5(
@@ -576,7 +576,7 @@ class ExecutionEngine:
                     ),
                     passed=False,
                     evaluator_results=[],
-                    timestamp=datetime.utcnow().isoformat()
+                timestamp=datetime.now(timezone.utc).isoformat()
                 )
             
             # Evaluate if evaluator engine is available
@@ -597,7 +597,7 @@ class ExecutionEngine:
                 response=response,
                 passed=passed,
                 evaluator_results=evaluator_results,
-                timestamp=datetime.utcnow().isoformat()
+                timestamp=datetime.now(timezone.utc).isoformat()
             )
     
     async def xǁExecutionEngineǁrun_single__mutmut_6(
@@ -649,7 +649,7 @@ class ExecutionEngine:
                     ),
                     passed=False,
                     evaluator_results=[],
-                    timestamp=datetime.utcnow().isoformat()
+                timestamp=datetime.now(timezone.utc).isoformat()
                 )
             
             # Evaluate if evaluator engine is available
@@ -670,7 +670,7 @@ class ExecutionEngine:
                 response=response,
                 passed=passed,
                 evaluator_results=evaluator_results,
-                timestamp=datetime.utcnow().isoformat()
+                timestamp=datetime.now(timezone.utc).isoformat()
             )
     
     async def xǁExecutionEngineǁrun_single__mutmut_7(
@@ -722,7 +722,7 @@ class ExecutionEngine:
                     ),
                     passed=False,
                     evaluator_results=[],
-                    timestamp=datetime.utcnow().isoformat()
+                timestamp=datetime.now(timezone.utc).isoformat()
                 )
             
             # Evaluate if evaluator engine is available
@@ -743,7 +743,7 @@ class ExecutionEngine:
                 response=response,
                 passed=passed,
                 evaluator_results=evaluator_results,
-                timestamp=datetime.utcnow().isoformat()
+                timestamp=datetime.now(timezone.utc).isoformat()
             )
     
     async def xǁExecutionEngineǁrun_single__mutmut_8(
@@ -795,7 +795,7 @@ class ExecutionEngine:
                     ),
                     passed=False,
                     evaluator_results=[],
-                    timestamp=datetime.utcnow().isoformat()
+                timestamp=datetime.now(timezone.utc).isoformat()
                 )
             
             # Evaluate if evaluator engine is available
@@ -816,7 +816,7 @@ class ExecutionEngine:
                 response=response,
                 passed=passed,
                 evaluator_results=evaluator_results,
-                timestamp=datetime.utcnow().isoformat()
+                timestamp=datetime.now(timezone.utc).isoformat()
             )
     
     async def xǁExecutionEngineǁrun_single__mutmut_9(
@@ -868,7 +868,7 @@ class ExecutionEngine:
                     ),
                     passed=False,
                     evaluator_results=[],
-                    timestamp=datetime.utcnow().isoformat()
+                timestamp=datetime.now(timezone.utc).isoformat()
                 )
             
             # Evaluate if evaluator engine is available
@@ -889,7 +889,7 @@ class ExecutionEngine:
                 response=response,
                 passed=passed,
                 evaluator_results=evaluator_results,
-                timestamp=datetime.utcnow().isoformat()
+                timestamp=datetime.now(timezone.utc).isoformat()
             )
     
     async def xǁExecutionEngineǁrun_single__mutmut_10(
@@ -941,7 +941,7 @@ class ExecutionEngine:
                     ),
                     passed=False,
                     evaluator_results=[],
-                    timestamp=datetime.utcnow().isoformat()
+                timestamp=datetime.now(timezone.utc).isoformat()
                 )
             
             # Evaluate if evaluator engine is available
@@ -962,7 +962,7 @@ class ExecutionEngine:
                 response=response,
                 passed=passed,
                 evaluator_results=evaluator_results,
-                timestamp=datetime.utcnow().isoformat()
+                timestamp=datetime.now(timezone.utc).isoformat()
             )
     
     async def xǁExecutionEngineǁrun_single__mutmut_11(
@@ -1014,7 +1014,7 @@ class ExecutionEngine:
                     ),
                     passed=False,
                     evaluator_results=[],
-                    timestamp=datetime.utcnow().isoformat()
+                timestamp=datetime.now(timezone.utc).isoformat()
                 )
             
             # Evaluate if evaluator engine is available
@@ -1035,7 +1035,7 @@ class ExecutionEngine:
                 response=response,
                 passed=passed,
                 evaluator_results=evaluator_results,
-                timestamp=datetime.utcnow().isoformat()
+                timestamp=datetime.now(timezone.utc).isoformat()
             )
     
     async def xǁExecutionEngineǁrun_single__mutmut_12(
@@ -1084,7 +1084,7 @@ class ExecutionEngine:
                     ),
                     passed=False,
                     evaluator_results=[],
-                    timestamp=datetime.utcnow().isoformat()
+                timestamp=datetime.now(timezone.utc).isoformat()
                 )
             
             # Evaluate if evaluator engine is available
@@ -1105,7 +1105,7 @@ class ExecutionEngine:
                 response=response,
                 passed=passed,
                 evaluator_results=evaluator_results,
-                timestamp=datetime.utcnow().isoformat()
+                timestamp=datetime.now(timezone.utc).isoformat()
             )
     
     async def xǁExecutionEngineǁrun_single__mutmut_13(
@@ -1157,7 +1157,7 @@ class ExecutionEngine:
                     ),
                     passed=False,
                     evaluator_results=[],
-                    timestamp=datetime.utcnow().isoformat()
+                timestamp=datetime.now(timezone.utc).isoformat()
                 )
             
             # Evaluate if evaluator engine is available
@@ -1178,7 +1178,7 @@ class ExecutionEngine:
                 response=response,
                 passed=passed,
                 evaluator_results=evaluator_results,
-                timestamp=datetime.utcnow().isoformat()
+                timestamp=datetime.now(timezone.utc).isoformat()
             )
     
     async def xǁExecutionEngineǁrun_single__mutmut_14(
@@ -1230,7 +1230,7 @@ class ExecutionEngine:
                     ),
                     passed=False,
                     evaluator_results=[],
-                    timestamp=datetime.utcnow().isoformat()
+                timestamp=datetime.now(timezone.utc).isoformat()
                 )
             
             # Evaluate if evaluator engine is available
@@ -1251,7 +1251,7 @@ class ExecutionEngine:
                 response=response,
                 passed=passed,
                 evaluator_results=evaluator_results,
-                timestamp=datetime.utcnow().isoformat()
+                timestamp=datetime.now(timezone.utc).isoformat()
             )
     
     async def xǁExecutionEngineǁrun_single__mutmut_15(
@@ -1302,7 +1302,7 @@ class ExecutionEngine:
                     ),
                     passed=False,
                     evaluator_results=[],
-                    timestamp=datetime.utcnow().isoformat()
+                timestamp=datetime.now(timezone.utc).isoformat()
                 )
             
             # Evaluate if evaluator engine is available
@@ -1323,7 +1323,7 @@ class ExecutionEngine:
                 response=response,
                 passed=passed,
                 evaluator_results=evaluator_results,
-                timestamp=datetime.utcnow().isoformat()
+                timestamp=datetime.now(timezone.utc).isoformat()
             )
     
     async def xǁExecutionEngineǁrun_single__mutmut_16(
@@ -1374,7 +1374,7 @@ class ExecutionEngine:
                     ),
                     passed=False,
                     evaluator_results=[],
-                    timestamp=datetime.utcnow().isoformat()
+                timestamp=datetime.now(timezone.utc).isoformat()
                 )
             
             # Evaluate if evaluator engine is available
@@ -1395,7 +1395,7 @@ class ExecutionEngine:
                 response=response,
                 passed=passed,
                 evaluator_results=evaluator_results,
-                timestamp=datetime.utcnow().isoformat()
+                timestamp=datetime.now(timezone.utc).isoformat()
             )
     
     async def xǁExecutionEngineǁrun_single__mutmut_17(
@@ -1447,7 +1447,7 @@ class ExecutionEngine:
                     ),
                     passed=False,
                     evaluator_results=[],
-                    timestamp=datetime.utcnow().isoformat()
+                timestamp=datetime.now(timezone.utc).isoformat()
                 )
             
             # Evaluate if evaluator engine is available
@@ -1468,7 +1468,7 @@ class ExecutionEngine:
                 response=response,
                 passed=passed,
                 evaluator_results=evaluator_results,
-                timestamp=datetime.utcnow().isoformat()
+                timestamp=datetime.now(timezone.utc).isoformat()
             )
     
     async def xǁExecutionEngineǁrun_single__mutmut_18(
@@ -1520,7 +1520,7 @@ class ExecutionEngine:
                     ),
                     passed=False,
                     evaluator_results=[],
-                    timestamp=datetime.utcnow().isoformat()
+                timestamp=datetime.now(timezone.utc).isoformat()
                 )
             
             # Evaluate if evaluator engine is available
@@ -1541,7 +1541,7 @@ class ExecutionEngine:
                 response=response,
                 passed=passed,
                 evaluator_results=evaluator_results,
-                timestamp=datetime.utcnow().isoformat()
+                timestamp=datetime.now(timezone.utc).isoformat()
             )
     
     async def xǁExecutionEngineǁrun_single__mutmut_19(
@@ -1593,7 +1593,7 @@ class ExecutionEngine:
                     ),
                     passed=False,
                     evaluator_results=[],
-                    timestamp=datetime.utcnow().isoformat()
+                timestamp=datetime.now(timezone.utc).isoformat()
                 )
             
             # Evaluate if evaluator engine is available
@@ -1614,7 +1614,7 @@ class ExecutionEngine:
                 response=response,
                 passed=passed,
                 evaluator_results=evaluator_results,
-                timestamp=datetime.utcnow().isoformat()
+                timestamp=datetime.now(timezone.utc).isoformat()
             )
     
     async def xǁExecutionEngineǁrun_single__mutmut_20(
@@ -1660,7 +1660,7 @@ class ExecutionEngine:
                     response=None,
                     passed=False,
                     evaluator_results=[],
-                    timestamp=datetime.utcnow().isoformat()
+                timestamp=datetime.now(timezone.utc).isoformat()
                 )
             
             # Evaluate if evaluator engine is available
@@ -1681,7 +1681,7 @@ class ExecutionEngine:
                 response=response,
                 passed=passed,
                 evaluator_results=evaluator_results,
-                timestamp=datetime.utcnow().isoformat()
+                timestamp=datetime.now(timezone.utc).isoformat()
             )
     
     async def xǁExecutionEngineǁrun_single__mutmut_21(
@@ -1733,7 +1733,7 @@ class ExecutionEngine:
                     ),
                     passed=None,
                     evaluator_results=[],
-                    timestamp=datetime.utcnow().isoformat()
+                timestamp=datetime.now(timezone.utc).isoformat()
                 )
             
             # Evaluate if evaluator engine is available
@@ -1754,7 +1754,7 @@ class ExecutionEngine:
                 response=response,
                 passed=passed,
                 evaluator_results=evaluator_results,
-                timestamp=datetime.utcnow().isoformat()
+                timestamp=datetime.now(timezone.utc).isoformat()
             )
     
     async def xǁExecutionEngineǁrun_single__mutmut_22(
@@ -1806,7 +1806,7 @@ class ExecutionEngine:
                     ),
                     passed=False,
                     evaluator_results=None,
-                    timestamp=datetime.utcnow().isoformat()
+                timestamp=datetime.now(timezone.utc).isoformat()
                 )
             
             # Evaluate if evaluator engine is available
@@ -1827,7 +1827,7 @@ class ExecutionEngine:
                 response=response,
                 passed=passed,
                 evaluator_results=evaluator_results,
-                timestamp=datetime.utcnow().isoformat()
+                timestamp=datetime.now(timezone.utc).isoformat()
             )
     
     async def xǁExecutionEngineǁrun_single__mutmut_23(
@@ -1879,7 +1879,7 @@ class ExecutionEngine:
                     ),
                     passed=False,
                     evaluator_results=[],
-                    timestamp=None
+                timestamp=None
                 )
             
             # Evaluate if evaluator engine is available
@@ -1900,7 +1900,7 @@ class ExecutionEngine:
                 response=response,
                 passed=passed,
                 evaluator_results=evaluator_results,
-                timestamp=datetime.utcnow().isoformat()
+                timestamp=datetime.now(timezone.utc).isoformat()
             )
     
     async def xǁExecutionEngineǁrun_single__mutmut_24(
@@ -1951,7 +1951,7 @@ class ExecutionEngine:
                     ),
                     passed=False,
                     evaluator_results=[],
-                    timestamp=datetime.utcnow().isoformat()
+                timestamp=datetime.now(timezone.utc).isoformat()
                 )
             
             # Evaluate if evaluator engine is available
@@ -1972,7 +1972,7 @@ class ExecutionEngine:
                 response=response,
                 passed=passed,
                 evaluator_results=evaluator_results,
-                timestamp=datetime.utcnow().isoformat()
+                timestamp=datetime.now(timezone.utc).isoformat()
             )
     
     async def xǁExecutionEngineǁrun_single__mutmut_25(
@@ -2023,7 +2023,7 @@ class ExecutionEngine:
                     ),
                     passed=False,
                     evaluator_results=[],
-                    timestamp=datetime.utcnow().isoformat()
+                timestamp=datetime.now(timezone.utc).isoformat()
                 )
             
             # Evaluate if evaluator engine is available
@@ -2044,7 +2044,7 @@ class ExecutionEngine:
                 response=response,
                 passed=passed,
                 evaluator_results=evaluator_results,
-                timestamp=datetime.utcnow().isoformat()
+                timestamp=datetime.now(timezone.utc).isoformat()
             )
     
     async def xǁExecutionEngineǁrun_single__mutmut_26(
@@ -2095,7 +2095,7 @@ class ExecutionEngine:
                     ),
                     passed=False,
                     evaluator_results=[],
-                    timestamp=datetime.utcnow().isoformat()
+                timestamp=datetime.now(timezone.utc).isoformat()
                 )
             
             # Evaluate if evaluator engine is available
@@ -2116,7 +2116,7 @@ class ExecutionEngine:
                 response=response,
                 passed=passed,
                 evaluator_results=evaluator_results,
-                timestamp=datetime.utcnow().isoformat()
+                timestamp=datetime.now(timezone.utc).isoformat()
             )
     
     async def xǁExecutionEngineǁrun_single__mutmut_27(
@@ -2161,7 +2161,7 @@ class ExecutionEngine:
                     prompt=final_prompt,
                     passed=False,
                     evaluator_results=[],
-                    timestamp=datetime.utcnow().isoformat()
+                timestamp=datetime.now(timezone.utc).isoformat()
                 )
             
             # Evaluate if evaluator engine is available
@@ -2182,7 +2182,7 @@ class ExecutionEngine:
                 response=response,
                 passed=passed,
                 evaluator_results=evaluator_results,
-                timestamp=datetime.utcnow().isoformat()
+                timestamp=datetime.now(timezone.utc).isoformat()
             )
     
     async def xǁExecutionEngineǁrun_single__mutmut_28(
@@ -2233,7 +2233,7 @@ class ExecutionEngine:
                         raw_response={"error": str(e)}
                     ),
                     evaluator_results=[],
-                    timestamp=datetime.utcnow().isoformat()
+                timestamp=datetime.now(timezone.utc).isoformat()
                 )
             
             # Evaluate if evaluator engine is available
@@ -2254,7 +2254,7 @@ class ExecutionEngine:
                 response=response,
                 passed=passed,
                 evaluator_results=evaluator_results,
-                timestamp=datetime.utcnow().isoformat()
+                timestamp=datetime.now(timezone.utc).isoformat()
             )
     
     async def xǁExecutionEngineǁrun_single__mutmut_29(
@@ -2305,7 +2305,7 @@ class ExecutionEngine:
                         raw_response={"error": str(e)}
                     ),
                     passed=False,
-                    timestamp=datetime.utcnow().isoformat()
+                    timestamp=datetime.now(timezone.utc).isoformat()
                 )
             
             # Evaluate if evaluator engine is available
@@ -2326,7 +2326,7 @@ class ExecutionEngine:
                 response=response,
                 passed=passed,
                 evaluator_results=evaluator_results,
-                timestamp=datetime.utcnow().isoformat()
+                timestamp=datetime.now(timezone.utc).isoformat()
             )
     
     async def xǁExecutionEngineǁrun_single__mutmut_30(
@@ -2378,7 +2378,7 @@ class ExecutionEngine:
                     ),
                     passed=False,
                     evaluator_results=[],
-                    )
+                )
             
             # Evaluate if evaluator engine is available
             evaluator_results = []
@@ -2398,7 +2398,7 @@ class ExecutionEngine:
                 response=response,
                 passed=passed,
                 evaluator_results=evaluator_results,
-                timestamp=datetime.utcnow().isoformat()
+                timestamp=datetime.now(timezone.utc).isoformat()
             )
     
     async def xǁExecutionEngineǁrun_single__mutmut_31(
@@ -2450,7 +2450,7 @@ class ExecutionEngine:
                     ),
                     passed=False,
                     evaluator_results=[],
-                    timestamp=datetime.utcnow().isoformat()
+                timestamp=datetime.now(timezone.utc).isoformat()
                 )
             
             # Evaluate if evaluator engine is available
@@ -2471,7 +2471,7 @@ class ExecutionEngine:
                 response=response,
                 passed=passed,
                 evaluator_results=evaluator_results,
-                timestamp=datetime.utcnow().isoformat()
+                timestamp=datetime.now(timezone.utc).isoformat()
             )
     
     async def xǁExecutionEngineǁrun_single__mutmut_32(
@@ -2523,7 +2523,7 @@ class ExecutionEngine:
                     ),
                     passed=False,
                     evaluator_results=[],
-                    timestamp=datetime.utcnow().isoformat()
+                timestamp=datetime.now(timezone.utc).isoformat()
                 )
             
             # Evaluate if evaluator engine is available
@@ -2544,7 +2544,7 @@ class ExecutionEngine:
                 response=response,
                 passed=passed,
                 evaluator_results=evaluator_results,
-                timestamp=datetime.utcnow().isoformat()
+                timestamp=datetime.now(timezone.utc).isoformat()
             )
     
     async def xǁExecutionEngineǁrun_single__mutmut_33(
@@ -2596,7 +2596,7 @@ class ExecutionEngine:
                     ),
                     passed=False,
                     evaluator_results=[],
-                    timestamp=datetime.utcnow().isoformat()
+                timestamp=datetime.now(timezone.utc).isoformat()
                 )
             
             # Evaluate if evaluator engine is available
@@ -2617,7 +2617,7 @@ class ExecutionEngine:
                 response=response,
                 passed=passed,
                 evaluator_results=evaluator_results,
-                timestamp=datetime.utcnow().isoformat()
+                timestamp=datetime.now(timezone.utc).isoformat()
             )
     
     async def xǁExecutionEngineǁrun_single__mutmut_34(
@@ -2669,7 +2669,7 @@ class ExecutionEngine:
                     ),
                     passed=False,
                     evaluator_results=[],
-                    timestamp=datetime.utcnow().isoformat()
+                timestamp=datetime.now(timezone.utc).isoformat()
                 )
             
             # Evaluate if evaluator engine is available
@@ -2690,7 +2690,7 @@ class ExecutionEngine:
                 response=response,
                 passed=passed,
                 evaluator_results=evaluator_results,
-                timestamp=datetime.utcnow().isoformat()
+                timestamp=datetime.now(timezone.utc).isoformat()
             )
     
     async def xǁExecutionEngineǁrun_single__mutmut_35(
@@ -2742,7 +2742,7 @@ class ExecutionEngine:
                     ),
                     passed=False,
                     evaluator_results=[],
-                    timestamp=datetime.utcnow().isoformat()
+                timestamp=datetime.now(timezone.utc).isoformat()
                 )
             
             # Evaluate if evaluator engine is available
@@ -2763,7 +2763,7 @@ class ExecutionEngine:
                 response=response,
                 passed=passed,
                 evaluator_results=evaluator_results,
-                timestamp=datetime.utcnow().isoformat()
+                timestamp=datetime.now(timezone.utc).isoformat()
             )
     
     async def xǁExecutionEngineǁrun_single__mutmut_36(
@@ -2814,7 +2814,7 @@ class ExecutionEngine:
                     ),
                     passed=False,
                     evaluator_results=[],
-                    timestamp=datetime.utcnow().isoformat()
+                timestamp=datetime.now(timezone.utc).isoformat()
                 )
             
             # Evaluate if evaluator engine is available
@@ -2835,7 +2835,7 @@ class ExecutionEngine:
                 response=response,
                 passed=passed,
                 evaluator_results=evaluator_results,
-                timestamp=datetime.utcnow().isoformat()
+                timestamp=datetime.now(timezone.utc).isoformat()
             )
     
     async def xǁExecutionEngineǁrun_single__mutmut_37(
@@ -2886,7 +2886,7 @@ class ExecutionEngine:
                     ),
                     passed=False,
                     evaluator_results=[],
-                    timestamp=datetime.utcnow().isoformat()
+                timestamp=datetime.now(timezone.utc).isoformat()
                 )
             
             # Evaluate if evaluator engine is available
@@ -2907,7 +2907,7 @@ class ExecutionEngine:
                 response=response,
                 passed=passed,
                 evaluator_results=evaluator_results,
-                timestamp=datetime.utcnow().isoformat()
+                timestamp=datetime.now(timezone.utc).isoformat()
             )
     
     async def xǁExecutionEngineǁrun_single__mutmut_38(
@@ -2958,7 +2958,7 @@ class ExecutionEngine:
                     ),
                     passed=False,
                     evaluator_results=[],
-                    timestamp=datetime.utcnow().isoformat()
+                timestamp=datetime.now(timezone.utc).isoformat()
                 )
             
             # Evaluate if evaluator engine is available
@@ -2979,7 +2979,7 @@ class ExecutionEngine:
                 response=response,
                 passed=passed,
                 evaluator_results=evaluator_results,
-                timestamp=datetime.utcnow().isoformat()
+                timestamp=datetime.now(timezone.utc).isoformat()
             )
     
     async def xǁExecutionEngineǁrun_single__mutmut_39(
@@ -3030,7 +3030,7 @@ class ExecutionEngine:
                     ),
                     passed=False,
                     evaluator_results=[],
-                    timestamp=datetime.utcnow().isoformat()
+                timestamp=datetime.now(timezone.utc).isoformat()
                 )
             
             # Evaluate if evaluator engine is available
@@ -3051,7 +3051,7 @@ class ExecutionEngine:
                 response=response,
                 passed=passed,
                 evaluator_results=evaluator_results,
-                timestamp=datetime.utcnow().isoformat()
+                timestamp=datetime.now(timezone.utc).isoformat()
             )
     
     async def xǁExecutionEngineǁrun_single__mutmut_40(
@@ -3102,7 +3102,7 @@ class ExecutionEngine:
                         ),
                     passed=False,
                     evaluator_results=[],
-                    timestamp=datetime.utcnow().isoformat()
+                timestamp=datetime.now(timezone.utc).isoformat()
                 )
             
             # Evaluate if evaluator engine is available
@@ -3123,7 +3123,7 @@ class ExecutionEngine:
                 response=response,
                 passed=passed,
                 evaluator_results=evaluator_results,
-                timestamp=datetime.utcnow().isoformat()
+                timestamp=datetime.now(timezone.utc).isoformat()
             )
     
     async def xǁExecutionEngineǁrun_single__mutmut_41(
@@ -3175,7 +3175,7 @@ class ExecutionEngine:
                     ),
                     passed=False,
                     evaluator_results=[],
-                    timestamp=datetime.utcnow().isoformat()
+                timestamp=datetime.now(timezone.utc).isoformat()
                 )
             
             # Evaluate if evaluator engine is available
@@ -3196,7 +3196,7 @@ class ExecutionEngine:
                 response=response,
                 passed=passed,
                 evaluator_results=evaluator_results,
-                timestamp=datetime.utcnow().isoformat()
+                timestamp=datetime.now(timezone.utc).isoformat()
             )
     
     async def xǁExecutionEngineǁrun_single__mutmut_42(
@@ -3248,7 +3248,7 @@ class ExecutionEngine:
                     ),
                     passed=False,
                     evaluator_results=[],
-                    timestamp=datetime.utcnow().isoformat()
+                timestamp=datetime.now(timezone.utc).isoformat()
                 )
             
             # Evaluate if evaluator engine is available
@@ -3269,7 +3269,7 @@ class ExecutionEngine:
                 response=response,
                 passed=passed,
                 evaluator_results=evaluator_results,
-                timestamp=datetime.utcnow().isoformat()
+                timestamp=datetime.now(timezone.utc).isoformat()
             )
     
     async def xǁExecutionEngineǁrun_single__mutmut_43(
@@ -3321,7 +3321,7 @@ class ExecutionEngine:
                     ),
                     passed=False,
                     evaluator_results=[],
-                    timestamp=datetime.utcnow().isoformat()
+                timestamp=datetime.now(timezone.utc).isoformat()
                 )
             
             # Evaluate if evaluator engine is available
@@ -3342,7 +3342,7 @@ class ExecutionEngine:
                 response=response,
                 passed=passed,
                 evaluator_results=evaluator_results,
-                timestamp=datetime.utcnow().isoformat()
+                timestamp=datetime.now(timezone.utc).isoformat()
             )
     
     async def xǁExecutionEngineǁrun_single__mutmut_44(
@@ -3394,7 +3394,7 @@ class ExecutionEngine:
                     ),
                     passed=False,
                     evaluator_results=[],
-                    timestamp=datetime.utcnow().isoformat()
+                timestamp=datetime.now(timezone.utc).isoformat()
                 )
             
             # Evaluate if evaluator engine is available
@@ -3415,7 +3415,7 @@ class ExecutionEngine:
                 response=response,
                 passed=passed,
                 evaluator_results=evaluator_results,
-                timestamp=datetime.utcnow().isoformat()
+                timestamp=datetime.now(timezone.utc).isoformat()
             )
     
     async def xǁExecutionEngineǁrun_single__mutmut_45(
@@ -3467,7 +3467,7 @@ class ExecutionEngine:
                     ),
                     passed=False,
                     evaluator_results=[],
-                    timestamp=datetime.utcnow().isoformat()
+                timestamp=datetime.now(timezone.utc).isoformat()
                 )
             
             # Evaluate if evaluator engine is available
@@ -3488,7 +3488,7 @@ class ExecutionEngine:
                 response=response,
                 passed=passed,
                 evaluator_results=evaluator_results,
-                timestamp=datetime.utcnow().isoformat()
+                timestamp=datetime.now(timezone.utc).isoformat()
             )
     
     async def xǁExecutionEngineǁrun_single__mutmut_46(
@@ -3540,7 +3540,7 @@ class ExecutionEngine:
                     ),
                     passed=False,
                     evaluator_results=[],
-                    timestamp=datetime.utcnow().isoformat()
+                timestamp=datetime.now(timezone.utc).isoformat()
                 )
             
             # Evaluate if evaluator engine is available
@@ -3561,7 +3561,7 @@ class ExecutionEngine:
                 response=response,
                 passed=passed,
                 evaluator_results=evaluator_results,
-                timestamp=datetime.utcnow().isoformat()
+                timestamp=datetime.now(timezone.utc).isoformat()
             )
     
     async def xǁExecutionEngineǁrun_single__mutmut_47(
@@ -3613,7 +3613,7 @@ class ExecutionEngine:
                     ),
                     passed=False,
                     evaluator_results=[],
-                    timestamp=datetime.utcnow().isoformat()
+                timestamp=datetime.now(timezone.utc).isoformat()
                 )
             
             # Evaluate if evaluator engine is available
@@ -3634,7 +3634,7 @@ class ExecutionEngine:
                 response=response,
                 passed=passed,
                 evaluator_results=evaluator_results,
-                timestamp=datetime.utcnow().isoformat()
+                timestamp=datetime.now(timezone.utc).isoformat()
             )
     
     async def xǁExecutionEngineǁrun_single__mutmut_48(
@@ -3686,7 +3686,7 @@ class ExecutionEngine:
                     ),
                     passed=False,
                     evaluator_results=[],
-                    timestamp=datetime.utcnow().isoformat()
+                timestamp=datetime.now(timezone.utc).isoformat()
                 )
             
             # Evaluate if evaluator engine is available
@@ -3707,7 +3707,7 @@ class ExecutionEngine:
                 response=response,
                 passed=passed,
                 evaluator_results=evaluator_results,
-                timestamp=datetime.utcnow().isoformat()
+                timestamp=datetime.now(timezone.utc).isoformat()
             )
     
     async def xǁExecutionEngineǁrun_single__mutmut_49(
@@ -3759,7 +3759,7 @@ class ExecutionEngine:
                     ),
                     passed=False,
                     evaluator_results=[],
-                    timestamp=datetime.utcnow().isoformat()
+                timestamp=datetime.now(timezone.utc).isoformat()
                 )
             
             # Evaluate if evaluator engine is available
@@ -3780,7 +3780,7 @@ class ExecutionEngine:
                 response=response,
                 passed=passed,
                 evaluator_results=evaluator_results,
-                timestamp=datetime.utcnow().isoformat()
+                timestamp=datetime.now(timezone.utc).isoformat()
             )
     
     async def xǁExecutionEngineǁrun_single__mutmut_50(
@@ -3832,7 +3832,7 @@ class ExecutionEngine:
                     ),
                     passed=True,
                     evaluator_results=[],
-                    timestamp=datetime.utcnow().isoformat()
+                timestamp=datetime.now(timezone.utc).isoformat()
                 )
             
             # Evaluate if evaluator engine is available
@@ -3853,7 +3853,7 @@ class ExecutionEngine:
                 response=response,
                 passed=passed,
                 evaluator_results=evaluator_results,
-                timestamp=datetime.utcnow().isoformat()
+                timestamp=datetime.now(timezone.utc).isoformat()
             )
     
     async def xǁExecutionEngineǁrun_single__mutmut_51(
@@ -3905,11 +3905,11 @@ class ExecutionEngine:
                     ),
                     passed=False,
                     evaluator_results=[],
-                    timestamp=datetime.utcnow().isoformat()
+                timestamp=datetime.now(None).isoformat()
                 )
             
             # Evaluate if evaluator engine is available
-            evaluator_results = None
+            evaluator_results = []
             if self.evaluator_engine and task.evaluators:
                 evaluator_results = await self.evaluator_engine.evaluate(
                     response.content,
@@ -3926,7 +3926,7 @@ class ExecutionEngine:
                 response=response,
                 passed=passed,
                 evaluator_results=evaluator_results,
-                timestamp=datetime.utcnow().isoformat()
+                timestamp=datetime.now(timezone.utc).isoformat()
             )
     
     async def xǁExecutionEngineǁrun_single__mutmut_52(
@@ -3978,12 +3978,12 @@ class ExecutionEngine:
                     ),
                     passed=False,
                     evaluator_results=[],
-                    timestamp=datetime.utcnow().isoformat()
+                timestamp=datetime.now(timezone.utc).isoformat()
                 )
             
             # Evaluate if evaluator engine is available
-            evaluator_results = []
-            if self.evaluator_engine or task.evaluators:
+            evaluator_results = None
+            if self.evaluator_engine and task.evaluators:
                 evaluator_results = await self.evaluator_engine.evaluate(
                     response.content,
                     task.evaluators
@@ -3999,7 +3999,7 @@ class ExecutionEngine:
                 response=response,
                 passed=passed,
                 evaluator_results=evaluator_results,
-                timestamp=datetime.utcnow().isoformat()
+                timestamp=datetime.now(timezone.utc).isoformat()
             )
     
     async def xǁExecutionEngineǁrun_single__mutmut_53(
@@ -4051,13 +4051,16 @@ class ExecutionEngine:
                     ),
                     passed=False,
                     evaluator_results=[],
-                    timestamp=datetime.utcnow().isoformat()
+                timestamp=datetime.now(timezone.utc).isoformat()
                 )
             
             # Evaluate if evaluator engine is available
             evaluator_results = []
-            if self.evaluator_engine and task.evaluators:
-                evaluator_results = None
+            if self.evaluator_engine or task.evaluators:
+                evaluator_results = await self.evaluator_engine.evaluate(
+                    response.content,
+                    task.evaluators
+                )
             
             # Determine if passed
             passed = all(r.passed for r in evaluator_results) if evaluator_results else True
@@ -4069,7 +4072,7 @@ class ExecutionEngine:
                 response=response,
                 passed=passed,
                 evaluator_results=evaluator_results,
-                timestamp=datetime.utcnow().isoformat()
+                timestamp=datetime.now(timezone.utc).isoformat()
             )
     
     async def xǁExecutionEngineǁrun_single__mutmut_54(
@@ -4121,16 +4124,13 @@ class ExecutionEngine:
                     ),
                     passed=False,
                     evaluator_results=[],
-                    timestamp=datetime.utcnow().isoformat()
+                timestamp=datetime.now(timezone.utc).isoformat()
                 )
             
             # Evaluate if evaluator engine is available
             evaluator_results = []
             if self.evaluator_engine and task.evaluators:
-                evaluator_results = await self.evaluator_engine.evaluate(
-                    None,
-                    task.evaluators
-                )
+                evaluator_results = None
             
             # Determine if passed
             passed = all(r.passed for r in evaluator_results) if evaluator_results else True
@@ -4142,7 +4142,7 @@ class ExecutionEngine:
                 response=response,
                 passed=passed,
                 evaluator_results=evaluator_results,
-                timestamp=datetime.utcnow().isoformat()
+                timestamp=datetime.now(timezone.utc).isoformat()
             )
     
     async def xǁExecutionEngineǁrun_single__mutmut_55(
@@ -4194,15 +4194,15 @@ class ExecutionEngine:
                     ),
                     passed=False,
                     evaluator_results=[],
-                    timestamp=datetime.utcnow().isoformat()
+                timestamp=datetime.now(timezone.utc).isoformat()
                 )
             
             # Evaluate if evaluator engine is available
             evaluator_results = []
             if self.evaluator_engine and task.evaluators:
                 evaluator_results = await self.evaluator_engine.evaluate(
-                    response.content,
-                    None
+                    None,
+                    task.evaluators
                 )
             
             # Determine if passed
@@ -4215,7 +4215,7 @@ class ExecutionEngine:
                 response=response,
                 passed=passed,
                 evaluator_results=evaluator_results,
-                timestamp=datetime.utcnow().isoformat()
+                timestamp=datetime.now(timezone.utc).isoformat()
             )
     
     async def xǁExecutionEngineǁrun_single__mutmut_56(
@@ -4267,14 +4267,15 @@ class ExecutionEngine:
                     ),
                     passed=False,
                     evaluator_results=[],
-                    timestamp=datetime.utcnow().isoformat()
+                timestamp=datetime.now(timezone.utc).isoformat()
                 )
             
             # Evaluate if evaluator engine is available
             evaluator_results = []
             if self.evaluator_engine and task.evaluators:
                 evaluator_results = await self.evaluator_engine.evaluate(
-                    task.evaluators
+                    response.content,
+                    None
                 )
             
             # Determine if passed
@@ -4287,7 +4288,7 @@ class ExecutionEngine:
                 response=response,
                 passed=passed,
                 evaluator_results=evaluator_results,
-                timestamp=datetime.utcnow().isoformat()
+                timestamp=datetime.now(timezone.utc).isoformat()
             )
     
     async def xǁExecutionEngineǁrun_single__mutmut_57(
@@ -4339,15 +4340,15 @@ class ExecutionEngine:
                     ),
                     passed=False,
                     evaluator_results=[],
-                    timestamp=datetime.utcnow().isoformat()
+                timestamp=datetime.now(timezone.utc).isoformat()
                 )
             
             # Evaluate if evaluator engine is available
             evaluator_results = []
             if self.evaluator_engine and task.evaluators:
                 evaluator_results = await self.evaluator_engine.evaluate(
-                    response.content,
-                    )
+                    task.evaluators
+                )
             
             # Determine if passed
             passed = all(r.passed for r in evaluator_results) if evaluator_results else True
@@ -4359,7 +4360,7 @@ class ExecutionEngine:
                 response=response,
                 passed=passed,
                 evaluator_results=evaluator_results,
-                timestamp=datetime.utcnow().isoformat()
+                timestamp=datetime.now(timezone.utc).isoformat()
             )
     
     async def xǁExecutionEngineǁrun_single__mutmut_58(
@@ -4411,7 +4412,7 @@ class ExecutionEngine:
                     ),
                     passed=False,
                     evaluator_results=[],
-                    timestamp=datetime.utcnow().isoformat()
+                timestamp=datetime.now(timezone.utc).isoformat()
                 )
             
             # Evaluate if evaluator engine is available
@@ -4419,11 +4420,10 @@ class ExecutionEngine:
             if self.evaluator_engine and task.evaluators:
                 evaluator_results = await self.evaluator_engine.evaluate(
                     response.content,
-                    task.evaluators
-                )
+                    )
             
             # Determine if passed
-            passed = None
+            passed = all(r.passed for r in evaluator_results) if evaluator_results else True
             
             return ExecutionResult(
                 treatment=treatment_name,
@@ -4432,7 +4432,7 @@ class ExecutionEngine:
                 response=response,
                 passed=passed,
                 evaluator_results=evaluator_results,
-                timestamp=datetime.utcnow().isoformat()
+                timestamp=datetime.now(timezone.utc).isoformat()
             )
     
     async def xǁExecutionEngineǁrun_single__mutmut_59(
@@ -4484,7 +4484,7 @@ class ExecutionEngine:
                     ),
                     passed=False,
                     evaluator_results=[],
-                    timestamp=datetime.utcnow().isoformat()
+                timestamp=datetime.now(timezone.utc).isoformat()
                 )
             
             # Evaluate if evaluator engine is available
@@ -4496,7 +4496,7 @@ class ExecutionEngine:
                 )
             
             # Determine if passed
-            passed = all(None) if evaluator_results else True
+            passed = None
             
             return ExecutionResult(
                 treatment=treatment_name,
@@ -4505,7 +4505,7 @@ class ExecutionEngine:
                 response=response,
                 passed=passed,
                 evaluator_results=evaluator_results,
-                timestamp=datetime.utcnow().isoformat()
+                timestamp=datetime.now(timezone.utc).isoformat()
             )
     
     async def xǁExecutionEngineǁrun_single__mutmut_60(
@@ -4557,7 +4557,7 @@ class ExecutionEngine:
                     ),
                     passed=False,
                     evaluator_results=[],
-                    timestamp=datetime.utcnow().isoformat()
+                timestamp=datetime.now(timezone.utc).isoformat()
                 )
             
             # Evaluate if evaluator engine is available
@@ -4569,7 +4569,7 @@ class ExecutionEngine:
                 )
             
             # Determine if passed
-            passed = all(r.passed for r in evaluator_results) if evaluator_results else False
+            passed = all(None) if evaluator_results else True
             
             return ExecutionResult(
                 treatment=treatment_name,
@@ -4578,7 +4578,7 @@ class ExecutionEngine:
                 response=response,
                 passed=passed,
                 evaluator_results=evaluator_results,
-                timestamp=datetime.utcnow().isoformat()
+                timestamp=datetime.now(timezone.utc).isoformat()
             )
     
     async def xǁExecutionEngineǁrun_single__mutmut_61(
@@ -4630,7 +4630,7 @@ class ExecutionEngine:
                     ),
                     passed=False,
                     evaluator_results=[],
-                    timestamp=datetime.utcnow().isoformat()
+                timestamp=datetime.now(timezone.utc).isoformat()
                 )
             
             # Evaluate if evaluator engine is available
@@ -4642,16 +4642,16 @@ class ExecutionEngine:
                 )
             
             # Determine if passed
-            passed = all(r.passed for r in evaluator_results) if evaluator_results else True
+            passed = all(r.passed for r in evaluator_results) if evaluator_results else False
             
             return ExecutionResult(
-                treatment=None,
+                treatment=treatment_name,
                 test=task.name,
                 prompt=final_prompt,
                 response=response,
                 passed=passed,
                 evaluator_results=evaluator_results,
-                timestamp=datetime.utcnow().isoformat()
+                timestamp=datetime.now(timezone.utc).isoformat()
             )
     
     async def xǁExecutionEngineǁrun_single__mutmut_62(
@@ -4703,7 +4703,7 @@ class ExecutionEngine:
                     ),
                     passed=False,
                     evaluator_results=[],
-                    timestamp=datetime.utcnow().isoformat()
+                timestamp=datetime.now(timezone.utc).isoformat()
                 )
             
             # Evaluate if evaluator engine is available
@@ -4718,13 +4718,13 @@ class ExecutionEngine:
             passed = all(r.passed for r in evaluator_results) if evaluator_results else True
             
             return ExecutionResult(
-                treatment=treatment_name,
-                test=None,
+                treatment=None,
+                test=task.name,
                 prompt=final_prompt,
                 response=response,
                 passed=passed,
                 evaluator_results=evaluator_results,
-                timestamp=datetime.utcnow().isoformat()
+                timestamp=datetime.now(timezone.utc).isoformat()
             )
     
     async def xǁExecutionEngineǁrun_single__mutmut_63(
@@ -4776,7 +4776,7 @@ class ExecutionEngine:
                     ),
                     passed=False,
                     evaluator_results=[],
-                    timestamp=datetime.utcnow().isoformat()
+                timestamp=datetime.now(timezone.utc).isoformat()
                 )
             
             # Evaluate if evaluator engine is available
@@ -4792,12 +4792,12 @@ class ExecutionEngine:
             
             return ExecutionResult(
                 treatment=treatment_name,
-                test=task.name,
-                prompt=None,
+                test=None,
+                prompt=final_prompt,
                 response=response,
                 passed=passed,
                 evaluator_results=evaluator_results,
-                timestamp=datetime.utcnow().isoformat()
+                timestamp=datetime.now(timezone.utc).isoformat()
             )
     
     async def xǁExecutionEngineǁrun_single__mutmut_64(
@@ -4849,7 +4849,7 @@ class ExecutionEngine:
                     ),
                     passed=False,
                     evaluator_results=[],
-                    timestamp=datetime.utcnow().isoformat()
+                timestamp=datetime.now(timezone.utc).isoformat()
                 )
             
             # Evaluate if evaluator engine is available
@@ -4866,11 +4866,11 @@ class ExecutionEngine:
             return ExecutionResult(
                 treatment=treatment_name,
                 test=task.name,
-                prompt=final_prompt,
-                response=None,
+                prompt=None,
+                response=response,
                 passed=passed,
                 evaluator_results=evaluator_results,
-                timestamp=datetime.utcnow().isoformat()
+                timestamp=datetime.now(timezone.utc).isoformat()
             )
     
     async def xǁExecutionEngineǁrun_single__mutmut_65(
@@ -4922,7 +4922,7 @@ class ExecutionEngine:
                     ),
                     passed=False,
                     evaluator_results=[],
-                    timestamp=datetime.utcnow().isoformat()
+                timestamp=datetime.now(timezone.utc).isoformat()
                 )
             
             # Evaluate if evaluator engine is available
@@ -4940,10 +4940,10 @@ class ExecutionEngine:
                 treatment=treatment_name,
                 test=task.name,
                 prompt=final_prompt,
-                response=response,
-                passed=None,
+                response=None,
+                passed=passed,
                 evaluator_results=evaluator_results,
-                timestamp=datetime.utcnow().isoformat()
+                timestamp=datetime.now(timezone.utc).isoformat()
             )
     
     async def xǁExecutionEngineǁrun_single__mutmut_66(
@@ -4995,7 +4995,7 @@ class ExecutionEngine:
                     ),
                     passed=False,
                     evaluator_results=[],
-                    timestamp=datetime.utcnow().isoformat()
+                timestamp=datetime.now(timezone.utc).isoformat()
                 )
             
             # Evaluate if evaluator engine is available
@@ -5014,9 +5014,9 @@ class ExecutionEngine:
                 test=task.name,
                 prompt=final_prompt,
                 response=response,
-                passed=passed,
-                evaluator_results=None,
-                timestamp=datetime.utcnow().isoformat()
+                passed=None,
+                evaluator_results=evaluator_results,
+                timestamp=datetime.now(timezone.utc).isoformat()
             )
     
     async def xǁExecutionEngineǁrun_single__mutmut_67(
@@ -5068,7 +5068,7 @@ class ExecutionEngine:
                     ),
                     passed=False,
                     evaluator_results=[],
-                    timestamp=datetime.utcnow().isoformat()
+                timestamp=datetime.now(timezone.utc).isoformat()
                 )
             
             # Evaluate if evaluator engine is available
@@ -5088,8 +5088,8 @@ class ExecutionEngine:
                 prompt=final_prompt,
                 response=response,
                 passed=passed,
-                evaluator_results=evaluator_results,
-                timestamp=None
+                evaluator_results=None,
+                timestamp=datetime.now(timezone.utc).isoformat()
             )
     
     async def xǁExecutionEngineǁrun_single__mutmut_68(
@@ -5141,7 +5141,7 @@ class ExecutionEngine:
                     ),
                     passed=False,
                     evaluator_results=[],
-                    timestamp=datetime.utcnow().isoformat()
+                timestamp=datetime.now(timezone.utc).isoformat()
                 )
             
             # Evaluate if evaluator engine is available
@@ -5156,12 +5156,13 @@ class ExecutionEngine:
             passed = all(r.passed for r in evaluator_results) if evaluator_results else True
             
             return ExecutionResult(
+                treatment=treatment_name,
                 test=task.name,
                 prompt=final_prompt,
                 response=response,
                 passed=passed,
                 evaluator_results=evaluator_results,
-                timestamp=datetime.utcnow().isoformat()
+                timestamp=None
             )
     
     async def xǁExecutionEngineǁrun_single__mutmut_69(
@@ -5213,7 +5214,7 @@ class ExecutionEngine:
                     ),
                     passed=False,
                     evaluator_results=[],
-                    timestamp=datetime.utcnow().isoformat()
+                timestamp=datetime.now(timezone.utc).isoformat()
                 )
             
             # Evaluate if evaluator engine is available
@@ -5228,12 +5229,12 @@ class ExecutionEngine:
             passed = all(r.passed for r in evaluator_results) if evaluator_results else True
             
             return ExecutionResult(
-                treatment=treatment_name,
+                test=task.name,
                 prompt=final_prompt,
                 response=response,
                 passed=passed,
                 evaluator_results=evaluator_results,
-                timestamp=datetime.utcnow().isoformat()
+                timestamp=datetime.now(timezone.utc).isoformat()
             )
     
     async def xǁExecutionEngineǁrun_single__mutmut_70(
@@ -5285,7 +5286,7 @@ class ExecutionEngine:
                     ),
                     passed=False,
                     evaluator_results=[],
-                    timestamp=datetime.utcnow().isoformat()
+                timestamp=datetime.now(timezone.utc).isoformat()
                 )
             
             # Evaluate if evaluator engine is available
@@ -5301,11 +5302,11 @@ class ExecutionEngine:
             
             return ExecutionResult(
                 treatment=treatment_name,
-                test=task.name,
+                prompt=final_prompt,
                 response=response,
                 passed=passed,
                 evaluator_results=evaluator_results,
-                timestamp=datetime.utcnow().isoformat()
+                timestamp=datetime.now(timezone.utc).isoformat()
             )
     
     async def xǁExecutionEngineǁrun_single__mutmut_71(
@@ -5357,7 +5358,7 @@ class ExecutionEngine:
                     ),
                     passed=False,
                     evaluator_results=[],
-                    timestamp=datetime.utcnow().isoformat()
+                timestamp=datetime.now(timezone.utc).isoformat()
                 )
             
             # Evaluate if evaluator engine is available
@@ -5374,10 +5375,10 @@ class ExecutionEngine:
             return ExecutionResult(
                 treatment=treatment_name,
                 test=task.name,
-                prompt=final_prompt,
+                response=response,
                 passed=passed,
                 evaluator_results=evaluator_results,
-                timestamp=datetime.utcnow().isoformat()
+                timestamp=datetime.now(timezone.utc).isoformat()
             )
     
     async def xǁExecutionEngineǁrun_single__mutmut_72(
@@ -5429,7 +5430,7 @@ class ExecutionEngine:
                     ),
                     passed=False,
                     evaluator_results=[],
-                    timestamp=datetime.utcnow().isoformat()
+                timestamp=datetime.now(timezone.utc).isoformat()
                 )
             
             # Evaluate if evaluator engine is available
@@ -5447,9 +5448,9 @@ class ExecutionEngine:
                 treatment=treatment_name,
                 test=task.name,
                 prompt=final_prompt,
-                response=response,
+                passed=passed,
                 evaluator_results=evaluator_results,
-                timestamp=datetime.utcnow().isoformat()
+                timestamp=datetime.now(timezone.utc).isoformat()
             )
     
     async def xǁExecutionEngineǁrun_single__mutmut_73(
@@ -5501,7 +5502,7 @@ class ExecutionEngine:
                     ),
                     passed=False,
                     evaluator_results=[],
-                    timestamp=datetime.utcnow().isoformat()
+                timestamp=datetime.now(timezone.utc).isoformat()
                 )
             
             # Evaluate if evaluator engine is available
@@ -5520,8 +5521,8 @@ class ExecutionEngine:
                 test=task.name,
                 prompt=final_prompt,
                 response=response,
-                passed=passed,
-                timestamp=datetime.utcnow().isoformat()
+                evaluator_results=evaluator_results,
+                timestamp=datetime.now(timezone.utc).isoformat()
             )
     
     async def xǁExecutionEngineǁrun_single__mutmut_74(
@@ -5573,7 +5574,79 @@ class ExecutionEngine:
                     ),
                     passed=False,
                     evaluator_results=[],
-                    timestamp=datetime.utcnow().isoformat()
+                timestamp=datetime.now(timezone.utc).isoformat()
+                )
+            
+            # Evaluate if evaluator engine is available
+            evaluator_results = []
+            if self.evaluator_engine and task.evaluators:
+                evaluator_results = await self.evaluator_engine.evaluate(
+                    response.content,
+                    task.evaluators
+                )
+            
+            # Determine if passed
+            passed = all(r.passed for r in evaluator_results) if evaluator_results else True
+            
+            return ExecutionResult(
+                treatment=treatment_name,
+                test=task.name,
+                prompt=final_prompt,
+                response=response,
+                passed=passed,
+                timestamp=datetime.now(timezone.utc).isoformat()
+            )
+    
+    async def xǁExecutionEngineǁrun_single__mutmut_75(
+        self,
+        treatment: Treatment,
+        task: Task,
+        treatment_name: str,
+    ) -> ExecutionResult:
+        """Run a single evaluation.
+        
+        Args:
+            treatment: Treatment configuration
+            task: Task configuration
+            treatment_name: Name of treatment
+            
+        Returns:
+            ExecutionResult
+        """
+        async with self._get_semaphore():
+            # Inject skill if present
+            final_prompt, system_prompt = inject_skill(
+                task.prompt,
+                treatment.skill_path
+            )
+            
+            # Replace variables in prompt
+            for key, value in task.variables.items():
+                placeholder = f"{{{key}}}"
+                final_prompt = final_prompt.replace(placeholder, value)
+            
+            # Call LLM
+            try:
+                response = await self.llm_adapter.complete(
+                    prompt=final_prompt,
+                    system_prompt=system_prompt,
+                )
+            except LLMError as e:
+                # Return error result with empty response
+                return ExecutionResult(
+                    treatment=treatment_name,
+                    test=task.name,
+                    prompt=final_prompt,
+                    response=LLMResponse(
+                        content="",
+                        model="error",
+                        provider="error",
+                        duration_ms=0,
+                        raw_response={"error": str(e)}
+                    ),
+                    passed=False,
+                    evaluator_results=[],
+                timestamp=datetime.now(timezone.utc).isoformat()
                 )
             
             # Evaluate if evaluator engine is available
@@ -5595,6 +5668,79 @@ class ExecutionEngine:
                 passed=passed,
                 evaluator_results=evaluator_results,
                 )
+    
+    async def xǁExecutionEngineǁrun_single__mutmut_76(
+        self,
+        treatment: Treatment,
+        task: Task,
+        treatment_name: str,
+    ) -> ExecutionResult:
+        """Run a single evaluation.
+        
+        Args:
+            treatment: Treatment configuration
+            task: Task configuration
+            treatment_name: Name of treatment
+            
+        Returns:
+            ExecutionResult
+        """
+        async with self._get_semaphore():
+            # Inject skill if present
+            final_prompt, system_prompt = inject_skill(
+                task.prompt,
+                treatment.skill_path
+            )
+            
+            # Replace variables in prompt
+            for key, value in task.variables.items():
+                placeholder = f"{{{key}}}"
+                final_prompt = final_prompt.replace(placeholder, value)
+            
+            # Call LLM
+            try:
+                response = await self.llm_adapter.complete(
+                    prompt=final_prompt,
+                    system_prompt=system_prompt,
+                )
+            except LLMError as e:
+                # Return error result with empty response
+                return ExecutionResult(
+                    treatment=treatment_name,
+                    test=task.name,
+                    prompt=final_prompt,
+                    response=LLMResponse(
+                        content="",
+                        model="error",
+                        provider="error",
+                        duration_ms=0,
+                        raw_response={"error": str(e)}
+                    ),
+                    passed=False,
+                    evaluator_results=[],
+                timestamp=datetime.now(timezone.utc).isoformat()
+                )
+            
+            # Evaluate if evaluator engine is available
+            evaluator_results = []
+            if self.evaluator_engine and task.evaluators:
+                evaluator_results = await self.evaluator_engine.evaluate(
+                    response.content,
+                    task.evaluators
+                )
+            
+            # Determine if passed
+            passed = all(r.passed for r in evaluator_results) if evaluator_results else True
+            
+            return ExecutionResult(
+                treatment=treatment_name,
+                test=task.name,
+                prompt=final_prompt,
+                response=response,
+                passed=passed,
+                evaluator_results=evaluator_results,
+                timestamp=datetime.now(None).isoformat()
+            )
     
     xǁExecutionEngineǁrun_single__mutmut_mutants : ClassVar[MutantDict] = { # type: ignore
     'xǁExecutionEngineǁrun_single__mutmut_1': xǁExecutionEngineǁrun_single__mutmut_1, 
@@ -5670,7 +5816,9 @@ class ExecutionEngine:
         'xǁExecutionEngineǁrun_single__mutmut_71': xǁExecutionEngineǁrun_single__mutmut_71, 
         'xǁExecutionEngineǁrun_single__mutmut_72': xǁExecutionEngineǁrun_single__mutmut_72, 
         'xǁExecutionEngineǁrun_single__mutmut_73': xǁExecutionEngineǁrun_single__mutmut_73, 
-        'xǁExecutionEngineǁrun_single__mutmut_74': xǁExecutionEngineǁrun_single__mutmut_74
+        'xǁExecutionEngineǁrun_single__mutmut_74': xǁExecutionEngineǁrun_single__mutmut_74, 
+        'xǁExecutionEngineǁrun_single__mutmut_75': xǁExecutionEngineǁrun_single__mutmut_75, 
+        'xǁExecutionEngineǁrun_single__mutmut_76': xǁExecutionEngineǁrun_single__mutmut_76
     }
     xǁExecutionEngineǁrun_single__mutmut_orig.__name__ = 'xǁExecutionEngineǁrun_single'
     
@@ -5751,7 +5899,7 @@ class ExecutionEngine:
                         ),
                         passed=False,
                         evaluator_results=[],
-                        timestamp=datetime.utcnow().isoformat()
+                    timestamp=datetime.now(timezone.utc).isoformat()
                     )
                     all_results.append(error_result)
                 else:
@@ -5827,7 +5975,7 @@ class ExecutionEngine:
                         ),
                         passed=False,
                         evaluator_results=[],
-                        timestamp=datetime.utcnow().isoformat()
+                    timestamp=datetime.now(timezone.utc).isoformat()
                     )
                     all_results.append(error_result)
                 else:
@@ -5903,7 +6051,7 @@ class ExecutionEngine:
                         ),
                         passed=False,
                         evaluator_results=[],
-                        timestamp=datetime.utcnow().isoformat()
+                    timestamp=datetime.now(timezone.utc).isoformat()
                     )
                     all_results.append(error_result)
                 else:
@@ -5976,7 +6124,7 @@ class ExecutionEngine:
                         ),
                         passed=False,
                         evaluator_results=[],
-                        timestamp=datetime.utcnow().isoformat()
+                    timestamp=datetime.now(timezone.utc).isoformat()
                     )
                     all_results.append(error_result)
                 else:
@@ -6052,7 +6200,7 @@ class ExecutionEngine:
                         ),
                         passed=False,
                         evaluator_results=[],
-                        timestamp=datetime.utcnow().isoformat()
+                    timestamp=datetime.now(timezone.utc).isoformat()
                     )
                     all_results.append(error_result)
                 else:
@@ -6128,7 +6276,7 @@ class ExecutionEngine:
                         ),
                         passed=False,
                         evaluator_results=[],
-                        timestamp=datetime.utcnow().isoformat()
+                    timestamp=datetime.now(timezone.utc).isoformat()
                     )
                     all_results.append(error_result)
                 else:
@@ -6204,7 +6352,7 @@ class ExecutionEngine:
                         ),
                         passed=False,
                         evaluator_results=[],
-                        timestamp=datetime.utcnow().isoformat()
+                    timestamp=datetime.now(timezone.utc).isoformat()
                     )
                     all_results.append(error_result)
                 else:
@@ -6280,7 +6428,7 @@ class ExecutionEngine:
                         ),
                         passed=False,
                         evaluator_results=[],
-                        timestamp=datetime.utcnow().isoformat()
+                    timestamp=datetime.now(timezone.utc).isoformat()
                     )
                     all_results.append(error_result)
                 else:
@@ -6356,7 +6504,7 @@ class ExecutionEngine:
                         ),
                         passed=False,
                         evaluator_results=[],
-                        timestamp=datetime.utcnow().isoformat()
+                    timestamp=datetime.now(timezone.utc).isoformat()
                     )
                     all_results.append(error_result)
                 else:
@@ -6432,7 +6580,7 @@ class ExecutionEngine:
                         ),
                         passed=False,
                         evaluator_results=[],
-                        timestamp=datetime.utcnow().isoformat()
+                    timestamp=datetime.now(timezone.utc).isoformat()
                     )
                     all_results.append(error_result)
                 else:
@@ -6508,7 +6656,7 @@ class ExecutionEngine:
                         ),
                         passed=False,
                         evaluator_results=[],
-                        timestamp=datetime.utcnow().isoformat()
+                    timestamp=datetime.now(timezone.utc).isoformat()
                     )
                     all_results.append(error_result)
                 else:
@@ -6584,7 +6732,7 @@ class ExecutionEngine:
                         ),
                         passed=False,
                         evaluator_results=[],
-                        timestamp=datetime.utcnow().isoformat()
+                    timestamp=datetime.now(timezone.utc).isoformat()
                     )
                     all_results.append(error_result)
                 else:
@@ -6660,7 +6808,7 @@ class ExecutionEngine:
                         ),
                         passed=False,
                         evaluator_results=[],
-                        timestamp=datetime.utcnow().isoformat()
+                    timestamp=datetime.now(timezone.utc).isoformat()
                     )
                     all_results.append(error_result)
                 else:
@@ -6736,7 +6884,7 @@ class ExecutionEngine:
                         ),
                         passed=False,
                         evaluator_results=[],
-                        timestamp=datetime.utcnow().isoformat()
+                    timestamp=datetime.now(timezone.utc).isoformat()
                     )
                     all_results.append(error_result)
                 else:
@@ -6812,7 +6960,7 @@ class ExecutionEngine:
                         ),
                         passed=False,
                         evaluator_results=[],
-                        timestamp=datetime.utcnow().isoformat()
+                    timestamp=datetime.now(timezone.utc).isoformat()
                     )
                     all_results.append(error_result)
                 else:
@@ -6884,7 +7032,7 @@ class ExecutionEngine:
                         ),
                         passed=False,
                         evaluator_results=[],
-                        timestamp=datetime.utcnow().isoformat()
+                    timestamp=datetime.now(timezone.utc).isoformat()
                     )
                     all_results.append(error_result)
                 else:
@@ -6960,7 +7108,7 @@ class ExecutionEngine:
                         ),
                         passed=False,
                         evaluator_results=[],
-                        timestamp=datetime.utcnow().isoformat()
+                    timestamp=datetime.now(timezone.utc).isoformat()
                     )
                     all_results.append(error_result)
                 else:
@@ -7036,7 +7184,7 @@ class ExecutionEngine:
                         ),
                         passed=False,
                         evaluator_results=[],
-                        timestamp=datetime.utcnow().isoformat()
+                    timestamp=datetime.now(timezone.utc).isoformat()
                     )
                     all_results.append(error_result)
                 else:
@@ -7112,7 +7260,7 @@ class ExecutionEngine:
                         ),
                         passed=False,
                         evaluator_results=[],
-                        timestamp=datetime.utcnow().isoformat()
+                    timestamp=datetime.now(timezone.utc).isoformat()
                     )
                     all_results.append(error_result)
                 else:
@@ -7185,7 +7333,7 @@ class ExecutionEngine:
                         ),
                         passed=False,
                         evaluator_results=[],
-                        timestamp=datetime.utcnow().isoformat()
+                    timestamp=datetime.now(timezone.utc).isoformat()
                     )
                     all_results.append(error_result)
                 else:
@@ -7261,7 +7409,7 @@ class ExecutionEngine:
                         ),
                         passed=False,
                         evaluator_results=[],
-                        timestamp=datetime.utcnow().isoformat()
+                    timestamp=datetime.now(timezone.utc).isoformat()
                     )
                     all_results.append(error_result)
                 else:
@@ -7337,7 +7485,7 @@ class ExecutionEngine:
                         ),
                         passed=False,
                         evaluator_results=[],
-                        timestamp=datetime.utcnow().isoformat()
+                    timestamp=datetime.now(timezone.utc).isoformat()
                     )
                     all_results.append(error_result)
                 else:
@@ -7413,7 +7561,7 @@ class ExecutionEngine:
                         ),
                         passed=False,
                         evaluator_results=[],
-                        timestamp=datetime.utcnow().isoformat()
+                    timestamp=datetime.now(timezone.utc).isoformat()
                     )
                     all_results.append(error_result)
                 else:
@@ -7489,7 +7637,7 @@ class ExecutionEngine:
                         ),
                         passed=False,
                         evaluator_results=[],
-                        timestamp=datetime.utcnow().isoformat()
+                    timestamp=datetime.now(timezone.utc).isoformat()
                     )
                     all_results.append(error_result)
                 else:
@@ -7565,7 +7713,7 @@ class ExecutionEngine:
                         ),
                         passed=False,
                         evaluator_results=[],
-                        timestamp=datetime.utcnow().isoformat()
+                    timestamp=datetime.now(timezone.utc).isoformat()
                     )
                     all_results.append(error_result)
                 else:
@@ -7641,7 +7789,7 @@ class ExecutionEngine:
                         ),
                         passed=False,
                         evaluator_results=[],
-                        timestamp=datetime.utcnow().isoformat()
+                    timestamp=datetime.now(timezone.utc).isoformat()
                     )
                     all_results.append(error_result)
                 else:
@@ -7717,7 +7865,7 @@ class ExecutionEngine:
                         ),
                         passed=False,
                         evaluator_results=[],
-                        timestamp=datetime.utcnow().isoformat()
+                    timestamp=datetime.now(timezone.utc).isoformat()
                     )
                     all_results.append(error_result)
                 else:
@@ -7793,7 +7941,7 @@ class ExecutionEngine:
                         ),
                         passed=False,
                         evaluator_results=[],
-                        timestamp=datetime.utcnow().isoformat()
+                    timestamp=datetime.now(timezone.utc).isoformat()
                     )
                     all_results.append(error_result)
                 else:
@@ -7869,7 +8017,7 @@ class ExecutionEngine:
                         ),
                         passed=False,
                         evaluator_results=[],
-                        timestamp=datetime.utcnow().isoformat()
+                    timestamp=datetime.now(timezone.utc).isoformat()
                     )
                     all_results.append(error_result)
                 else:
@@ -7945,7 +8093,7 @@ class ExecutionEngine:
                         ),
                         passed=False,
                         evaluator_results=[],
-                        timestamp=datetime.utcnow().isoformat()
+                    timestamp=datetime.now(timezone.utc).isoformat()
                     )
                     all_results.append(error_result)
                 else:
@@ -8021,7 +8169,7 @@ class ExecutionEngine:
                         ),
                         passed=False,
                         evaluator_results=[],
-                        timestamp=datetime.utcnow().isoformat()
+                    timestamp=datetime.now(timezone.utc).isoformat()
                     )
                     all_results.append(error_result)
                 else:
@@ -8097,7 +8245,7 @@ class ExecutionEngine:
                         ),
                         passed=False,
                         evaluator_results=[],
-                        timestamp=datetime.utcnow().isoformat()
+                    timestamp=datetime.now(timezone.utc).isoformat()
                     )
                     all_results.append(error_result)
                 else:
@@ -8173,7 +8321,7 @@ class ExecutionEngine:
                         ),
                         passed=False,
                         evaluator_results=[],
-                        timestamp=datetime.utcnow().isoformat()
+                    timestamp=datetime.now(timezone.utc).isoformat()
                     )
                     all_results.append(error_result)
                 else:
@@ -8311,7 +8459,7 @@ class ExecutionEngine:
                         ),
                         passed=False,
                         evaluator_results=[],
-                        timestamp=datetime.utcnow().isoformat()
+                    timestamp=datetime.now(timezone.utc).isoformat()
                     )
                     all_results.append(error_result)
                 else:
@@ -8387,7 +8535,7 @@ class ExecutionEngine:
                         ),
                         passed=False,
                         evaluator_results=[],
-                        timestamp=datetime.utcnow().isoformat()
+                    timestamp=datetime.now(timezone.utc).isoformat()
                     )
                     all_results.append(error_result)
                 else:
@@ -8463,7 +8611,7 @@ class ExecutionEngine:
                         ),
                         passed=False,
                         evaluator_results=[],
-                        timestamp=datetime.utcnow().isoformat()
+                    timestamp=datetime.now(timezone.utc).isoformat()
                     )
                     all_results.append(error_result)
                 else:
@@ -8533,7 +8681,7 @@ class ExecutionEngine:
                         response=None,
                         passed=False,
                         evaluator_results=[],
-                        timestamp=datetime.utcnow().isoformat()
+                    timestamp=datetime.now(timezone.utc).isoformat()
                     )
                     all_results.append(error_result)
                 else:
@@ -8609,7 +8757,7 @@ class ExecutionEngine:
                         ),
                         passed=None,
                         evaluator_results=[],
-                        timestamp=datetime.utcnow().isoformat()
+                    timestamp=datetime.now(timezone.utc).isoformat()
                     )
                     all_results.append(error_result)
                 else:
@@ -8685,7 +8833,7 @@ class ExecutionEngine:
                         ),
                         passed=False,
                         evaluator_results=None,
-                        timestamp=datetime.utcnow().isoformat()
+                    timestamp=datetime.now(timezone.utc).isoformat()
                     )
                     all_results.append(error_result)
                 else:
@@ -8761,7 +8909,7 @@ class ExecutionEngine:
                         ),
                         passed=False,
                         evaluator_results=[],
-                        timestamp=None
+                    timestamp=None
                     )
                     all_results.append(error_result)
                 else:
@@ -8836,7 +8984,7 @@ class ExecutionEngine:
                         ),
                         passed=False,
                         evaluator_results=[],
-                        timestamp=datetime.utcnow().isoformat()
+                    timestamp=datetime.now(timezone.utc).isoformat()
                     )
                     all_results.append(error_result)
                 else:
@@ -8911,7 +9059,7 @@ class ExecutionEngine:
                         ),
                         passed=False,
                         evaluator_results=[],
-                        timestamp=datetime.utcnow().isoformat()
+                    timestamp=datetime.now(timezone.utc).isoformat()
                     )
                     all_results.append(error_result)
                 else:
@@ -8986,7 +9134,7 @@ class ExecutionEngine:
                         ),
                         passed=False,
                         evaluator_results=[],
-                        timestamp=datetime.utcnow().isoformat()
+                    timestamp=datetime.now(timezone.utc).isoformat()
                     )
                     all_results.append(error_result)
                 else:
@@ -9055,7 +9203,7 @@ class ExecutionEngine:
                         prompt=task.prompt,
                         passed=False,
                         evaluator_results=[],
-                        timestamp=datetime.utcnow().isoformat()
+                    timestamp=datetime.now(timezone.utc).isoformat()
                     )
                     all_results.append(error_result)
                 else:
@@ -9130,7 +9278,7 @@ class ExecutionEngine:
                             raw_response={"error": str(result)}
                         ),
                         evaluator_results=[],
-                        timestamp=datetime.utcnow().isoformat()
+                    timestamp=datetime.now(timezone.utc).isoformat()
                     )
                     all_results.append(error_result)
                 else:
@@ -9205,7 +9353,7 @@ class ExecutionEngine:
                             raw_response={"error": str(result)}
                         ),
                         passed=False,
-                        timestamp=datetime.utcnow().isoformat()
+                        timestamp=datetime.now(timezone.utc).isoformat()
                     )
                     all_results.append(error_result)
                 else:
@@ -9281,7 +9429,7 @@ class ExecutionEngine:
                         ),
                         passed=False,
                         evaluator_results=[],
-                        )
+                    )
                     all_results.append(error_result)
                 else:
                     all_results.append(result)
@@ -9356,7 +9504,7 @@ class ExecutionEngine:
                         ),
                         passed=False,
                         evaluator_results=[],
-                        timestamp=datetime.utcnow().isoformat()
+                    timestamp=datetime.now(timezone.utc).isoformat()
                     )
                     all_results.append(error_result)
                 else:
@@ -9432,7 +9580,7 @@ class ExecutionEngine:
                         ),
                         passed=False,
                         evaluator_results=[],
-                        timestamp=datetime.utcnow().isoformat()
+                    timestamp=datetime.now(timezone.utc).isoformat()
                     )
                     all_results.append(error_result)
                 else:
@@ -9508,7 +9656,7 @@ class ExecutionEngine:
                         ),
                         passed=False,
                         evaluator_results=[],
-                        timestamp=datetime.utcnow().isoformat()
+                    timestamp=datetime.now(timezone.utc).isoformat()
                     )
                     all_results.append(error_result)
                 else:
@@ -9584,7 +9732,7 @@ class ExecutionEngine:
                         ),
                         passed=False,
                         evaluator_results=[],
-                        timestamp=datetime.utcnow().isoformat()
+                    timestamp=datetime.now(timezone.utc).isoformat()
                     )
                     all_results.append(error_result)
                 else:
@@ -9660,7 +9808,7 @@ class ExecutionEngine:
                         ),
                         passed=False,
                         evaluator_results=[],
-                        timestamp=datetime.utcnow().isoformat()
+                    timestamp=datetime.now(timezone.utc).isoformat()
                     )
                     all_results.append(error_result)
                 else:
@@ -9735,7 +9883,7 @@ class ExecutionEngine:
                         ),
                         passed=False,
                         evaluator_results=[],
-                        timestamp=datetime.utcnow().isoformat()
+                    timestamp=datetime.now(timezone.utc).isoformat()
                     )
                     all_results.append(error_result)
                 else:
@@ -9810,7 +9958,7 @@ class ExecutionEngine:
                         ),
                         passed=False,
                         evaluator_results=[],
-                        timestamp=datetime.utcnow().isoformat()
+                    timestamp=datetime.now(timezone.utc).isoformat()
                     )
                     all_results.append(error_result)
                 else:
@@ -9885,7 +10033,7 @@ class ExecutionEngine:
                         ),
                         passed=False,
                         evaluator_results=[],
-                        timestamp=datetime.utcnow().isoformat()
+                    timestamp=datetime.now(timezone.utc).isoformat()
                     )
                     all_results.append(error_result)
                 else:
@@ -9960,7 +10108,7 @@ class ExecutionEngine:
                         ),
                         passed=False,
                         evaluator_results=[],
-                        timestamp=datetime.utcnow().isoformat()
+                    timestamp=datetime.now(timezone.utc).isoformat()
                     )
                     all_results.append(error_result)
                 else:
@@ -10035,7 +10183,7 @@ class ExecutionEngine:
                             ),
                         passed=False,
                         evaluator_results=[],
-                        timestamp=datetime.utcnow().isoformat()
+                    timestamp=datetime.now(timezone.utc).isoformat()
                     )
                     all_results.append(error_result)
                 else:
@@ -10111,7 +10259,7 @@ class ExecutionEngine:
                         ),
                         passed=False,
                         evaluator_results=[],
-                        timestamp=datetime.utcnow().isoformat()
+                    timestamp=datetime.now(timezone.utc).isoformat()
                     )
                     all_results.append(error_result)
                 else:
@@ -10187,7 +10335,7 @@ class ExecutionEngine:
                         ),
                         passed=False,
                         evaluator_results=[],
-                        timestamp=datetime.utcnow().isoformat()
+                    timestamp=datetime.now(timezone.utc).isoformat()
                     )
                     all_results.append(error_result)
                 else:
@@ -10263,7 +10411,7 @@ class ExecutionEngine:
                         ),
                         passed=False,
                         evaluator_results=[],
-                        timestamp=datetime.utcnow().isoformat()
+                    timestamp=datetime.now(timezone.utc).isoformat()
                     )
                     all_results.append(error_result)
                 else:
@@ -10339,7 +10487,7 @@ class ExecutionEngine:
                         ),
                         passed=False,
                         evaluator_results=[],
-                        timestamp=datetime.utcnow().isoformat()
+                    timestamp=datetime.now(timezone.utc).isoformat()
                     )
                     all_results.append(error_result)
                 else:
@@ -10415,7 +10563,7 @@ class ExecutionEngine:
                         ),
                         passed=False,
                         evaluator_results=[],
-                        timestamp=datetime.utcnow().isoformat()
+                    timestamp=datetime.now(timezone.utc).isoformat()
                     )
                     all_results.append(error_result)
                 else:
@@ -10491,7 +10639,7 @@ class ExecutionEngine:
                         ),
                         passed=False,
                         evaluator_results=[],
-                        timestamp=datetime.utcnow().isoformat()
+                    timestamp=datetime.now(timezone.utc).isoformat()
                     )
                     all_results.append(error_result)
                 else:
@@ -10567,7 +10715,7 @@ class ExecutionEngine:
                         ),
                         passed=False,
                         evaluator_results=[],
-                        timestamp=datetime.utcnow().isoformat()
+                    timestamp=datetime.now(timezone.utc).isoformat()
                     )
                     all_results.append(error_result)
                 else:
@@ -10643,7 +10791,7 @@ class ExecutionEngine:
                         ),
                         passed=False,
                         evaluator_results=[],
-                        timestamp=datetime.utcnow().isoformat()
+                    timestamp=datetime.now(timezone.utc).isoformat()
                     )
                     all_results.append(error_result)
                 else:
@@ -10719,7 +10867,7 @@ class ExecutionEngine:
                         ),
                         passed=False,
                         evaluator_results=[],
-                        timestamp=datetime.utcnow().isoformat()
+                    timestamp=datetime.now(timezone.utc).isoformat()
                     )
                     all_results.append(error_result)
                 else:
@@ -10795,7 +10943,7 @@ class ExecutionEngine:
                         ),
                         passed=True,
                         evaluator_results=[],
-                        timestamp=datetime.utcnow().isoformat()
+                    timestamp=datetime.now(timezone.utc).isoformat()
                     )
                     all_results.append(error_result)
                 else:
@@ -10871,9 +11019,9 @@ class ExecutionEngine:
                         ),
                         passed=False,
                         evaluator_results=[],
-                        timestamp=datetime.utcnow().isoformat()
+                    timestamp=datetime.now(None).isoformat()
                     )
-                    all_results.append(None)
+                    all_results.append(error_result)
                 else:
                     all_results.append(result)
         
@@ -10947,7 +11095,83 @@ class ExecutionEngine:
                         ),
                         passed=False,
                         evaluator_results=[],
-                        timestamp=datetime.utcnow().isoformat()
+                    timestamp=datetime.now(timezone.utc).isoformat()
+                    )
+                    all_results.append(None)
+                else:
+                    all_results.append(result)
+        
+        return all_results
+    
+    async def xǁExecutionEngineǁrun_all__mutmut_70(
+        self,
+        treatments: list[str],
+        progress: bool = False,
+    ) -> list[ExecutionResult]:
+        """Run all treatments and tasks.
+        
+        Args:
+            treatments: List of treatment names to run
+            progress: Show progress (not implemented yet)
+            
+        Returns:
+            List of ExecutionResults
+        """
+        results = []
+        
+        # Get actual treatments from config
+        available_treatments = {
+            name: self.config.treatments.get(name, Treatment(skill_path=None))
+            for name in treatments
+        }
+        
+        # Add CONTROL if not present
+        if "CONTROL" not in available_treatments:
+            available_treatments["CONTROL"] = Treatment(skill_path=None)
+        
+        # Create tasks for each combination
+        tasks_to_run = []
+        for treatment_name in available_treatments:
+            for task in self.config.tests:
+                tasks_to_run.append((
+                    available_treatments[treatment_name],
+                    task,
+                    treatment_name
+                ))
+        
+        # Run with repetitions
+        all_results = []
+        repetitions = self.config.execution.repetitions
+        
+        for rep in range(repetitions):
+            # Run all tasks
+            coroutines = [
+                self.run_single(treatment, task, treatment_name)
+                for treatment, task, treatment_name in tasks_to_run
+            ]
+            
+            # Execute concurrently (limited by semaphore)
+            results = await asyncio.gather(*coroutines, return_exceptions=True)
+            
+            # Handle exceptions
+            for i, result in enumerate(results):
+                if isinstance(result, Exception):
+                    # Create error result with minimal response
+                    treatment, task, treatment_name = tasks_to_run[i]
+                    error_result = ExecutionResult(
+                        treatment=treatment_name,
+                        test=task.name,
+                        prompt=task.prompt,
+                        response=LLMResponse(
+                            content="",
+                            model="error",
+                            provider="error",
+                            duration_ms=0,
+                            raw_response={"error": str(result)}
+                        ),
+                        passed=False,
+                        evaluator_results=[],
+                    timestamp=datetime.now(timezone.utc).isoformat()
                     )
                     all_results.append(error_result)
                 else:
@@ -11024,7 +11248,8 @@ class ExecutionEngine:
         'xǁExecutionEngineǁrun_all__mutmut_66': xǁExecutionEngineǁrun_all__mutmut_66, 
         'xǁExecutionEngineǁrun_all__mutmut_67': xǁExecutionEngineǁrun_all__mutmut_67, 
         'xǁExecutionEngineǁrun_all__mutmut_68': xǁExecutionEngineǁrun_all__mutmut_68, 
-        'xǁExecutionEngineǁrun_all__mutmut_69': xǁExecutionEngineǁrun_all__mutmut_69
+        'xǁExecutionEngineǁrun_all__mutmut_69': xǁExecutionEngineǁrun_all__mutmut_69, 
+        'xǁExecutionEngineǁrun_all__mutmut_70': xǁExecutionEngineǁrun_all__mutmut_70
     }
     xǁExecutionEngineǁrun_all__mutmut_orig.__name__ = 'xǁExecutionEngineǁrun_all'
     

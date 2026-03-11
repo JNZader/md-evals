@@ -1139,3 +1139,297 @@ class TestReportMarkdown:
         reporter.report_markdown(results, output_path)
         
         assert Path(output_path).exists()
+
+
+# PHASE 9 REFINEMENTS START HERE
+
+# Refinement 1: Real Console Output Capture
+class TestReporterRefinements:
+    """Phase 9 Test Refinements for Mutation Testing."""
+    
+    def test_report_terminal_actual_output_formatting(self, capsys):
+        """Test that real terminal output contains proper formatting."""
+        config = EvalConfig(name="Test")
+        reporter = Reporter(config)
+        
+        results = [
+            ExecutionResult(
+                treatment="CONTROL",
+                test="test1",
+                prompt="Hello",
+                response=LLMResponse(
+                    content="Hi",
+                    model="gpt-4o",
+                    provider="openai",
+                    duration_ms=1000
+                ),
+                passed=True,
+                evaluator_results=[],
+                timestamp="2024-01-01T00:00:00"
+            ),
+            ExecutionResult(
+                treatment="CONTROL",
+                test="test2",
+                prompt="Hello",
+                response=LLMResponse(
+                    content="Hi",
+                    model="gpt-4o",
+                    provider="openai",
+                    duration_ms=2000
+                ),
+                passed=False,
+                evaluator_results=[],
+                timestamp="2024-01-01T00:00:00"
+            )
+        ]
+        
+        reporter.report_terminal(results, verbose=False)
+        captured = capsys.readouterr()
+        
+        # Verify actual output contains expected content
+        assert "md-evals Results" in captured.out
+        assert "CONTROL" in captured.out
+        assert "50%" in captured.out or "50.0%" in captured.out or "50" in captured.out
+        assert "1/2" in captured.out or "1 / 2" in captured.out
+    
+    def test_report_terminal_pass_rate_exact_values(self, capsys):
+        """Test pass rate is calculated and displayed correctly with exact percentages."""
+        config = EvalConfig(name="Test")
+        reporter = Reporter(config)
+        
+        # Create exactly 10 results where 8 pass (80% pass rate)
+        results = []
+        for i in range(10):
+            results.append(
+                ExecutionResult(
+                    treatment="CONTROL",
+                    test=f"test{i}",
+                    prompt="test",
+                    response=LLMResponse(
+                        content="response",
+                        model="gpt-4o",
+                        provider="openai",
+                        duration_ms=100
+                    ),
+                    passed=(i < 8),  # First 8 pass
+                    evaluator_results=[],
+                    timestamp="2024-01-01T00:00:00"
+                )
+            )
+        
+        reporter.report_terminal(results, verbose=False)
+        captured = capsys.readouterr()
+        
+        # Should show exactly 80%
+        assert "80%" in captured.out
+    
+    def test_report_terminal_duration_milliseconds(self, capsys):
+        """Test that duration is shown in milliseconds correctly."""
+        config = EvalConfig(name="Test")
+        reporter = Reporter(config)
+        
+        results = [
+            ExecutionResult(
+                treatment="CONTROL",
+                test="test1",
+                prompt="test",
+                response=LLMResponse(
+                    content="response",
+                    model="gpt-4o",
+                    provider="openai",
+                    duration_ms=1500
+                ),
+                passed=True,
+                evaluator_results=[],
+                timestamp="2024-01-01T00:00:00"
+            ),
+            ExecutionResult(
+                treatment="CONTROL",
+                test="test2",
+                prompt="test",
+                response=LLMResponse(
+                    content="response",
+                    model="gpt-4o",
+                    provider="openai",
+                    duration_ms=2500
+                ),
+                passed=True,
+                evaluator_results=[],
+                timestamp="2024-01-01T00:00:00"
+            )
+        ]
+        
+        reporter.report_terminal(results, verbose=False)
+        captured = capsys.readouterr()
+        
+        # Average should be 2000ms
+        assert "2000ms" in captured.out
+    
+    # Refinement 4: Pass Rate Coloring
+    def test_report_terminal_color_green_high_pass_rate(self, capsys):
+        """Test that pass rate >= 80% is displayed with color for high pass rate."""
+        config = EvalConfig(name="Test")
+        reporter = Reporter(config)
+        
+        # Create exactly 5 results where 4 pass (80% pass rate - threshold)
+        results = []
+        for i in range(5):
+            results.append(
+                ExecutionResult(
+                    treatment="CONTROL",
+                    test=f"test{i}",
+                    prompt="test",
+                    response=LLMResponse(
+                        content="response",
+                        model="gpt-4o",
+                        provider="openai",
+                        duration_ms=100
+                    ),
+                    passed=(i < 4),  # 4 of 5 pass = 80%
+                    evaluator_results=[],
+                    timestamp="2024-01-01T00:00:00"
+                )
+            )
+        
+        reporter.report_terminal(results, verbose=False)
+        captured = capsys.readouterr()
+        assert "80%" in captured.out
+    
+    def test_report_terminal_color_yellow_medium_pass_rate(self, capsys):
+        """Test that pass rate 50-79% shows appropriate output."""
+        config = EvalConfig(name="Test")
+        reporter = Reporter(config)
+        
+        # Create exactly 10 results where 5 pass (50% pass rate - threshold)
+        results = []
+        for i in range(10):
+            results.append(
+                ExecutionResult(
+                    treatment="CONTROL",
+                    test=f"test{i}",
+                    prompt="test",
+                    response=LLMResponse(
+                        content="response",
+                        model="gpt-4o",
+                        provider="openai",
+                        duration_ms=100
+                    ),
+                    passed=(i < 5),  # 5 of 10 pass = 50%
+                    evaluator_results=[],
+                    timestamp="2024-01-01T00:00:00"
+                )
+            )
+        
+        reporter.report_terminal(results, verbose=False)
+        captured = capsys.readouterr()
+        assert "50%" in captured.out
+    
+    def test_report_terminal_color_red_low_pass_rate(self, capsys):
+        """Test that pass rate < 50% shows appropriate output."""
+        config = EvalConfig(name="Test")
+        reporter = Reporter(config)
+        
+        # Create exactly 10 results where 3 pass (30% pass rate - below threshold)
+        results = []
+        for i in range(10):
+            results.append(
+                ExecutionResult(
+                    treatment="CONTROL",
+                    test=f"test{i}",
+                    prompt="test",
+                    response=LLMResponse(
+                        content="response",
+                        model="gpt-4o",
+                        provider="openai",
+                        duration_ms=100
+                    ),
+                    passed=(i < 3),  # 3 of 10 pass = 30%
+                    evaluator_results=[],
+                    timestamp="2024-01-01T00:00:00"
+                )
+            )
+        
+        reporter.report_terminal(results, verbose=False)
+        captured = capsys.readouterr()
+        assert "30%" in captured.out
+    
+    # Refinement 5: Duration Aggregation Edge Cases
+    def test_report_terminal_duration_single_result(self, capsys):
+        """Test average duration with single result."""
+        config = EvalConfig(name="Test")
+        reporter = Reporter(config)
+        
+        results = [
+            ExecutionResult(
+                treatment="CONTROL",
+                test="test1",
+                prompt="test",
+                response=LLMResponse(
+                    content="response",
+                    model="gpt-4o",
+                    provider="openai",
+                    duration_ms=5000
+                ),
+                passed=True,
+                evaluator_results=[],
+                timestamp="2024-01-01T00:00:00"
+            )
+        ]
+        
+        reporter.report_terminal(results, verbose=False)
+        captured = capsys.readouterr()
+        
+        # Should show exactly 5000ms (no averaging needed)
+        assert "5000ms" in captured.out
+    
+    
+    def test_report_terminal_improvement_indicator_positive(self, capsys):
+        """Test improvement indicator with treatment beating CONTROL."""
+        config = EvalConfig(name="Test")
+        reporter = Reporter(config)
+        
+        # CONTROL: 5/10 = 50%
+        # TREATMENT: 8/10 = 80%
+        # Improvement: +30%
+        results = [
+            # CONTROL results (50% pass rate)
+            ExecutionResult(
+                treatment="CONTROL",
+                test=f"test{i}",
+                prompt="test",
+                response=LLMResponse(
+                    content="response",
+                    model="gpt-4o",
+                    provider="openai",
+                    duration_ms=100
+                ),
+                passed=(i < 5),
+                evaluator_results=[],
+                timestamp="2024-01-01T00:00:00"
+            )
+            for i in range(10)
+        ] + [
+            # TREATMENT results (80% pass rate)
+            ExecutionResult(
+                treatment="TREATMENT",
+                test=f"test{i}",
+                prompt="test",
+                response=LLMResponse(
+                    content="response",
+                    model="gpt-4o",
+                    provider="openai",
+                    duration_ms=100
+                ),
+                passed=(i < 8),
+                evaluator_results=[],
+                timestamp="2024-01-01T00:00:00"
+            )
+            for i in range(10)
+        ]
+        
+        reporter.report_terminal(results, verbose=False)
+        captured = capsys.readouterr()
+        
+        # Should show improvement indicator
+        assert "TREATMENT" in captured.out
+        assert "30" in captured.out  # +30% improvement

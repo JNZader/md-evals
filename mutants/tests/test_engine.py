@@ -877,3 +877,186 @@ class TestEvalConfigDefaults:
         # Verify timestamp is ISO format
         assert result.timestamp
         assert "T" in result.timestamp  # ISO format includes T
+
+
+# PHASE 9 REFINEMENTS  
+class TestEngineRefinements:
+    """Phase 9 Test Refinements for Mutation Testing."""
+    
+    # Refinement 2: Exact Prompt Substitution - verify exact values not just absence of placeholders
+    @pytest.mark.asyncio
+    async def test_run_single_variables_exact_substitution_simple(self):
+        """Test exact prompt after variable substitution."""
+        from md_evals.llm import LLMAdapter
+        
+        config = EvalConfig(
+            name="Test",
+            defaults=Defaults(model="gpt-4o"),
+            treatments={"CONTROL": Treatment(skill_path=None)},
+            tests=[]
+        )
+        
+        mock_adapter = MagicMock(spec=LLMAdapter)
+        mock_response = LLMResponse(
+            content="Hi Alice!",
+            model="gpt-4o",
+            provider="openai",
+            tokens=5,
+            duration_ms=1000,
+            raw_response={}
+        )
+        mock_adapter.complete = AsyncMock(return_value=mock_response)
+        
+        # Create a task with variables
+        task = Task(
+            name="test",
+            prompt="Hello {name}, your age is {age}",
+            evaluators=[],
+            variables={"name": "Alice", "age": "30"}
+        )
+        
+        engine = ExecutionEngine(config, mock_adapter)
+        result = await engine.run_single(
+            Treatment(skill_path=None),
+            task,
+            "CONTROL"
+        )
+        
+        # Verify EXACT substitution (not just checking placeholders are gone)
+        assert result.prompt == "Hello Alice, your age is 30"
+        assert "{name}" not in result.prompt
+        assert "{age}" not in result.prompt
+    
+    @pytest.mark.asyncio
+    async def test_run_single_variables_exact_substitution_multiple_same_var(self):
+        """Test exact substitution when same variable appears multiple times."""
+        from md_evals.llm import LLMAdapter
+        
+        config = EvalConfig(
+            name="Test",
+            defaults=Defaults(model="gpt-4o"),
+            treatments={"CONTROL": Treatment(skill_path=None)},
+            tests=[]
+        )
+        
+        mock_adapter = MagicMock(spec=LLMAdapter)
+        mock_response = LLMResponse(
+            content="response",
+            model="gpt-4o",
+            provider="openai",
+            tokens=5,
+            duration_ms=1000,
+            raw_response={}
+        )
+        mock_adapter.complete = AsyncMock(return_value=mock_response)
+        
+        task = Task(
+            name="test",
+            prompt="Hello {name}! Your name is {name}, right?",
+            evaluators=[],
+            variables={"name": "Bob"}
+        )
+        
+        engine = ExecutionEngine(config, mock_adapter)
+        result = await engine.run_single(
+            Treatment(skill_path=None),
+            task,
+            "CONTROL"
+        )
+        
+        # ALL occurrences should be replaced
+        assert result.prompt == "Hello Bob! Your name is Bob, right?"
+        assert "{name}" not in result.prompt
+        assert result.prompt.count("Bob") == 2
+    
+    @pytest.mark.asyncio
+    async def test_run_single_variables_exact_substitution_special_chars(self):
+        """Test exact substitution with special characters in values."""
+        from md_evals.llm import LLMAdapter
+        
+        config = EvalConfig(
+            name="Test",
+            defaults=Defaults(model="gpt-4o"),
+            treatments={"CONTROL": Treatment(skill_path=None)},
+            tests=[]
+        )
+        
+        mock_adapter = MagicMock(spec=LLMAdapter)
+        mock_response = LLMResponse(
+            content="response",
+            model="gpt-4o",
+            provider="openai",
+            tokens=5,
+            duration_ms=1000,
+            raw_response={}
+        )
+        mock_adapter.complete = AsyncMock(return_value=mock_response)
+        
+        task = Task(
+            name="test",
+            prompt="Email: {email}",
+            evaluators=[],
+            variables={"email": "test+user@example.com"}
+        )
+        
+        engine = ExecutionEngine(config, mock_adapter)
+        result = await engine.run_single(
+            Treatment(skill_path=None),
+            task,
+            "CONTROL"
+        )
+        
+        # Should preserve special characters exactly
+        assert result.prompt == "Email: test+user@example.com"
+        assert "{email}" not in result.prompt
+    
+    # Refinement 6: Evaluator Aggregation Logic - test with multiple evaluators with different pass/fail
+    @pytest.mark.asyncio
+    async def test_run_single_multiple_evaluators_middle_fails(self):
+        """Test aggregation when middle evaluator fails."""
+        from md_evals.evaluator import EvaluatorEngine
+        from md_evals.llm import LLMAdapter
+        from md_evals.models import RegexEvaluator
+        
+        config = EvalConfig(
+            name="Test",
+            defaults=Defaults(model="gpt-4o"),
+            treatments={"CONTROL": Treatment(skill_path=None)},
+            tests=[]
+        )
+        
+        mock_adapter = MagicMock(spec=LLMAdapter)
+        mock_response = LLMResponse(
+            content="response with hello and goodbye",
+            model="gpt-4o",
+            provider="openai",
+            tokens=5,
+            duration_ms=1000,
+            raw_response={}
+        )
+        mock_adapter.complete = AsyncMock(return_value=mock_response)
+        
+        # Create evaluators: first passes, middle fails, third passes
+        task = Task(
+            name="test",
+            prompt="test",
+            evaluators=[
+                RegexEvaluator(name="has_hello", pattern="hello", pass_on_match=True),
+                RegexEvaluator(name="has_missing", pattern="missing", pass_on_match=True),
+                RegexEvaluator(name="has_goodbye", pattern="goodbye", pass_on_match=True)
+            ]
+        )
+        
+        engine = ExecutionEngine(config, mock_adapter, EvaluatorEngine())
+        result = await engine.run_single(
+            Treatment(skill_path=None),
+            task,
+            "CONTROL"
+        )
+        
+        # Should fail because middle evaluator failed (all() logic)
+        assert result.passed is False
+        assert len(result.evaluator_results) == 3
+        assert result.evaluator_results[0].passed is True  # hello matches
+        assert result.evaluator_results[1].passed is False  # missing doesn't match
+        assert result.evaluator_results[2].passed is True  # goodbye matches

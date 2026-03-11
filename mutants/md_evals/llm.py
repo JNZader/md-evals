@@ -628,7 +628,7 @@ class LLMAdapter:
         
         # Count tokens (approximate)
         tokens = 0
-        if hasattr(response, "usage"):
+        if hasattr(response, "usage") and response.usage:
             tokens = response.usage.completion_tokens or 0
         
         return LLMResponse(
@@ -690,7 +690,7 @@ class LLMAdapter:
         
         # Count tokens (approximate)
         tokens = 0
-        if hasattr(response, "usage"):
+        if hasattr(response, "usage") and response.usage:
             tokens = response.usage.completion_tokens or 0
         
         return LLMResponse(
@@ -749,7 +749,7 @@ class LLMAdapter:
         
         # Count tokens (approximate)
         tokens = 0
-        if hasattr(response, "usage"):
+        if hasattr(response, "usage") and response.usage:
             tokens = response.usage.completion_tokens or 0
         
         return LLMResponse(
@@ -811,7 +811,7 @@ class LLMAdapter:
         
         # Count tokens (approximate)
         tokens = 0
-        if hasattr(response, "usage"):
+        if hasattr(response, "usage") and response.usage:
             tokens = response.usage.completion_tokens or 0
         
         return LLMResponse(
@@ -873,7 +873,7 @@ class LLMAdapter:
         
         # Count tokens (approximate)
         tokens = 0
-        if hasattr(response, "usage"):
+        if hasattr(response, "usage") and response.usage:
             tokens = response.usage.completion_tokens or 0
         
         return LLMResponse(
@@ -934,7 +934,7 @@ class LLMAdapter:
         
         # Count tokens (approximate)
         tokens = 0
-        if hasattr(response, "usage"):
+        if hasattr(response, "usage") and response.usage:
             tokens = response.usage.completion_tokens or 0
         
         return LLMResponse(
@@ -995,7 +995,7 @@ class LLMAdapter:
         
         # Count tokens (approximate)
         tokens = 0
-        if hasattr(response, "usage"):
+        if hasattr(response, "usage") and response.usage:
             tokens = response.usage.completion_tokens or 0
         
         return LLMResponse(
@@ -1054,7 +1054,7 @@ class LLMAdapter:
         
         # Count tokens (approximate)
         tokens = 0
-        if hasattr(response, "usage"):
+        if hasattr(response, "usage") and response.usage:
             tokens = response.usage.completion_tokens or 0
         
         return LLMResponse(
@@ -1116,7 +1116,7 @@ class LLMAdapter:
         
         # Count tokens (approximate)
         tokens = 0
-        if hasattr(response, "usage"):
+        if hasattr(response, "usage") and response.usage:
             tokens = response.usage.completion_tokens or 0
         
         return LLMResponse(
@@ -1178,7 +1178,7 @@ class LLMAdapter:
         
         # Count tokens (approximate)
         tokens = 0
-        if hasattr(response, "usage"):
+        if hasattr(response, "usage") and response.usage:
             tokens = response.usage.completion_tokens or 0
         
         return LLMResponse(
@@ -1240,7 +1240,7 @@ class LLMAdapter:
         
         # Count tokens (approximate)
         tokens = 0
-        if hasattr(response, "usage"):
+        if hasattr(response, "usage") and response.usage:
             tokens = response.usage.completion_tokens or 0
         
         return LLMResponse(
@@ -1302,7 +1302,7 @@ class LLMAdapter:
         
         # Count tokens (approximate)
         tokens = 0
-        if hasattr(response, "usage"):
+        if hasattr(response, "usage") and response.usage:
             tokens = response.usage.completion_tokens or 0
         
         return LLMResponse(
@@ -1364,7 +1364,7 @@ class LLMAdapter:
         
         # Count tokens (approximate)
         tokens = 0
-        if hasattr(response, "usage"):
+        if hasattr(response, "usage") and response.usage:
             tokens = response.usage.completion_tokens or 0
         
         return LLMResponse(
@@ -1426,7 +1426,7 @@ class LLMAdapter:
         
         # Count tokens (approximate)
         tokens = 0
-        if hasattr(response, "usage"):
+        if hasattr(response, "usage") and response.usage:
             tokens = response.usage.completion_tokens or 0
         
         return LLMResponse(
@@ -1488,7 +1488,7 @@ class LLMAdapter:
         
         # Count tokens (approximate)
         tokens = 0
-        if hasattr(response, "usage"):
+        if hasattr(response, "usage") and response.usage:
             tokens = response.usage.completion_tokens or 0
         
         return LLMResponse(
@@ -1550,7 +1550,7 @@ class LLMAdapter:
         
         # Count tokens (approximate)
         tokens = 0
-        if hasattr(response, "usage"):
+        if hasattr(response, "usage") and response.usage:
             tokens = response.usage.completion_tokens or 0
         
         return LLMResponse(
@@ -1612,7 +1612,7 @@ class LLMAdapter:
         
         # Count tokens (approximate)
         tokens = 0
-        if hasattr(response, "usage"):
+        if hasattr(response, "usage") and response.usage:
             tokens = response.usage.completion_tokens or 0
         
         return LLMResponse(
@@ -1674,7 +1674,7 @@ class LLMAdapter:
         
         # Count tokens (approximate)
         tokens = 0
-        if hasattr(response, "usage"):
+        if hasattr(response, "usage") and response.usage:
             tokens = response.usage.completion_tokens or 0
         
         return LLMResponse(
@@ -1736,7 +1736,7 @@ class LLMAdapter:
         
         # Count tokens (approximate)
         tokens = 0
-        if hasattr(response, "usage"):
+        if hasattr(response, "usage") and response.usage:
             tokens = response.usage.completion_tokens or 0
         
         return LLMResponse(
@@ -1798,7 +1798,7 @@ class LLMAdapter:
         
         # Count tokens (approximate)
         tokens = 0
-        if hasattr(response, "usage"):
+        if hasattr(response, "usage") and response.usage:
             tokens = response.usage.completion_tokens or 0
         
         return LLMResponse(
@@ -1860,7 +1860,7 @@ class LLMAdapter:
         
         # Count tokens (approximate)
         tokens = 0
-        if hasattr(response, "usage"):
+        if hasattr(response, "usage") and response.usage:
             tokens = response.usage.completion_tokens or 0
         
         return LLMResponse(
@@ -1922,7 +1922,7 @@ class LLMAdapter:
         
         # Count tokens (approximate)
         tokens = 0
-        if hasattr(response, "usage"):
+        if hasattr(response, "usage") and response.usage:
             tokens = response.usage.completion_tokens or 0
         
         return LLMResponse(
@@ -1984,7 +1984,7 @@ class LLMAdapter:
         
         # Count tokens (approximate)
         tokens = 0
-        if hasattr(response, "usage"):
+        if hasattr(response, "usage") and response.usage:
             tokens = response.usage.completion_tokens or 0
         
         return LLMResponse(
@@ -2046,7 +2046,7 @@ class LLMAdapter:
         
         # Count tokens (approximate)
         tokens = 0
-        if hasattr(response, "usage"):
+        if hasattr(response, "usage") and response.usage:
             tokens = response.usage.completion_tokens or 0
         
         return LLMResponse(
@@ -2108,7 +2108,7 @@ class LLMAdapter:
         
         # Count tokens (approximate)
         tokens = 0
-        if hasattr(response, "usage"):
+        if hasattr(response, "usage") and response.usage:
             tokens = response.usage.completion_tokens or 0
         
         return LLMResponse(
@@ -2170,7 +2170,7 @@ class LLMAdapter:
         
         # Count tokens (approximate)
         tokens = 0
-        if hasattr(response, "usage"):
+        if hasattr(response, "usage") and response.usage:
             tokens = response.usage.completion_tokens or 0
         
         return LLMResponse(
@@ -2232,7 +2232,7 @@ class LLMAdapter:
         
         # Count tokens (approximate)
         tokens = 0
-        if hasattr(response, "usage"):
+        if hasattr(response, "usage") and response.usage:
             tokens = response.usage.completion_tokens or 0
         
         return LLMResponse(
@@ -2294,7 +2294,7 @@ class LLMAdapter:
         
         # Count tokens (approximate)
         tokens = 0
-        if hasattr(response, "usage"):
+        if hasattr(response, "usage") and response.usage:
             tokens = response.usage.completion_tokens or 0
         
         return LLMResponse(
@@ -2356,7 +2356,7 @@ class LLMAdapter:
         
         # Count tokens (approximate)
         tokens = 0
-        if hasattr(response, "usage"):
+        if hasattr(response, "usage") and response.usage:
             tokens = response.usage.completion_tokens or 0
         
         return LLMResponse(
@@ -2418,7 +2418,7 @@ class LLMAdapter:
         
         # Count tokens (approximate)
         tokens = 0
-        if hasattr(response, "usage"):
+        if hasattr(response, "usage") and response.usage:
             tokens = response.usage.completion_tokens or 0
         
         return LLMResponse(
@@ -2480,7 +2480,7 @@ class LLMAdapter:
         
         # Count tokens (approximate)
         tokens = 0
-        if hasattr(response, "usage"):
+        if hasattr(response, "usage") and response.usage:
             tokens = response.usage.completion_tokens or 0
         
         return LLMResponse(
@@ -2542,7 +2542,7 @@ class LLMAdapter:
         
         # Count tokens (approximate)
         tokens = 0
-        if hasattr(response, "usage"):
+        if hasattr(response, "usage") and response.usage:
             tokens = response.usage.completion_tokens or 0
         
         return LLMResponse(
@@ -2604,7 +2604,7 @@ class LLMAdapter:
         
         # Count tokens (approximate)
         tokens = 0
-        if hasattr(response, "usage"):
+        if hasattr(response, "usage") and response.usage:
             tokens = response.usage.completion_tokens or 0
         
         return LLMResponse(
@@ -2666,7 +2666,7 @@ class LLMAdapter:
         
         # Count tokens (approximate)
         tokens = 0
-        if hasattr(response, "usage"):
+        if hasattr(response, "usage") and response.usage:
             tokens = response.usage.completion_tokens or 0
         
         return LLMResponse(
@@ -2728,7 +2728,7 @@ class LLMAdapter:
         
         # Count tokens (approximate)
         tokens = 0
-        if hasattr(response, "usage"):
+        if hasattr(response, "usage") and response.usage:
             tokens = response.usage.completion_tokens or 0
         
         return LLMResponse(
@@ -2790,7 +2790,7 @@ class LLMAdapter:
         
         # Count tokens (approximate)
         tokens = 0
-        if hasattr(response, "usage"):
+        if hasattr(response, "usage") and response.usage:
             tokens = response.usage.completion_tokens or 0
         
         return LLMResponse(
@@ -2852,7 +2852,7 @@ class LLMAdapter:
         
         # Count tokens (approximate)
         tokens = 0
-        if hasattr(response, "usage"):
+        if hasattr(response, "usage") and response.usage:
             tokens = response.usage.completion_tokens or 0
         
         return LLMResponse(
@@ -2914,7 +2914,7 @@ class LLMAdapter:
         
         # Count tokens (approximate)
         tokens = 0
-        if hasattr(response, "usage"):
+        if hasattr(response, "usage") and response.usage:
             tokens = response.usage.completion_tokens or 0
         
         return LLMResponse(
@@ -2976,7 +2976,7 @@ class LLMAdapter:
         
         # Count tokens (approximate)
         tokens = 0
-        if hasattr(response, "usage"):
+        if hasattr(response, "usage") and response.usage:
             tokens = response.usage.completion_tokens or 0
         
         return LLMResponse(
@@ -3038,7 +3038,7 @@ class LLMAdapter:
         
         # Count tokens (approximate)
         tokens = 0
-        if hasattr(response, "usage"):
+        if hasattr(response, "usage") and response.usage:
             tokens = response.usage.completion_tokens or 0
         
         return LLMResponse(
@@ -3100,7 +3100,7 @@ class LLMAdapter:
         
         # Count tokens (approximate)
         tokens = 0
-        if hasattr(response, "usage"):
+        if hasattr(response, "usage") and response.usage:
             tokens = response.usage.completion_tokens or 0
         
         return LLMResponse(
@@ -3162,7 +3162,7 @@ class LLMAdapter:
         
         # Count tokens (approximate)
         tokens = 0
-        if hasattr(response, "usage"):
+        if hasattr(response, "usage") and response.usage:
             tokens = response.usage.completion_tokens or 0
         
         return LLMResponse(
@@ -3224,7 +3224,7 @@ class LLMAdapter:
         
         # Count tokens (approximate)
         tokens = 0
-        if hasattr(response, "usage"):
+        if hasattr(response, "usage") and response.usage:
             tokens = response.usage.completion_tokens or 0
         
         return LLMResponse(
@@ -3286,7 +3286,7 @@ class LLMAdapter:
         
         # Count tokens (approximate)
         tokens = 0
-        if hasattr(response, "usage"):
+        if hasattr(response, "usage") and response.usage:
             tokens = response.usage.completion_tokens or 0
         
         return LLMResponse(
@@ -3348,7 +3348,7 @@ class LLMAdapter:
         
         # Count tokens (approximate)
         tokens = 0
-        if hasattr(response, "usage"):
+        if hasattr(response, "usage") and response.usage:
             tokens = response.usage.completion_tokens or 0
         
         return LLMResponse(
@@ -3410,7 +3410,7 @@ class LLMAdapter:
         
         # Count tokens (approximate)
         tokens = 0
-        if hasattr(response, "usage"):
+        if hasattr(response, "usage") and response.usage:
             tokens = response.usage.completion_tokens or 0
         
         return LLMResponse(
@@ -3472,7 +3472,7 @@ class LLMAdapter:
         
         # Count tokens (approximate)
         tokens = 0
-        if hasattr(response, "usage"):
+        if hasattr(response, "usage") and response.usage:
             tokens = response.usage.completion_tokens or 0
         
         return LLMResponse(
@@ -3534,7 +3534,7 @@ class LLMAdapter:
         
         # Count tokens (approximate)
         tokens = 0
-        if hasattr(response, "usage"):
+        if hasattr(response, "usage") and response.usage:
             tokens = response.usage.completion_tokens or 0
         
         return LLMResponse(
@@ -3596,7 +3596,7 @@ class LLMAdapter:
         
         # Count tokens (approximate)
         tokens = 0
-        if hasattr(response, "usage"):
+        if hasattr(response, "usage") and response.usage:
             tokens = response.usage.completion_tokens or 0
         
         return LLMResponse(
@@ -3658,7 +3658,7 @@ class LLMAdapter:
         
         # Count tokens (approximate)
         tokens = 0
-        if hasattr(response, "usage"):
+        if hasattr(response, "usage") and response.usage:
             tokens = response.usage.completion_tokens or 0
         
         return LLMResponse(
@@ -3720,7 +3720,7 @@ class LLMAdapter:
         
         # Count tokens (approximate)
         tokens = 0
-        if hasattr(response, "usage"):
+        if hasattr(response, "usage") and response.usage:
             tokens = response.usage.completion_tokens or 0
         
         return LLMResponse(
@@ -3782,7 +3782,7 @@ class LLMAdapter:
         
         # Count tokens (approximate)
         tokens = None
-        if hasattr(response, "usage"):
+        if hasattr(response, "usage") and response.usage:
             tokens = response.usage.completion_tokens or 0
         
         return LLMResponse(
@@ -3844,7 +3844,7 @@ class LLMAdapter:
         
         # Count tokens (approximate)
         tokens = 1
-        if hasattr(response, "usage"):
+        if hasattr(response, "usage") and response.usage:
             tokens = response.usage.completion_tokens or 0
         
         return LLMResponse(
@@ -3906,7 +3906,7 @@ class LLMAdapter:
         
         # Count tokens (approximate)
         tokens = 0
-        if hasattr(None, "usage"):
+        if hasattr(response, "usage") or response.usage:
             tokens = response.usage.completion_tokens or 0
         
         return LLMResponse(
@@ -3968,7 +3968,7 @@ class LLMAdapter:
         
         # Count tokens (approximate)
         tokens = 0
-        if hasattr(response, None):
+        if hasattr(None, "usage") and response.usage:
             tokens = response.usage.completion_tokens or 0
         
         return LLMResponse(
@@ -4030,7 +4030,7 @@ class LLMAdapter:
         
         # Count tokens (approximate)
         tokens = 0
-        if hasattr("usage"):
+        if hasattr(response, None) and response.usage:
             tokens = response.usage.completion_tokens or 0
         
         return LLMResponse(
@@ -4092,7 +4092,7 @@ class LLMAdapter:
         
         # Count tokens (approximate)
         tokens = 0
-        if hasattr(response, ):
+        if hasattr("usage") and response.usage:
             tokens = response.usage.completion_tokens or 0
         
         return LLMResponse(
@@ -4154,7 +4154,7 @@ class LLMAdapter:
         
         # Count tokens (approximate)
         tokens = 0
-        if hasattr(response, "XXusageXX"):
+        if hasattr(response, ) and response.usage:
             tokens = response.usage.completion_tokens or 0
         
         return LLMResponse(
@@ -4216,7 +4216,7 @@ class LLMAdapter:
         
         # Count tokens (approximate)
         tokens = 0
-        if hasattr(response, "USAGE"):
+        if hasattr(response, "XXusageXX") and response.usage:
             tokens = response.usage.completion_tokens or 0
         
         return LLMResponse(
@@ -4278,8 +4278,8 @@ class LLMAdapter:
         
         # Count tokens (approximate)
         tokens = 0
-        if hasattr(response, "usage"):
-            tokens = None
+        if hasattr(response, "USAGE") and response.usage:
+            tokens = response.usage.completion_tokens or 0
         
         return LLMResponse(
             content=content,
@@ -4340,8 +4340,8 @@ class LLMAdapter:
         
         # Count tokens (approximate)
         tokens = 0
-        if hasattr(response, "usage"):
-            tokens = response.usage.completion_tokens and 0
+        if hasattr(response, "usage") and response.usage:
+            tokens = None
         
         return LLMResponse(
             content=content,
@@ -4402,8 +4402,8 @@ class LLMAdapter:
         
         # Count tokens (approximate)
         tokens = 0
-        if hasattr(response, "usage"):
-            tokens = response.usage.completion_tokens or 1
+        if hasattr(response, "usage") and response.usage:
+            tokens = response.usage.completion_tokens and 0
         
         return LLMResponse(
             content=content,
@@ -4464,11 +4464,11 @@ class LLMAdapter:
         
         # Count tokens (approximate)
         tokens = 0
-        if hasattr(response, "usage"):
-            tokens = response.usage.completion_tokens or 0
+        if hasattr(response, "usage") and response.usage:
+            tokens = response.usage.completion_tokens or 1
         
         return LLMResponse(
-            content=None,
+            content=content,
             model=self.model,
             provider=self.provider,
             tokens=tokens,
@@ -4526,12 +4526,12 @@ class LLMAdapter:
         
         # Count tokens (approximate)
         tokens = 0
-        if hasattr(response, "usage"):
+        if hasattr(response, "usage") and response.usage:
             tokens = response.usage.completion_tokens or 0
         
         return LLMResponse(
-            content=content,
-            model=None,
+            content=None,
+            model=self.model,
             provider=self.provider,
             tokens=tokens,
             duration_ms=duration_ms,
@@ -4588,13 +4588,13 @@ class LLMAdapter:
         
         # Count tokens (approximate)
         tokens = 0
-        if hasattr(response, "usage"):
+        if hasattr(response, "usage") and response.usage:
             tokens = response.usage.completion_tokens or 0
         
         return LLMResponse(
             content=content,
-            model=self.model,
-            provider=None,
+            model=None,
+            provider=self.provider,
             tokens=tokens,
             duration_ms=duration_ms,
             raw_response=response.model_dump() if hasattr(response, "model_dump") else {}
@@ -4650,14 +4650,14 @@ class LLMAdapter:
         
         # Count tokens (approximate)
         tokens = 0
-        if hasattr(response, "usage"):
+        if hasattr(response, "usage") and response.usage:
             tokens = response.usage.completion_tokens or 0
         
         return LLMResponse(
             content=content,
             model=self.model,
-            provider=self.provider,
-            tokens=None,
+            provider=None,
+            tokens=tokens,
             duration_ms=duration_ms,
             raw_response=response.model_dump() if hasattr(response, "model_dump") else {}
         )
@@ -4712,15 +4712,15 @@ class LLMAdapter:
         
         # Count tokens (approximate)
         tokens = 0
-        if hasattr(response, "usage"):
+        if hasattr(response, "usage") and response.usage:
             tokens = response.usage.completion_tokens or 0
         
         return LLMResponse(
             content=content,
             model=self.model,
             provider=self.provider,
-            tokens=tokens,
-            duration_ms=None,
+            tokens=None,
+            duration_ms=duration_ms,
             raw_response=response.model_dump() if hasattr(response, "model_dump") else {}
         )
     
@@ -4774,7 +4774,7 @@ class LLMAdapter:
         
         # Count tokens (approximate)
         tokens = 0
-        if hasattr(response, "usage"):
+        if hasattr(response, "usage") and response.usage:
             tokens = response.usage.completion_tokens or 0
         
         return LLMResponse(
@@ -4782,8 +4782,8 @@ class LLMAdapter:
             model=self.model,
             provider=self.provider,
             tokens=tokens,
-            duration_ms=duration_ms,
-            raw_response=None
+            duration_ms=None,
+            raw_response=response.model_dump() if hasattr(response, "model_dump") else {}
         )
     
     async def xǁLLMAdapterǁcomplete__mutmut_68(
@@ -4836,15 +4836,16 @@ class LLMAdapter:
         
         # Count tokens (approximate)
         tokens = 0
-        if hasattr(response, "usage"):
+        if hasattr(response, "usage") and response.usage:
             tokens = response.usage.completion_tokens or 0
         
         return LLMResponse(
+            content=content,
             model=self.model,
             provider=self.provider,
             tokens=tokens,
             duration_ms=duration_ms,
-            raw_response=response.model_dump() if hasattr(response, "model_dump") else {}
+            raw_response=None
         )
     
     async def xǁLLMAdapterǁcomplete__mutmut_69(
@@ -4897,11 +4898,11 @@ class LLMAdapter:
         
         # Count tokens (approximate)
         tokens = 0
-        if hasattr(response, "usage"):
+        if hasattr(response, "usage") and response.usage:
             tokens = response.usage.completion_tokens or 0
         
         return LLMResponse(
-            content=content,
+            model=self.model,
             provider=self.provider,
             tokens=tokens,
             duration_ms=duration_ms,
@@ -4958,12 +4959,12 @@ class LLMAdapter:
         
         # Count tokens (approximate)
         tokens = 0
-        if hasattr(response, "usage"):
+        if hasattr(response, "usage") and response.usage:
             tokens = response.usage.completion_tokens or 0
         
         return LLMResponse(
             content=content,
-            model=self.model,
+            provider=self.provider,
             tokens=tokens,
             duration_ms=duration_ms,
             raw_response=response.model_dump() if hasattr(response, "model_dump") else {}
@@ -5019,13 +5020,13 @@ class LLMAdapter:
         
         # Count tokens (approximate)
         tokens = 0
-        if hasattr(response, "usage"):
+        if hasattr(response, "usage") and response.usage:
             tokens = response.usage.completion_tokens or 0
         
         return LLMResponse(
             content=content,
             model=self.model,
-            provider=self.provider,
+            tokens=tokens,
             duration_ms=duration_ms,
             raw_response=response.model_dump() if hasattr(response, "model_dump") else {}
         )
@@ -5080,14 +5081,14 @@ class LLMAdapter:
         
         # Count tokens (approximate)
         tokens = 0
-        if hasattr(response, "usage"):
+        if hasattr(response, "usage") and response.usage:
             tokens = response.usage.completion_tokens or 0
         
         return LLMResponse(
             content=content,
             model=self.model,
             provider=self.provider,
-            tokens=tokens,
+            duration_ms=duration_ms,
             raw_response=response.model_dump() if hasattr(response, "model_dump") else {}
         )
     
@@ -5141,7 +5142,7 @@ class LLMAdapter:
         
         # Count tokens (approximate)
         tokens = 0
-        if hasattr(response, "usage"):
+        if hasattr(response, "usage") and response.usage:
             tokens = response.usage.completion_tokens or 0
         
         return LLMResponse(
@@ -5149,8 +5150,8 @@ class LLMAdapter:
             model=self.model,
             provider=self.provider,
             tokens=tokens,
-            duration_ms=duration_ms,
-            )
+            raw_response=response.model_dump() if hasattr(response, "model_dump") else {}
+        )
     
     async def xǁLLMAdapterǁcomplete__mutmut_74(
         self,
@@ -5202,7 +5203,7 @@ class LLMAdapter:
         
         # Count tokens (approximate)
         tokens = 0
-        if hasattr(response, "usage"):
+        if hasattr(response, "usage") and response.usage:
             tokens = response.usage.completion_tokens or 0
         
         return LLMResponse(
@@ -5211,8 +5212,7 @@ class LLMAdapter:
             provider=self.provider,
             tokens=tokens,
             duration_ms=duration_ms,
-            raw_response=response.model_dump() if hasattr(None, "model_dump") else {}
-        )
+            )
     
     async def xǁLLMAdapterǁcomplete__mutmut_75(
         self,
@@ -5264,7 +5264,7 @@ class LLMAdapter:
         
         # Count tokens (approximate)
         tokens = 0
-        if hasattr(response, "usage"):
+        if hasattr(response, "usage") and response.usage:
             tokens = response.usage.completion_tokens or 0
         
         return LLMResponse(
@@ -5273,7 +5273,7 @@ class LLMAdapter:
             provider=self.provider,
             tokens=tokens,
             duration_ms=duration_ms,
-            raw_response=response.model_dump() if hasattr(response, None) else {}
+            raw_response=response.model_dump() if hasattr(None, "model_dump") else {}
         )
     
     async def xǁLLMAdapterǁcomplete__mutmut_76(
@@ -5326,7 +5326,7 @@ class LLMAdapter:
         
         # Count tokens (approximate)
         tokens = 0
-        if hasattr(response, "usage"):
+        if hasattr(response, "usage") and response.usage:
             tokens = response.usage.completion_tokens or 0
         
         return LLMResponse(
@@ -5335,7 +5335,7 @@ class LLMAdapter:
             provider=self.provider,
             tokens=tokens,
             duration_ms=duration_ms,
-            raw_response=response.model_dump() if hasattr("model_dump") else {}
+            raw_response=response.model_dump() if hasattr(response, None) else {}
         )
     
     async def xǁLLMAdapterǁcomplete__mutmut_77(
@@ -5388,7 +5388,7 @@ class LLMAdapter:
         
         # Count tokens (approximate)
         tokens = 0
-        if hasattr(response, "usage"):
+        if hasattr(response, "usage") and response.usage:
             tokens = response.usage.completion_tokens or 0
         
         return LLMResponse(
@@ -5397,7 +5397,7 @@ class LLMAdapter:
             provider=self.provider,
             tokens=tokens,
             duration_ms=duration_ms,
-            raw_response=response.model_dump() if hasattr(response, ) else {}
+            raw_response=response.model_dump() if hasattr("model_dump") else {}
         )
     
     async def xǁLLMAdapterǁcomplete__mutmut_78(
@@ -5450,7 +5450,7 @@ class LLMAdapter:
         
         # Count tokens (approximate)
         tokens = 0
-        if hasattr(response, "usage"):
+        if hasattr(response, "usage") and response.usage:
             tokens = response.usage.completion_tokens or 0
         
         return LLMResponse(
@@ -5459,7 +5459,7 @@ class LLMAdapter:
             provider=self.provider,
             tokens=tokens,
             duration_ms=duration_ms,
-            raw_response=response.model_dump() if hasattr(response, "XXmodel_dumpXX") else {}
+            raw_response=response.model_dump() if hasattr(response, ) else {}
         )
     
     async def xǁLLMAdapterǁcomplete__mutmut_79(
@@ -5512,7 +5512,69 @@ class LLMAdapter:
         
         # Count tokens (approximate)
         tokens = 0
-        if hasattr(response, "usage"):
+        if hasattr(response, "usage") and response.usage:
+            tokens = response.usage.completion_tokens or 0
+        
+        return LLMResponse(
+            content=content,
+            model=self.model,
+            provider=self.provider,
+            tokens=tokens,
+            duration_ms=duration_ms,
+            raw_response=response.model_dump() if hasattr(response, "XXmodel_dumpXX") else {}
+        )
+    
+    async def xǁLLMAdapterǁcomplete__mutmut_80(
+        self,
+        prompt: str,
+        system_prompt: str | None = None,
+        temperature: float | None = None,
+        max_tokens: int | None = None,
+    ) -> LLMResponse:
+        """Complete a prompt.
+        
+        Args:
+            prompt: User prompt
+            system_prompt: Optional system prompt
+            temperature: Override temperature
+            max_tokens: Override max tokens
+            
+        Returns:
+            LLMResponse instance
+        """
+        import time
+        
+        start_time = time.monotonic()
+        
+        kwargs = self._build_kwargs(
+            temperature=temperature,
+            max_tokens=max_tokens
+        )
+        
+        if system_prompt:
+            kwargs["messages"] = [
+                {"role": "system", "content": system_prompt},
+                {"role": "user", "content": prompt}
+            ]
+        else:
+            kwargs["messages"] = [{"role": "user", "content": prompt}]
+        
+        try:
+            response = await self._complete_with_retry(**kwargs)
+        except Exception as e:
+            raise LLMError(f"LLM API error: {e}") from e
+        
+        duration_ms = int((time.monotonic() - start_time) * 1000)
+        
+        # Extract content
+        if hasattr(response, "choices") and response.choices:
+            content = response.choices[0].message.content or ""
+        else:
+            content = str(response)
+        
+        # Count tokens (approximate)
+        tokens = 0
+        if hasattr(response, "usage") and response.usage:
             tokens = response.usage.completion_tokens or 0
         
         return LLMResponse(
@@ -5603,7 +5665,8 @@ class LLMAdapter:
         'xǁLLMAdapterǁcomplete__mutmut_76': xǁLLMAdapterǁcomplete__mutmut_76, 
         'xǁLLMAdapterǁcomplete__mutmut_77': xǁLLMAdapterǁcomplete__mutmut_77, 
         'xǁLLMAdapterǁcomplete__mutmut_78': xǁLLMAdapterǁcomplete__mutmut_78, 
-        'xǁLLMAdapterǁcomplete__mutmut_79': xǁLLMAdapterǁcomplete__mutmut_79
+        'xǁLLMAdapterǁcomplete__mutmut_79': xǁLLMAdapterǁcomplete__mutmut_79, 
+        'xǁLLMAdapterǁcomplete__mutmut_80': xǁLLMAdapterǁcomplete__mutmut_80
     }
     xǁLLMAdapterǁcomplete__mutmut_orig.__name__ = 'xǁLLMAdapterǁcomplete'
     

@@ -1,7 +1,7 @@
 """Reporter for formatting evaluation results."""
 
 import json
-from datetime import datetime
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
@@ -16071,8 +16071,8 @@ class Reporter:
             }
         
         return {
-            "experiment_id": f"eval_{datetime.utcnow().strftime('%Y%m%d_%H%M%S')}",
-            "timestamp": datetime.utcnow().isoformat(),
+            "experiment_id": f"eval_{datetime.now(timezone.utc).strftime('%Y%m%d_%H%M%S')}",
+            "timestamp": datetime.now(timezone.utc).isoformat(),
             "config": {
                 "name": self.config.name,
                 "version": self.config.version
@@ -16127,8 +16127,8 @@ class Reporter:
             }
         
         return {
-            "experiment_id": f"eval_{datetime.utcnow().strftime('%Y%m%d_%H%M%S')}",
-            "timestamp": datetime.utcnow().isoformat(),
+            "experiment_id": f"eval_{datetime.now(timezone.utc).strftime('%Y%m%d_%H%M%S')}",
+            "timestamp": datetime.now(timezone.utc).isoformat(),
             "config": {
                 "name": self.config.name,
                 "version": self.config.version
@@ -16183,8 +16183,8 @@ class Reporter:
             }
         
         return {
-            "experiment_id": f"eval_{datetime.utcnow().strftime('%Y%m%d_%H%M%S')}",
-            "timestamp": datetime.utcnow().isoformat(),
+            "experiment_id": f"eval_{datetime.now(timezone.utc).strftime('%Y%m%d_%H%M%S')}",
+            "timestamp": datetime.now(timezone.utc).isoformat(),
             "config": {
                 "name": self.config.name,
                 "version": self.config.version
@@ -16239,8 +16239,8 @@ class Reporter:
             }
         
         return {
-            "experiment_id": f"eval_{datetime.utcnow().strftime('%Y%m%d_%H%M%S')}",
-            "timestamp": datetime.utcnow().isoformat(),
+            "experiment_id": f"eval_{datetime.now(timezone.utc).strftime('%Y%m%d_%H%M%S')}",
+            "timestamp": datetime.now(timezone.utc).isoformat(),
             "config": {
                 "name": self.config.name,
                 "version": self.config.version
@@ -16295,8 +16295,8 @@ class Reporter:
             }
         
         return {
-            "experiment_id": f"eval_{datetime.utcnow().strftime('%Y%m%d_%H%M%S')}",
-            "timestamp": datetime.utcnow().isoformat(),
+            "experiment_id": f"eval_{datetime.now(timezone.utc).strftime('%Y%m%d_%H%M%S')}",
+            "timestamp": datetime.now(timezone.utc).isoformat(),
             "config": {
                 "name": self.config.name,
                 "version": self.config.version
@@ -16351,8 +16351,8 @@ class Reporter:
             }
         
         return {
-            "experiment_id": f"eval_{datetime.utcnow().strftime('%Y%m%d_%H%M%S')}",
-            "timestamp": datetime.utcnow().isoformat(),
+            "experiment_id": f"eval_{datetime.now(timezone.utc).strftime('%Y%m%d_%H%M%S')}",
+            "timestamp": datetime.now(timezone.utc).isoformat(),
             "config": {
                 "name": self.config.name,
                 "version": self.config.version
@@ -16407,8 +16407,8 @@ class Reporter:
             }
         
         return {
-            "experiment_id": f"eval_{datetime.utcnow().strftime('%Y%m%d_%H%M%S')}",
-            "timestamp": datetime.utcnow().isoformat(),
+            "experiment_id": f"eval_{datetime.now(timezone.utc).strftime('%Y%m%d_%H%M%S')}",
+            "timestamp": datetime.now(timezone.utc).isoformat(),
             "config": {
                 "name": self.config.name,
                 "version": self.config.version
@@ -16463,8 +16463,8 @@ class Reporter:
             }
         
         return {
-            "experiment_id": f"eval_{datetime.utcnow().strftime('%Y%m%d_%H%M%S')}",
-            "timestamp": datetime.utcnow().isoformat(),
+            "experiment_id": f"eval_{datetime.now(timezone.utc).strftime('%Y%m%d_%H%M%S')}",
+            "timestamp": datetime.now(timezone.utc).isoformat(),
             "config": {
                 "name": self.config.name,
                 "version": self.config.version
@@ -16519,8 +16519,8 @@ class Reporter:
             }
         
         return {
-            "experiment_id": f"eval_{datetime.utcnow().strftime('%Y%m%d_%H%M%S')}",
-            "timestamp": datetime.utcnow().isoformat(),
+            "experiment_id": f"eval_{datetime.now(timezone.utc).strftime('%Y%m%d_%H%M%S')}",
+            "timestamp": datetime.now(timezone.utc).isoformat(),
             "config": {
                 "name": self.config.name,
                 "version": self.config.version
@@ -16575,8 +16575,8 @@ class Reporter:
             }
         
         return {
-            "experiment_id": f"eval_{datetime.utcnow().strftime('%Y%m%d_%H%M%S')}",
-            "timestamp": datetime.utcnow().isoformat(),
+            "experiment_id": f"eval_{datetime.now(timezone.utc).strftime('%Y%m%d_%H%M%S')}",
+            "timestamp": datetime.now(timezone.utc).isoformat(),
             "config": {
                 "name": self.config.name,
                 "version": self.config.version
@@ -16627,8 +16627,8 @@ class Reporter:
             summary[treatment] = None
         
         return {
-            "experiment_id": f"eval_{datetime.utcnow().strftime('%Y%m%d_%H%M%S')}",
-            "timestamp": datetime.utcnow().isoformat(),
+            "experiment_id": f"eval_{datetime.now(timezone.utc).strftime('%Y%m%d_%H%M%S')}",
+            "timestamp": datetime.now(timezone.utc).isoformat(),
             "config": {
                 "name": self.config.name,
                 "version": self.config.version
@@ -16683,8 +16683,8 @@ class Reporter:
             }
         
         return {
-            "experiment_id": f"eval_{datetime.utcnow().strftime('%Y%m%d_%H%M%S')}",
-            "timestamp": datetime.utcnow().isoformat(),
+            "experiment_id": f"eval_{datetime.now(timezone.utc).strftime('%Y%m%d_%H%M%S')}",
+            "timestamp": datetime.now(timezone.utc).isoformat(),
             "config": {
                 "name": self.config.name,
                 "version": self.config.version
@@ -16739,8 +16739,8 @@ class Reporter:
             }
         
         return {
-            "experiment_id": f"eval_{datetime.utcnow().strftime('%Y%m%d_%H%M%S')}",
-            "timestamp": datetime.utcnow().isoformat(),
+            "experiment_id": f"eval_{datetime.now(timezone.utc).strftime('%Y%m%d_%H%M%S')}",
+            "timestamp": datetime.now(timezone.utc).isoformat(),
             "config": {
                 "name": self.config.name,
                 "version": self.config.version
@@ -16795,8 +16795,8 @@ class Reporter:
             }
         
         return {
-            "experiment_id": f"eval_{datetime.utcnow().strftime('%Y%m%d_%H%M%S')}",
-            "timestamp": datetime.utcnow().isoformat(),
+            "experiment_id": f"eval_{datetime.now(timezone.utc).strftime('%Y%m%d_%H%M%S')}",
+            "timestamp": datetime.now(timezone.utc).isoformat(),
             "config": {
                 "name": self.config.name,
                 "version": self.config.version
@@ -16851,8 +16851,8 @@ class Reporter:
             }
         
         return {
-            "experiment_id": f"eval_{datetime.utcnow().strftime('%Y%m%d_%H%M%S')}",
-            "timestamp": datetime.utcnow().isoformat(),
+            "experiment_id": f"eval_{datetime.now(timezone.utc).strftime('%Y%m%d_%H%M%S')}",
+            "timestamp": datetime.now(timezone.utc).isoformat(),
             "config": {
                 "name": self.config.name,
                 "version": self.config.version
@@ -16907,8 +16907,8 @@ class Reporter:
             }
         
         return {
-            "experiment_id": f"eval_{datetime.utcnow().strftime('%Y%m%d_%H%M%S')}",
-            "timestamp": datetime.utcnow().isoformat(),
+            "experiment_id": f"eval_{datetime.now(timezone.utc).strftime('%Y%m%d_%H%M%S')}",
+            "timestamp": datetime.now(timezone.utc).isoformat(),
             "config": {
                 "name": self.config.name,
                 "version": self.config.version
@@ -16963,8 +16963,8 @@ class Reporter:
             }
         
         return {
-            "experiment_id": f"eval_{datetime.utcnow().strftime('%Y%m%d_%H%M%S')}",
-            "timestamp": datetime.utcnow().isoformat(),
+            "experiment_id": f"eval_{datetime.now(timezone.utc).strftime('%Y%m%d_%H%M%S')}",
+            "timestamp": datetime.now(timezone.utc).isoformat(),
             "config": {
                 "name": self.config.name,
                 "version": self.config.version
@@ -17019,8 +17019,8 @@ class Reporter:
             }
         
         return {
-            "experiment_id": f"eval_{datetime.utcnow().strftime('%Y%m%d_%H%M%S')}",
-            "timestamp": datetime.utcnow().isoformat(),
+            "experiment_id": f"eval_{datetime.now(timezone.utc).strftime('%Y%m%d_%H%M%S')}",
+            "timestamp": datetime.now(timezone.utc).isoformat(),
             "config": {
                 "name": self.config.name,
                 "version": self.config.version
@@ -17075,8 +17075,8 @@ class Reporter:
             }
         
         return {
-            "experiment_id": f"eval_{datetime.utcnow().strftime('%Y%m%d_%H%M%S')}",
-            "timestamp": datetime.utcnow().isoformat(),
+            "experiment_id": f"eval_{datetime.now(timezone.utc).strftime('%Y%m%d_%H%M%S')}",
+            "timestamp": datetime.now(timezone.utc).isoformat(),
             "config": {
                 "name": self.config.name,
                 "version": self.config.version
@@ -17131,8 +17131,8 @@ class Reporter:
             }
         
         return {
-            "experiment_id": f"eval_{datetime.utcnow().strftime('%Y%m%d_%H%M%S')}",
-            "timestamp": datetime.utcnow().isoformat(),
+            "experiment_id": f"eval_{datetime.now(timezone.utc).strftime('%Y%m%d_%H%M%S')}",
+            "timestamp": datetime.now(timezone.utc).isoformat(),
             "config": {
                 "name": self.config.name,
                 "version": self.config.version
@@ -17187,8 +17187,8 @@ class Reporter:
             }
         
         return {
-            "experiment_id": f"eval_{datetime.utcnow().strftime('%Y%m%d_%H%M%S')}",
-            "timestamp": datetime.utcnow().isoformat(),
+            "experiment_id": f"eval_{datetime.now(timezone.utc).strftime('%Y%m%d_%H%M%S')}",
+            "timestamp": datetime.now(timezone.utc).isoformat(),
             "config": {
                 "name": self.config.name,
                 "version": self.config.version
@@ -17243,8 +17243,8 @@ class Reporter:
             }
         
         return {
-            "XXexperiment_idXX": f"eval_{datetime.utcnow().strftime('%Y%m%d_%H%M%S')}",
-            "timestamp": datetime.utcnow().isoformat(),
+            "XXexperiment_idXX": f"eval_{datetime.now(timezone.utc).strftime('%Y%m%d_%H%M%S')}",
+            "timestamp": datetime.now(timezone.utc).isoformat(),
             "config": {
                 "name": self.config.name,
                 "version": self.config.version
@@ -17299,8 +17299,8 @@ class Reporter:
             }
         
         return {
-            "EXPERIMENT_ID": f"eval_{datetime.utcnow().strftime('%Y%m%d_%H%M%S')}",
-            "timestamp": datetime.utcnow().isoformat(),
+            "EXPERIMENT_ID": f"eval_{datetime.now(timezone.utc).strftime('%Y%m%d_%H%M%S')}",
+            "timestamp": datetime.now(timezone.utc).isoformat(),
             "config": {
                 "name": self.config.name,
                 "version": self.config.version
@@ -17355,8 +17355,8 @@ class Reporter:
             }
         
         return {
-            "experiment_id": f"eval_{datetime.utcnow().strftime(None)}",
-            "timestamp": datetime.utcnow().isoformat(),
+            "experiment_id": f"eval_{datetime.now(timezone.utc).strftime(None)}",
+            "timestamp": datetime.now(timezone.utc).isoformat(),
             "config": {
                 "name": self.config.name,
                 "version": self.config.version
@@ -17411,8 +17411,8 @@ class Reporter:
             }
         
         return {
-            "experiment_id": f"eval_{datetime.utcnow().strftime('XX%Y%m%d_%H%M%SXX')}",
-            "timestamp": datetime.utcnow().isoformat(),
+            "experiment_id": f"eval_{datetime.now(None).strftime('%Y%m%d_%H%M%S')}",
+            "timestamp": datetime.now(timezone.utc).isoformat(),
             "config": {
                 "name": self.config.name,
                 "version": self.config.version
@@ -17467,8 +17467,8 @@ class Reporter:
             }
         
         return {
-            "experiment_id": f"eval_{datetime.utcnow().strftime('%y%m%d_%h%m%s')}",
-            "timestamp": datetime.utcnow().isoformat(),
+            "experiment_id": f"eval_{datetime.now(timezone.utc).strftime('XX%Y%m%d_%H%M%SXX')}",
+            "timestamp": datetime.now(timezone.utc).isoformat(),
             "config": {
                 "name": self.config.name,
                 "version": self.config.version
@@ -17523,8 +17523,8 @@ class Reporter:
             }
         
         return {
-            "experiment_id": f"eval_{datetime.utcnow().strftime('%Y%M%D_%H%M%S')}",
-            "timestamp": datetime.utcnow().isoformat(),
+            "experiment_id": f"eval_{datetime.now(timezone.utc).strftime('%y%m%d_%h%m%s')}",
+            "timestamp": datetime.now(timezone.utc).isoformat(),
             "config": {
                 "name": self.config.name,
                 "version": self.config.version
@@ -17579,8 +17579,8 @@ class Reporter:
             }
         
         return {
-            "experiment_id": f"eval_{datetime.utcnow().strftime('%Y%m%d_%H%M%S')}",
-            "XXtimestampXX": datetime.utcnow().isoformat(),
+            "experiment_id": f"eval_{datetime.now(timezone.utc).strftime('%Y%M%D_%H%M%S')}",
+            "timestamp": datetime.now(timezone.utc).isoformat(),
             "config": {
                 "name": self.config.name,
                 "version": self.config.version
@@ -17635,8 +17635,8 @@ class Reporter:
             }
         
         return {
-            "experiment_id": f"eval_{datetime.utcnow().strftime('%Y%m%d_%H%M%S')}",
-            "TIMESTAMP": datetime.utcnow().isoformat(),
+            "experiment_id": f"eval_{datetime.now(timezone.utc).strftime('%Y%m%d_%H%M%S')}",
+            "XXtimestampXX": datetime.now(timezone.utc).isoformat(),
             "config": {
                 "name": self.config.name,
                 "version": self.config.version
@@ -17691,9 +17691,9 @@ class Reporter:
             }
         
         return {
-            "experiment_id": f"eval_{datetime.utcnow().strftime('%Y%m%d_%H%M%S')}",
-            "timestamp": datetime.utcnow().isoformat(),
-            "XXconfigXX": {
+            "experiment_id": f"eval_{datetime.now(timezone.utc).strftime('%Y%m%d_%H%M%S')}",
+            "TIMESTAMP": datetime.now(timezone.utc).isoformat(),
+            "config": {
                 "name": self.config.name,
                 "version": self.config.version
             },
@@ -17747,9 +17747,9 @@ class Reporter:
             }
         
         return {
-            "experiment_id": f"eval_{datetime.utcnow().strftime('%Y%m%d_%H%M%S')}",
-            "timestamp": datetime.utcnow().isoformat(),
-            "CONFIG": {
+            "experiment_id": f"eval_{datetime.now(timezone.utc).strftime('%Y%m%d_%H%M%S')}",
+            "timestamp": datetime.now(None).isoformat(),
+            "config": {
                 "name": self.config.name,
                 "version": self.config.version
             },
@@ -17803,10 +17803,10 @@ class Reporter:
             }
         
         return {
-            "experiment_id": f"eval_{datetime.utcnow().strftime('%Y%m%d_%H%M%S')}",
-            "timestamp": datetime.utcnow().isoformat(),
-            "config": {
-                "XXnameXX": self.config.name,
+            "experiment_id": f"eval_{datetime.now(timezone.utc).strftime('%Y%m%d_%H%M%S')}",
+            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "XXconfigXX": {
+                "name": self.config.name,
                 "version": self.config.version
             },
             "results": [
@@ -17859,10 +17859,10 @@ class Reporter:
             }
         
         return {
-            "experiment_id": f"eval_{datetime.utcnow().strftime('%Y%m%d_%H%M%S')}",
-            "timestamp": datetime.utcnow().isoformat(),
-            "config": {
-                "NAME": self.config.name,
+            "experiment_id": f"eval_{datetime.now(timezone.utc).strftime('%Y%m%d_%H%M%S')}",
+            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "CONFIG": {
+                "name": self.config.name,
                 "version": self.config.version
             },
             "results": [
@@ -17915,11 +17915,11 @@ class Reporter:
             }
         
         return {
-            "experiment_id": f"eval_{datetime.utcnow().strftime('%Y%m%d_%H%M%S')}",
-            "timestamp": datetime.utcnow().isoformat(),
+            "experiment_id": f"eval_{datetime.now(timezone.utc).strftime('%Y%m%d_%H%M%S')}",
+            "timestamp": datetime.now(timezone.utc).isoformat(),
             "config": {
-                "name": self.config.name,
-                "XXversionXX": self.config.version
+                "XXnameXX": self.config.name,
+                "version": self.config.version
             },
             "results": [
                 {
@@ -17971,11 +17971,11 @@ class Reporter:
             }
         
         return {
-            "experiment_id": f"eval_{datetime.utcnow().strftime('%Y%m%d_%H%M%S')}",
-            "timestamp": datetime.utcnow().isoformat(),
+            "experiment_id": f"eval_{datetime.now(timezone.utc).strftime('%Y%m%d_%H%M%S')}",
+            "timestamp": datetime.now(timezone.utc).isoformat(),
             "config": {
-                "name": self.config.name,
-                "VERSION": self.config.version
+                "NAME": self.config.name,
+                "version": self.config.version
             },
             "results": [
                 {
@@ -18027,13 +18027,13 @@ class Reporter:
             }
         
         return {
-            "experiment_id": f"eval_{datetime.utcnow().strftime('%Y%m%d_%H%M%S')}",
-            "timestamp": datetime.utcnow().isoformat(),
+            "experiment_id": f"eval_{datetime.now(timezone.utc).strftime('%Y%m%d_%H%M%S')}",
+            "timestamp": datetime.now(timezone.utc).isoformat(),
             "config": {
                 "name": self.config.name,
-                "version": self.config.version
+                "XXversionXX": self.config.version
             },
-            "XXresultsXX": [
+            "results": [
                 {
                     "treatment": r.treatment,
                     "test": r.test,
@@ -18083,13 +18083,13 @@ class Reporter:
             }
         
         return {
-            "experiment_id": f"eval_{datetime.utcnow().strftime('%Y%m%d_%H%M%S')}",
-            "timestamp": datetime.utcnow().isoformat(),
+            "experiment_id": f"eval_{datetime.now(timezone.utc).strftime('%Y%m%d_%H%M%S')}",
+            "timestamp": datetime.now(timezone.utc).isoformat(),
             "config": {
                 "name": self.config.name,
-                "version": self.config.version
+                "VERSION": self.config.version
             },
-            "RESULTS": [
+            "results": [
                 {
                     "treatment": r.treatment,
                     "test": r.test,
@@ -18139,15 +18139,15 @@ class Reporter:
             }
         
         return {
-            "experiment_id": f"eval_{datetime.utcnow().strftime('%Y%m%d_%H%M%S')}",
-            "timestamp": datetime.utcnow().isoformat(),
+            "experiment_id": f"eval_{datetime.now(timezone.utc).strftime('%Y%m%d_%H%M%S')}",
+            "timestamp": datetime.now(timezone.utc).isoformat(),
             "config": {
                 "name": self.config.name,
                 "version": self.config.version
             },
-            "results": [
+            "XXresultsXX": [
                 {
-                    "XXtreatmentXX": r.treatment,
+                    "treatment": r.treatment,
                     "test": r.test,
                     "prompt": r.prompt,
                     "response": r.response.content if r.response else None,
@@ -18195,15 +18195,15 @@ class Reporter:
             }
         
         return {
-            "experiment_id": f"eval_{datetime.utcnow().strftime('%Y%m%d_%H%M%S')}",
-            "timestamp": datetime.utcnow().isoformat(),
+            "experiment_id": f"eval_{datetime.now(timezone.utc).strftime('%Y%m%d_%H%M%S')}",
+            "timestamp": datetime.now(timezone.utc).isoformat(),
             "config": {
                 "name": self.config.name,
                 "version": self.config.version
             },
-            "results": [
+            "RESULTS": [
                 {
-                    "TREATMENT": r.treatment,
+                    "treatment": r.treatment,
                     "test": r.test,
                     "prompt": r.prompt,
                     "response": r.response.content if r.response else None,
@@ -18251,16 +18251,16 @@ class Reporter:
             }
         
         return {
-            "experiment_id": f"eval_{datetime.utcnow().strftime('%Y%m%d_%H%M%S')}",
-            "timestamp": datetime.utcnow().isoformat(),
+            "experiment_id": f"eval_{datetime.now(timezone.utc).strftime('%Y%m%d_%H%M%S')}",
+            "timestamp": datetime.now(timezone.utc).isoformat(),
             "config": {
                 "name": self.config.name,
                 "version": self.config.version
             },
             "results": [
                 {
-                    "treatment": r.treatment,
-                    "XXtestXX": r.test,
+                    "XXtreatmentXX": r.treatment,
+                    "test": r.test,
                     "prompt": r.prompt,
                     "response": r.response.content if r.response else None,
                     "passed": r.passed,
@@ -18307,16 +18307,16 @@ class Reporter:
             }
         
         return {
-            "experiment_id": f"eval_{datetime.utcnow().strftime('%Y%m%d_%H%M%S')}",
-            "timestamp": datetime.utcnow().isoformat(),
+            "experiment_id": f"eval_{datetime.now(timezone.utc).strftime('%Y%m%d_%H%M%S')}",
+            "timestamp": datetime.now(timezone.utc).isoformat(),
             "config": {
                 "name": self.config.name,
                 "version": self.config.version
             },
             "results": [
                 {
-                    "treatment": r.treatment,
-                    "TEST": r.test,
+                    "TREATMENT": r.treatment,
+                    "test": r.test,
                     "prompt": r.prompt,
                     "response": r.response.content if r.response else None,
                     "passed": r.passed,
@@ -18363,8 +18363,8 @@ class Reporter:
             }
         
         return {
-            "experiment_id": f"eval_{datetime.utcnow().strftime('%Y%m%d_%H%M%S')}",
-            "timestamp": datetime.utcnow().isoformat(),
+            "experiment_id": f"eval_{datetime.now(timezone.utc).strftime('%Y%m%d_%H%M%S')}",
+            "timestamp": datetime.now(timezone.utc).isoformat(),
             "config": {
                 "name": self.config.name,
                 "version": self.config.version
@@ -18372,8 +18372,8 @@ class Reporter:
             "results": [
                 {
                     "treatment": r.treatment,
-                    "test": r.test,
-                    "XXpromptXX": r.prompt,
+                    "XXtestXX": r.test,
+                    "prompt": r.prompt,
                     "response": r.response.content if r.response else None,
                     "passed": r.passed,
                     "evaluators": [
@@ -18419,8 +18419,8 @@ class Reporter:
             }
         
         return {
-            "experiment_id": f"eval_{datetime.utcnow().strftime('%Y%m%d_%H%M%S')}",
-            "timestamp": datetime.utcnow().isoformat(),
+            "experiment_id": f"eval_{datetime.now(timezone.utc).strftime('%Y%m%d_%H%M%S')}",
+            "timestamp": datetime.now(timezone.utc).isoformat(),
             "config": {
                 "name": self.config.name,
                 "version": self.config.version
@@ -18428,8 +18428,8 @@ class Reporter:
             "results": [
                 {
                     "treatment": r.treatment,
-                    "test": r.test,
-                    "PROMPT": r.prompt,
+                    "TEST": r.test,
+                    "prompt": r.prompt,
                     "response": r.response.content if r.response else None,
                     "passed": r.passed,
                     "evaluators": [
@@ -18475,8 +18475,8 @@ class Reporter:
             }
         
         return {
-            "experiment_id": f"eval_{datetime.utcnow().strftime('%Y%m%d_%H%M%S')}",
-            "timestamp": datetime.utcnow().isoformat(),
+            "experiment_id": f"eval_{datetime.now(timezone.utc).strftime('%Y%m%d_%H%M%S')}",
+            "timestamp": datetime.now(timezone.utc).isoformat(),
             "config": {
                 "name": self.config.name,
                 "version": self.config.version
@@ -18485,8 +18485,8 @@ class Reporter:
                 {
                     "treatment": r.treatment,
                     "test": r.test,
-                    "prompt": r.prompt,
-                    "XXresponseXX": r.response.content if r.response else None,
+                    "XXpromptXX": r.prompt,
+                    "response": r.response.content if r.response else None,
                     "passed": r.passed,
                     "evaluators": [
                         {
@@ -18531,8 +18531,8 @@ class Reporter:
             }
         
         return {
-            "experiment_id": f"eval_{datetime.utcnow().strftime('%Y%m%d_%H%M%S')}",
-            "timestamp": datetime.utcnow().isoformat(),
+            "experiment_id": f"eval_{datetime.now(timezone.utc).strftime('%Y%m%d_%H%M%S')}",
+            "timestamp": datetime.now(timezone.utc).isoformat(),
             "config": {
                 "name": self.config.name,
                 "version": self.config.version
@@ -18541,8 +18541,8 @@ class Reporter:
                 {
                     "treatment": r.treatment,
                     "test": r.test,
-                    "prompt": r.prompt,
-                    "RESPONSE": r.response.content if r.response else None,
+                    "PROMPT": r.prompt,
+                    "response": r.response.content if r.response else None,
                     "passed": r.passed,
                     "evaluators": [
                         {
@@ -18587,8 +18587,8 @@ class Reporter:
             }
         
         return {
-            "experiment_id": f"eval_{datetime.utcnow().strftime('%Y%m%d_%H%M%S')}",
-            "timestamp": datetime.utcnow().isoformat(),
+            "experiment_id": f"eval_{datetime.now(timezone.utc).strftime('%Y%m%d_%H%M%S')}",
+            "timestamp": datetime.now(timezone.utc).isoformat(),
             "config": {
                 "name": self.config.name,
                 "version": self.config.version
@@ -18598,8 +18598,8 @@ class Reporter:
                     "treatment": r.treatment,
                     "test": r.test,
                     "prompt": r.prompt,
-                    "response": r.response.content if r.response else None,
-                    "XXpassedXX": r.passed,
+                    "XXresponseXX": r.response.content if r.response else None,
+                    "passed": r.passed,
                     "evaluators": [
                         {
                             "name": e.evaluator_name,
@@ -18643,8 +18643,8 @@ class Reporter:
             }
         
         return {
-            "experiment_id": f"eval_{datetime.utcnow().strftime('%Y%m%d_%H%M%S')}",
-            "timestamp": datetime.utcnow().isoformat(),
+            "experiment_id": f"eval_{datetime.now(timezone.utc).strftime('%Y%m%d_%H%M%S')}",
+            "timestamp": datetime.now(timezone.utc).isoformat(),
             "config": {
                 "name": self.config.name,
                 "version": self.config.version
@@ -18654,8 +18654,8 @@ class Reporter:
                     "treatment": r.treatment,
                     "test": r.test,
                     "prompt": r.prompt,
-                    "response": r.response.content if r.response else None,
-                    "PASSED": r.passed,
+                    "RESPONSE": r.response.content if r.response else None,
+                    "passed": r.passed,
                     "evaluators": [
                         {
                             "name": e.evaluator_name,
@@ -18699,8 +18699,8 @@ class Reporter:
             }
         
         return {
-            "experiment_id": f"eval_{datetime.utcnow().strftime('%Y%m%d_%H%M%S')}",
-            "timestamp": datetime.utcnow().isoformat(),
+            "experiment_id": f"eval_{datetime.now(timezone.utc).strftime('%Y%m%d_%H%M%S')}",
+            "timestamp": datetime.now(timezone.utc).isoformat(),
             "config": {
                 "name": self.config.name,
                 "version": self.config.version
@@ -18711,8 +18711,8 @@ class Reporter:
                     "test": r.test,
                     "prompt": r.prompt,
                     "response": r.response.content if r.response else None,
-                    "passed": r.passed,
-                    "XXevaluatorsXX": [
+                    "XXpassedXX": r.passed,
+                    "evaluators": [
                         {
                             "name": e.evaluator_name,
                             "passed": e.passed,
@@ -18755,8 +18755,8 @@ class Reporter:
             }
         
         return {
-            "experiment_id": f"eval_{datetime.utcnow().strftime('%Y%m%d_%H%M%S')}",
-            "timestamp": datetime.utcnow().isoformat(),
+            "experiment_id": f"eval_{datetime.now(timezone.utc).strftime('%Y%m%d_%H%M%S')}",
+            "timestamp": datetime.now(timezone.utc).isoformat(),
             "config": {
                 "name": self.config.name,
                 "version": self.config.version
@@ -18767,8 +18767,8 @@ class Reporter:
                     "test": r.test,
                     "prompt": r.prompt,
                     "response": r.response.content if r.response else None,
-                    "passed": r.passed,
-                    "EVALUATORS": [
+                    "PASSED": r.passed,
+                    "evaluators": [
                         {
                             "name": e.evaluator_name,
                             "passed": e.passed,
@@ -18811,8 +18811,8 @@ class Reporter:
             }
         
         return {
-            "experiment_id": f"eval_{datetime.utcnow().strftime('%Y%m%d_%H%M%S')}",
-            "timestamp": datetime.utcnow().isoformat(),
+            "experiment_id": f"eval_{datetime.now(timezone.utc).strftime('%Y%m%d_%H%M%S')}",
+            "timestamp": datetime.now(timezone.utc).isoformat(),
             "config": {
                 "name": self.config.name,
                 "version": self.config.version
@@ -18824,9 +18824,9 @@ class Reporter:
                     "prompt": r.prompt,
                     "response": r.response.content if r.response else None,
                     "passed": r.passed,
-                    "evaluators": [
+                    "XXevaluatorsXX": [
                         {
-                            "XXnameXX": e.evaluator_name,
+                            "name": e.evaluator_name,
                             "passed": e.passed,
                             "score": e.score,
                             "reason": e.reason
@@ -18867,8 +18867,8 @@ class Reporter:
             }
         
         return {
-            "experiment_id": f"eval_{datetime.utcnow().strftime('%Y%m%d_%H%M%S')}",
-            "timestamp": datetime.utcnow().isoformat(),
+            "experiment_id": f"eval_{datetime.now(timezone.utc).strftime('%Y%m%d_%H%M%S')}",
+            "timestamp": datetime.now(timezone.utc).isoformat(),
             "config": {
                 "name": self.config.name,
                 "version": self.config.version
@@ -18880,9 +18880,9 @@ class Reporter:
                     "prompt": r.prompt,
                     "response": r.response.content if r.response else None,
                     "passed": r.passed,
-                    "evaluators": [
+                    "EVALUATORS": [
                         {
-                            "NAME": e.evaluator_name,
+                            "name": e.evaluator_name,
                             "passed": e.passed,
                             "score": e.score,
                             "reason": e.reason
@@ -18923,8 +18923,8 @@ class Reporter:
             }
         
         return {
-            "experiment_id": f"eval_{datetime.utcnow().strftime('%Y%m%d_%H%M%S')}",
-            "timestamp": datetime.utcnow().isoformat(),
+            "experiment_id": f"eval_{datetime.now(timezone.utc).strftime('%Y%m%d_%H%M%S')}",
+            "timestamp": datetime.now(timezone.utc).isoformat(),
             "config": {
                 "name": self.config.name,
                 "version": self.config.version
@@ -18938,8 +18938,8 @@ class Reporter:
                     "passed": r.passed,
                     "evaluators": [
                         {
-                            "name": e.evaluator_name,
-                            "XXpassedXX": e.passed,
+                            "XXnameXX": e.evaluator_name,
+                            "passed": e.passed,
                             "score": e.score,
                             "reason": e.reason
                         }
@@ -18979,8 +18979,8 @@ class Reporter:
             }
         
         return {
-            "experiment_id": f"eval_{datetime.utcnow().strftime('%Y%m%d_%H%M%S')}",
-            "timestamp": datetime.utcnow().isoformat(),
+            "experiment_id": f"eval_{datetime.now(timezone.utc).strftime('%Y%m%d_%H%M%S')}",
+            "timestamp": datetime.now(timezone.utc).isoformat(),
             "config": {
                 "name": self.config.name,
                 "version": self.config.version
@@ -18994,8 +18994,8 @@ class Reporter:
                     "passed": r.passed,
                     "evaluators": [
                         {
-                            "name": e.evaluator_name,
-                            "PASSED": e.passed,
+                            "NAME": e.evaluator_name,
+                            "passed": e.passed,
                             "score": e.score,
                             "reason": e.reason
                         }
@@ -19035,8 +19035,8 @@ class Reporter:
             }
         
         return {
-            "experiment_id": f"eval_{datetime.utcnow().strftime('%Y%m%d_%H%M%S')}",
-            "timestamp": datetime.utcnow().isoformat(),
+            "experiment_id": f"eval_{datetime.now(timezone.utc).strftime('%Y%m%d_%H%M%S')}",
+            "timestamp": datetime.now(timezone.utc).isoformat(),
             "config": {
                 "name": self.config.name,
                 "version": self.config.version
@@ -19051,8 +19051,8 @@ class Reporter:
                     "evaluators": [
                         {
                             "name": e.evaluator_name,
-                            "passed": e.passed,
-                            "XXscoreXX": e.score,
+                            "XXpassedXX": e.passed,
+                            "score": e.score,
                             "reason": e.reason
                         }
                         for e in r.evaluator_results
@@ -19091,8 +19091,8 @@ class Reporter:
             }
         
         return {
-            "experiment_id": f"eval_{datetime.utcnow().strftime('%Y%m%d_%H%M%S')}",
-            "timestamp": datetime.utcnow().isoformat(),
+            "experiment_id": f"eval_{datetime.now(timezone.utc).strftime('%Y%m%d_%H%M%S')}",
+            "timestamp": datetime.now(timezone.utc).isoformat(),
             "config": {
                 "name": self.config.name,
                 "version": self.config.version
@@ -19107,8 +19107,8 @@ class Reporter:
                     "evaluators": [
                         {
                             "name": e.evaluator_name,
-                            "passed": e.passed,
-                            "SCORE": e.score,
+                            "PASSED": e.passed,
+                            "score": e.score,
                             "reason": e.reason
                         }
                         for e in r.evaluator_results
@@ -19147,8 +19147,8 @@ class Reporter:
             }
         
         return {
-            "experiment_id": f"eval_{datetime.utcnow().strftime('%Y%m%d_%H%M%S')}",
-            "timestamp": datetime.utcnow().isoformat(),
+            "experiment_id": f"eval_{datetime.now(timezone.utc).strftime('%Y%m%d_%H%M%S')}",
+            "timestamp": datetime.now(timezone.utc).isoformat(),
             "config": {
                 "name": self.config.name,
                 "version": self.config.version
@@ -19164,8 +19164,8 @@ class Reporter:
                         {
                             "name": e.evaluator_name,
                             "passed": e.passed,
-                            "score": e.score,
-                            "XXreasonXX": e.reason
+                            "XXscoreXX": e.score,
+                            "reason": e.reason
                         }
                         for e in r.evaluator_results
                     ],
@@ -19203,8 +19203,8 @@ class Reporter:
             }
         
         return {
-            "experiment_id": f"eval_{datetime.utcnow().strftime('%Y%m%d_%H%M%S')}",
-            "timestamp": datetime.utcnow().isoformat(),
+            "experiment_id": f"eval_{datetime.now(timezone.utc).strftime('%Y%m%d_%H%M%S')}",
+            "timestamp": datetime.now(timezone.utc).isoformat(),
             "config": {
                 "name": self.config.name,
                 "version": self.config.version
@@ -19220,8 +19220,8 @@ class Reporter:
                         {
                             "name": e.evaluator_name,
                             "passed": e.passed,
-                            "score": e.score,
-                            "REASON": e.reason
+                            "SCORE": e.score,
+                            "reason": e.reason
                         }
                         for e in r.evaluator_results
                     ],
@@ -19259,8 +19259,8 @@ class Reporter:
             }
         
         return {
-            "experiment_id": f"eval_{datetime.utcnow().strftime('%Y%m%d_%H%M%S')}",
-            "timestamp": datetime.utcnow().isoformat(),
+            "experiment_id": f"eval_{datetime.now(timezone.utc).strftime('%Y%m%d_%H%M%S')}",
+            "timestamp": datetime.now(timezone.utc).isoformat(),
             "config": {
                 "name": self.config.name,
                 "version": self.config.version
@@ -19277,11 +19277,11 @@ class Reporter:
                             "name": e.evaluator_name,
                             "passed": e.passed,
                             "score": e.score,
-                            "reason": e.reason
+                            "XXreasonXX": e.reason
                         }
                         for e in r.evaluator_results
                     ],
-                    "XXtokensXX": r.response.tokens if r.response else None,
+                    "tokens": r.response.tokens if r.response else None,
                     "duration_ms": r.response.duration_ms if r.response else None,
                     "timestamp": r.timestamp
                 }
@@ -19315,8 +19315,8 @@ class Reporter:
             }
         
         return {
-            "experiment_id": f"eval_{datetime.utcnow().strftime('%Y%m%d_%H%M%S')}",
-            "timestamp": datetime.utcnow().isoformat(),
+            "experiment_id": f"eval_{datetime.now(timezone.utc).strftime('%Y%m%d_%H%M%S')}",
+            "timestamp": datetime.now(timezone.utc).isoformat(),
             "config": {
                 "name": self.config.name,
                 "version": self.config.version
@@ -19333,11 +19333,11 @@ class Reporter:
                             "name": e.evaluator_name,
                             "passed": e.passed,
                             "score": e.score,
-                            "reason": e.reason
+                            "REASON": e.reason
                         }
                         for e in r.evaluator_results
                     ],
-                    "TOKENS": r.response.tokens if r.response else None,
+                    "tokens": r.response.tokens if r.response else None,
                     "duration_ms": r.response.duration_ms if r.response else None,
                     "timestamp": r.timestamp
                 }
@@ -19371,8 +19371,8 @@ class Reporter:
             }
         
         return {
-            "experiment_id": f"eval_{datetime.utcnow().strftime('%Y%m%d_%H%M%S')}",
-            "timestamp": datetime.utcnow().isoformat(),
+            "experiment_id": f"eval_{datetime.now(timezone.utc).strftime('%Y%m%d_%H%M%S')}",
+            "timestamp": datetime.now(timezone.utc).isoformat(),
             "config": {
                 "name": self.config.name,
                 "version": self.config.version
@@ -19393,8 +19393,8 @@ class Reporter:
                         }
                         for e in r.evaluator_results
                     ],
-                    "tokens": r.response.tokens if r.response else None,
-                    "XXduration_msXX": r.response.duration_ms if r.response else None,
+                    "XXtokensXX": r.response.tokens if r.response else None,
+                    "duration_ms": r.response.duration_ms if r.response else None,
                     "timestamp": r.timestamp
                 }
                 for r in results
@@ -19427,8 +19427,8 @@ class Reporter:
             }
         
         return {
-            "experiment_id": f"eval_{datetime.utcnow().strftime('%Y%m%d_%H%M%S')}",
-            "timestamp": datetime.utcnow().isoformat(),
+            "experiment_id": f"eval_{datetime.now(timezone.utc).strftime('%Y%m%d_%H%M%S')}",
+            "timestamp": datetime.now(timezone.utc).isoformat(),
             "config": {
                 "name": self.config.name,
                 "version": self.config.version
@@ -19449,8 +19449,8 @@ class Reporter:
                         }
                         for e in r.evaluator_results
                     ],
-                    "tokens": r.response.tokens if r.response else None,
-                    "DURATION_MS": r.response.duration_ms if r.response else None,
+                    "TOKENS": r.response.tokens if r.response else None,
+                    "duration_ms": r.response.duration_ms if r.response else None,
                     "timestamp": r.timestamp
                 }
                 for r in results
@@ -19483,8 +19483,8 @@ class Reporter:
             }
         
         return {
-            "experiment_id": f"eval_{datetime.utcnow().strftime('%Y%m%d_%H%M%S')}",
-            "timestamp": datetime.utcnow().isoformat(),
+            "experiment_id": f"eval_{datetime.now(timezone.utc).strftime('%Y%m%d_%H%M%S')}",
+            "timestamp": datetime.now(timezone.utc).isoformat(),
             "config": {
                 "name": self.config.name,
                 "version": self.config.version
@@ -19506,8 +19506,8 @@ class Reporter:
                         for e in r.evaluator_results
                     ],
                     "tokens": r.response.tokens if r.response else None,
-                    "duration_ms": r.response.duration_ms if r.response else None,
-                    "XXtimestampXX": r.timestamp
+                    "XXduration_msXX": r.response.duration_ms if r.response else None,
+                    "timestamp": r.timestamp
                 }
                 for r in results
             ],
@@ -19539,8 +19539,8 @@ class Reporter:
             }
         
         return {
-            "experiment_id": f"eval_{datetime.utcnow().strftime('%Y%m%d_%H%M%S')}",
-            "timestamp": datetime.utcnow().isoformat(),
+            "experiment_id": f"eval_{datetime.now(timezone.utc).strftime('%Y%m%d_%H%M%S')}",
+            "timestamp": datetime.now(timezone.utc).isoformat(),
             "config": {
                 "name": self.config.name,
                 "version": self.config.version
@@ -19562,8 +19562,8 @@ class Reporter:
                         for e in r.evaluator_results
                     ],
                     "tokens": r.response.tokens if r.response else None,
-                    "duration_ms": r.response.duration_ms if r.response else None,
-                    "TIMESTAMP": r.timestamp
+                    "DURATION_MS": r.response.duration_ms if r.response else None,
+                    "timestamp": r.timestamp
                 }
                 for r in results
             ],
@@ -19595,8 +19595,120 @@ class Reporter:
             }
         
         return {
-            "experiment_id": f"eval_{datetime.utcnow().strftime('%Y%m%d_%H%M%S')}",
-            "timestamp": datetime.utcnow().isoformat(),
+            "experiment_id": f"eval_{datetime.now(timezone.utc).strftime('%Y%m%d_%H%M%S')}",
+            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "config": {
+                "name": self.config.name,
+                "version": self.config.version
+            },
+            "results": [
+                {
+                    "treatment": r.treatment,
+                    "test": r.test,
+                    "prompt": r.prompt,
+                    "response": r.response.content if r.response else None,
+                    "passed": r.passed,
+                    "evaluators": [
+                        {
+                            "name": e.evaluator_name,
+                            "passed": e.passed,
+                            "score": e.score,
+                            "reason": e.reason
+                        }
+                        for e in r.evaluator_results
+                    ],
+                    "tokens": r.response.tokens if r.response else None,
+                    "duration_ms": r.response.duration_ms if r.response else None,
+                    "XXtimestampXX": r.timestamp
+                }
+                for r in results
+            ],
+            "summary": summary
+        }
+    
+    def xǁReporterǁ_build_output_data__mutmut_64(
+        self,
+        results: list[ExecutionResult]
+    ) -> dict[str, Any]:
+        """Build output data structure."""
+        # Group by treatment
+        by_treatment: dict[str, list[ExecutionResult]] = {}
+        for result in results:
+            if result.treatment not in by_treatment:
+                by_treatment[result.treatment] = []
+            by_treatment[result.treatment].append(result)
+        
+        # Build summary
+        summary = {}
+        for treatment, treatment_results in by_treatment.items():
+            total = len(treatment_results)
+            passed = sum(1 for r in treatment_results if r.passed)
+            
+            summary[treatment] = {
+                "total": total,
+                "passed": passed,
+                "pass_rate": passed / total if total > 0 else 0
+            }
+        
+        return {
+            "experiment_id": f"eval_{datetime.now(timezone.utc).strftime('%Y%m%d_%H%M%S')}",
+            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "config": {
+                "name": self.config.name,
+                "version": self.config.version
+            },
+            "results": [
+                {
+                    "treatment": r.treatment,
+                    "test": r.test,
+                    "prompt": r.prompt,
+                    "response": r.response.content if r.response else None,
+                    "passed": r.passed,
+                    "evaluators": [
+                        {
+                            "name": e.evaluator_name,
+                            "passed": e.passed,
+                            "score": e.score,
+                            "reason": e.reason
+                        }
+                        for e in r.evaluator_results
+                    ],
+                    "tokens": r.response.tokens if r.response else None,
+                    "duration_ms": r.response.duration_ms if r.response else None,
+                    "TIMESTAMP": r.timestamp
+                }
+                for r in results
+            ],
+            "summary": summary
+        }
+    
+    def xǁReporterǁ_build_output_data__mutmut_65(
+        self,
+        results: list[ExecutionResult]
+    ) -> dict[str, Any]:
+        """Build output data structure."""
+        # Group by treatment
+        by_treatment: dict[str, list[ExecutionResult]] = {}
+        for result in results:
+            if result.treatment not in by_treatment:
+                by_treatment[result.treatment] = []
+            by_treatment[result.treatment].append(result)
+        
+        # Build summary
+        summary = {}
+        for treatment, treatment_results in by_treatment.items():
+            total = len(treatment_results)
+            passed = sum(1 for r in treatment_results if r.passed)
+            
+            summary[treatment] = {
+                "total": total,
+                "passed": passed,
+                "pass_rate": passed / total if total > 0 else 0
+            }
+        
+        return {
+            "experiment_id": f"eval_{datetime.now(timezone.utc).strftime('%Y%m%d_%H%M%S')}",
+            "timestamp": datetime.now(timezone.utc).isoformat(),
             "config": {
                 "name": self.config.name,
                 "version": self.config.version
@@ -19626,7 +19738,7 @@ class Reporter:
             "XXsummaryXX": summary
         }
     
-    def xǁReporterǁ_build_output_data__mutmut_64(
+    def xǁReporterǁ_build_output_data__mutmut_66(
         self,
         results: list[ExecutionResult]
     ) -> dict[str, Any]:
@@ -19651,8 +19763,8 @@ class Reporter:
             }
         
         return {
-            "experiment_id": f"eval_{datetime.utcnow().strftime('%Y%m%d_%H%M%S')}",
-            "timestamp": datetime.utcnow().isoformat(),
+            "experiment_id": f"eval_{datetime.now(timezone.utc).strftime('%Y%m%d_%H%M%S')}",
+            "timestamp": datetime.now(timezone.utc).isoformat(),
             "config": {
                 "name": self.config.name,
                 "version": self.config.version
@@ -19746,7 +19858,9 @@ class Reporter:
         'xǁReporterǁ_build_output_data__mutmut_61': xǁReporterǁ_build_output_data__mutmut_61, 
         'xǁReporterǁ_build_output_data__mutmut_62': xǁReporterǁ_build_output_data__mutmut_62, 
         'xǁReporterǁ_build_output_data__mutmut_63': xǁReporterǁ_build_output_data__mutmut_63, 
-        'xǁReporterǁ_build_output_data__mutmut_64': xǁReporterǁ_build_output_data__mutmut_64
+        'xǁReporterǁ_build_output_data__mutmut_64': xǁReporterǁ_build_output_data__mutmut_64, 
+        'xǁReporterǁ_build_output_data__mutmut_65': xǁReporterǁ_build_output_data__mutmut_65, 
+        'xǁReporterǁ_build_output_data__mutmut_66': xǁReporterǁ_build_output_data__mutmut_66
     }
     xǁReporterǁ_build_output_data__mutmut_orig.__name__ = 'xǁReporterǁ_build_output_data'
     
@@ -19760,7 +19874,7 @@ class Reporter:
         md_lines = [
             "# md-evals Results",
             "",
-            f"**Generated:** {datetime.utcnow().isoformat()}",
+            f"**Generated:** {datetime.now(timezone.utc).isoformat()}",
             f"**Config:** {self.config.name} (v{self.config.version})",
             "",
             "## Summary",
@@ -19850,7 +19964,7 @@ class Reporter:
         md_lines = [
             "XX# md-evals ResultsXX",
             "",
-            f"**Generated:** {datetime.utcnow().isoformat()}",
+            f"**Generated:** {datetime.now(timezone.utc).isoformat()}",
             f"**Config:** {self.config.name} (v{self.config.version})",
             "",
             "## Summary",
@@ -19900,7 +20014,7 @@ class Reporter:
         md_lines = [
             "# md-evals results",
             "",
-            f"**Generated:** {datetime.utcnow().isoformat()}",
+            f"**Generated:** {datetime.now(timezone.utc).isoformat()}",
             f"**Config:** {self.config.name} (v{self.config.version})",
             "",
             "## Summary",
@@ -19950,7 +20064,7 @@ class Reporter:
         md_lines = [
             "# MD-EVALS RESULTS",
             "",
-            f"**Generated:** {datetime.utcnow().isoformat()}",
+            f"**Generated:** {datetime.now(timezone.utc).isoformat()}",
             f"**Config:** {self.config.name} (v{self.config.version})",
             "",
             "## Summary",
@@ -20000,7 +20114,7 @@ class Reporter:
         md_lines = [
             "# md-evals Results",
             "XXXX",
-            f"**Generated:** {datetime.utcnow().isoformat()}",
+            f"**Generated:** {datetime.now(timezone.utc).isoformat()}",
             f"**Config:** {self.config.name} (v{self.config.version})",
             "",
             "## Summary",
@@ -20050,9 +20164,9 @@ class Reporter:
         md_lines = [
             "# md-evals Results",
             "",
-            f"**Generated:** {datetime.utcnow().isoformat()}",
+            f"**Generated:** {datetime.now(None).isoformat()}",
             f"**Config:** {self.config.name} (v{self.config.version})",
-            "XXXX",
+            "",
             "## Summary",
             "",
             "| Treatment | Tests | Passed | Pass Rate |",
@@ -20100,10 +20214,10 @@ class Reporter:
         md_lines = [
             "# md-evals Results",
             "",
-            f"**Generated:** {datetime.utcnow().isoformat()}",
+            f"**Generated:** {datetime.now(timezone.utc).isoformat()}",
             f"**Config:** {self.config.name} (v{self.config.version})",
-            "",
-            "XX## SummaryXX",
+            "XXXX",
+            "## Summary",
             "",
             "| Treatment | Tests | Passed | Pass Rate |",
             "|-----------|-------|--------|-----------|"
@@ -20150,10 +20264,10 @@ class Reporter:
         md_lines = [
             "# md-evals Results",
             "",
-            f"**Generated:** {datetime.utcnow().isoformat()}",
+            f"**Generated:** {datetime.now(timezone.utc).isoformat()}",
             f"**Config:** {self.config.name} (v{self.config.version})",
             "",
-            "## summary",
+            "XX## SummaryXX",
             "",
             "| Treatment | Tests | Passed | Pass Rate |",
             "|-----------|-------|--------|-----------|"
@@ -20200,10 +20314,10 @@ class Reporter:
         md_lines = [
             "# md-evals Results",
             "",
-            f"**Generated:** {datetime.utcnow().isoformat()}",
+            f"**Generated:** {datetime.now(timezone.utc).isoformat()}",
             f"**Config:** {self.config.name} (v{self.config.version})",
             "",
-            "## SUMMARY",
+            "## summary",
             "",
             "| Treatment | Tests | Passed | Pass Rate |",
             "|-----------|-------|--------|-----------|"
@@ -20250,11 +20364,11 @@ class Reporter:
         md_lines = [
             "# md-evals Results",
             "",
-            f"**Generated:** {datetime.utcnow().isoformat()}",
+            f"**Generated:** {datetime.now(timezone.utc).isoformat()}",
             f"**Config:** {self.config.name} (v{self.config.version})",
             "",
-            "## Summary",
-            "XXXX",
+            "## SUMMARY",
+            "",
             "| Treatment | Tests | Passed | Pass Rate |",
             "|-----------|-------|--------|-----------|"
         ]
@@ -20300,12 +20414,12 @@ class Reporter:
         md_lines = [
             "# md-evals Results",
             "",
-            f"**Generated:** {datetime.utcnow().isoformat()}",
+            f"**Generated:** {datetime.now(timezone.utc).isoformat()}",
             f"**Config:** {self.config.name} (v{self.config.version})",
             "",
             "## Summary",
-            "",
-            "XX| Treatment | Tests | Passed | Pass Rate |XX",
+            "XXXX",
+            "| Treatment | Tests | Passed | Pass Rate |",
             "|-----------|-------|--------|-----------|"
         ]
         
@@ -20350,12 +20464,12 @@ class Reporter:
         md_lines = [
             "# md-evals Results",
             "",
-            f"**Generated:** {datetime.utcnow().isoformat()}",
+            f"**Generated:** {datetime.now(timezone.utc).isoformat()}",
             f"**Config:** {self.config.name} (v{self.config.version})",
             "",
             "## Summary",
             "",
-            "| treatment | tests | passed | pass rate |",
+            "XX| Treatment | Tests | Passed | Pass Rate |XX",
             "|-----------|-------|--------|-----------|"
         ]
         
@@ -20400,12 +20514,12 @@ class Reporter:
         md_lines = [
             "# md-evals Results",
             "",
-            f"**Generated:** {datetime.utcnow().isoformat()}",
+            f"**Generated:** {datetime.now(timezone.utc).isoformat()}",
             f"**Config:** {self.config.name} (v{self.config.version})",
             "",
             "## Summary",
             "",
-            "| TREATMENT | TESTS | PASSED | PASS RATE |",
+            "| treatment | tests | passed | pass rate |",
             "|-----------|-------|--------|-----------|"
         ]
         
@@ -20450,7 +20564,57 @@ class Reporter:
         md_lines = [
             "# md-evals Results",
             "",
-            f"**Generated:** {datetime.utcnow().isoformat()}",
+            f"**Generated:** {datetime.now(timezone.utc).isoformat()}",
+            f"**Config:** {self.config.name} (v{self.config.version})",
+            "",
+            "## Summary",
+            "",
+            "| TREATMENT | TESTS | PASSED | PASS RATE |",
+            "|-----------|-------|--------|-----------|"
+        ]
+        
+        # Group by treatment
+        by_treatment: dict[str, list[ExecutionResult]] = {}
+        for result in results:
+            if result.treatment not in by_treatment:
+                by_treatment[result.treatment] = []
+            by_treatment[result.treatment].append(result)
+        
+        for treatment, treatment_results in by_treatment.items():
+            total = len(treatment_results)
+            passed = sum(1 for r in treatment_results if r.passed)
+            rate = passed / total * 100 if total > 0 else 0
+            
+            md_lines.append(f"| {treatment} | {total} | {passed} | {rate:.0f}% |")
+        
+        md_lines.extend(["", "## Details", ""])
+        
+        for treatment, treatment_results in by_treatment.items():
+            md_lines.append(f"### {treatment}")
+            md_lines.append("")
+            
+            for result in treatment_results:
+                status = "✅" if result.passed else "❌"
+                md_lines.append(f"- **{result.test}**: {status}")
+                
+                if result.evaluator_results:
+                    md_lines.append("  - Evaluators:")
+                    for eval_result in result.evaluator_results:
+                        eval_status = "✅" if eval_result.passed else "❌"
+                        md_lines.append(
+                            f"    - {eval_result.evaluator_name}: {eval_status}"
+                        )
+            
+            md_lines.append("")
+        
+        return "\n".join(md_lines)
+    
+    def xǁReporterǁ_build_markdown__mutmut_15(self, results: list[ExecutionResult]) -> str:
+        """Build Markdown report."""
+        md_lines = [
+            "# md-evals Results",
+            "",
+            f"**Generated:** {datetime.now(timezone.utc).isoformat()}",
             f"**Config:** {self.config.name} (v{self.config.version})",
             "",
             "## Summary",
@@ -20495,12 +20659,12 @@ class Reporter:
         
         return "\n".join(md_lines)
     
-    def xǁReporterǁ_build_markdown__mutmut_15(self, results: list[ExecutionResult]) -> str:
+    def xǁReporterǁ_build_markdown__mutmut_16(self, results: list[ExecutionResult]) -> str:
         """Build Markdown report."""
         md_lines = [
             "# md-evals Results",
             "",
-            f"**Generated:** {datetime.utcnow().isoformat()}",
+            f"**Generated:** {datetime.now(timezone.utc).isoformat()}",
             f"**Config:** {self.config.name} (v{self.config.version})",
             "",
             "## Summary",
@@ -20545,12 +20709,12 @@ class Reporter:
         
         return "\n".join(md_lines)
     
-    def xǁReporterǁ_build_markdown__mutmut_16(self, results: list[ExecutionResult]) -> str:
+    def xǁReporterǁ_build_markdown__mutmut_17(self, results: list[ExecutionResult]) -> str:
         """Build Markdown report."""
         md_lines = [
             "# md-evals Results",
             "",
-            f"**Generated:** {datetime.utcnow().isoformat()}",
+            f"**Generated:** {datetime.now(timezone.utc).isoformat()}",
             f"**Config:** {self.config.name} (v{self.config.version})",
             "",
             "## Summary",
@@ -20595,12 +20759,12 @@ class Reporter:
         
         return "\n".join(md_lines)
     
-    def xǁReporterǁ_build_markdown__mutmut_17(self, results: list[ExecutionResult]) -> str:
+    def xǁReporterǁ_build_markdown__mutmut_18(self, results: list[ExecutionResult]) -> str:
         """Build Markdown report."""
         md_lines = [
             "# md-evals Results",
             "",
-            f"**Generated:** {datetime.utcnow().isoformat()}",
+            f"**Generated:** {datetime.now(timezone.utc).isoformat()}",
             f"**Config:** {self.config.name} (v{self.config.version})",
             "",
             "## Summary",
@@ -20645,12 +20809,12 @@ class Reporter:
         
         return "\n".join(md_lines)
     
-    def xǁReporterǁ_build_markdown__mutmut_18(self, results: list[ExecutionResult]) -> str:
+    def xǁReporterǁ_build_markdown__mutmut_19(self, results: list[ExecutionResult]) -> str:
         """Build Markdown report."""
         md_lines = [
             "# md-evals Results",
             "",
-            f"**Generated:** {datetime.utcnow().isoformat()}",
+            f"**Generated:** {datetime.now(timezone.utc).isoformat()}",
             f"**Config:** {self.config.name} (v{self.config.version})",
             "",
             "## Summary",
@@ -20695,12 +20859,12 @@ class Reporter:
         
         return "\n".join(md_lines)
     
-    def xǁReporterǁ_build_markdown__mutmut_19(self, results: list[ExecutionResult]) -> str:
+    def xǁReporterǁ_build_markdown__mutmut_20(self, results: list[ExecutionResult]) -> str:
         """Build Markdown report."""
         md_lines = [
             "# md-evals Results",
             "",
-            f"**Generated:** {datetime.utcnow().isoformat()}",
+            f"**Generated:** {datetime.now(timezone.utc).isoformat()}",
             f"**Config:** {self.config.name} (v{self.config.version})",
             "",
             "## Summary",
@@ -20745,12 +20909,12 @@ class Reporter:
         
         return "\n".join(md_lines)
     
-    def xǁReporterǁ_build_markdown__mutmut_20(self, results: list[ExecutionResult]) -> str:
+    def xǁReporterǁ_build_markdown__mutmut_21(self, results: list[ExecutionResult]) -> str:
         """Build Markdown report."""
         md_lines = [
             "# md-evals Results",
             "",
-            f"**Generated:** {datetime.utcnow().isoformat()}",
+            f"**Generated:** {datetime.now(timezone.utc).isoformat()}",
             f"**Config:** {self.config.name} (v{self.config.version})",
             "",
             "## Summary",
@@ -20795,12 +20959,12 @@ class Reporter:
         
         return "\n".join(md_lines)
     
-    def xǁReporterǁ_build_markdown__mutmut_21(self, results: list[ExecutionResult]) -> str:
+    def xǁReporterǁ_build_markdown__mutmut_22(self, results: list[ExecutionResult]) -> str:
         """Build Markdown report."""
         md_lines = [
             "# md-evals Results",
             "",
-            f"**Generated:** {datetime.utcnow().isoformat()}",
+            f"**Generated:** {datetime.now(timezone.utc).isoformat()}",
             f"**Config:** {self.config.name} (v{self.config.version})",
             "",
             "## Summary",
@@ -20845,12 +21009,12 @@ class Reporter:
         
         return "\n".join(md_lines)
     
-    def xǁReporterǁ_build_markdown__mutmut_22(self, results: list[ExecutionResult]) -> str:
+    def xǁReporterǁ_build_markdown__mutmut_23(self, results: list[ExecutionResult]) -> str:
         """Build Markdown report."""
         md_lines = [
             "# md-evals Results",
             "",
-            f"**Generated:** {datetime.utcnow().isoformat()}",
+            f"**Generated:** {datetime.now(timezone.utc).isoformat()}",
             f"**Config:** {self.config.name} (v{self.config.version})",
             "",
             "## Summary",
@@ -20895,12 +21059,12 @@ class Reporter:
         
         return "\n".join(md_lines)
     
-    def xǁReporterǁ_build_markdown__mutmut_23(self, results: list[ExecutionResult]) -> str:
+    def xǁReporterǁ_build_markdown__mutmut_24(self, results: list[ExecutionResult]) -> str:
         """Build Markdown report."""
         md_lines = [
             "# md-evals Results",
             "",
-            f"**Generated:** {datetime.utcnow().isoformat()}",
+            f"**Generated:** {datetime.now(timezone.utc).isoformat()}",
             f"**Config:** {self.config.name} (v{self.config.version})",
             "",
             "## Summary",
@@ -20945,12 +21109,12 @@ class Reporter:
         
         return "\n".join(md_lines)
     
-    def xǁReporterǁ_build_markdown__mutmut_24(self, results: list[ExecutionResult]) -> str:
+    def xǁReporterǁ_build_markdown__mutmut_25(self, results: list[ExecutionResult]) -> str:
         """Build Markdown report."""
         md_lines = [
             "# md-evals Results",
             "",
-            f"**Generated:** {datetime.utcnow().isoformat()}",
+            f"**Generated:** {datetime.now(timezone.utc).isoformat()}",
             f"**Config:** {self.config.name} (v{self.config.version})",
             "",
             "## Summary",
@@ -20995,12 +21159,12 @@ class Reporter:
         
         return "\n".join(md_lines)
     
-    def xǁReporterǁ_build_markdown__mutmut_25(self, results: list[ExecutionResult]) -> str:
+    def xǁReporterǁ_build_markdown__mutmut_26(self, results: list[ExecutionResult]) -> str:
         """Build Markdown report."""
         md_lines = [
             "# md-evals Results",
             "",
-            f"**Generated:** {datetime.utcnow().isoformat()}",
+            f"**Generated:** {datetime.now(timezone.utc).isoformat()}",
             f"**Config:** {self.config.name} (v{self.config.version})",
             "",
             "## Summary",
@@ -21045,12 +21209,12 @@ class Reporter:
         
         return "\n".join(md_lines)
     
-    def xǁReporterǁ_build_markdown__mutmut_26(self, results: list[ExecutionResult]) -> str:
+    def xǁReporterǁ_build_markdown__mutmut_27(self, results: list[ExecutionResult]) -> str:
         """Build Markdown report."""
         md_lines = [
             "# md-evals Results",
             "",
-            f"**Generated:** {datetime.utcnow().isoformat()}",
+            f"**Generated:** {datetime.now(timezone.utc).isoformat()}",
             f"**Config:** {self.config.name} (v{self.config.version})",
             "",
             "## Summary",
@@ -21095,12 +21259,12 @@ class Reporter:
         
         return "\n".join(md_lines)
     
-    def xǁReporterǁ_build_markdown__mutmut_27(self, results: list[ExecutionResult]) -> str:
+    def xǁReporterǁ_build_markdown__mutmut_28(self, results: list[ExecutionResult]) -> str:
         """Build Markdown report."""
         md_lines = [
             "# md-evals Results",
             "",
-            f"**Generated:** {datetime.utcnow().isoformat()}",
+            f"**Generated:** {datetime.now(timezone.utc).isoformat()}",
             f"**Config:** {self.config.name} (v{self.config.version})",
             "",
             "## Summary",
@@ -21145,12 +21309,12 @@ class Reporter:
         
         return "\n".join(md_lines)
     
-    def xǁReporterǁ_build_markdown__mutmut_28(self, results: list[ExecutionResult]) -> str:
+    def xǁReporterǁ_build_markdown__mutmut_29(self, results: list[ExecutionResult]) -> str:
         """Build Markdown report."""
         md_lines = [
             "# md-evals Results",
             "",
-            f"**Generated:** {datetime.utcnow().isoformat()}",
+            f"**Generated:** {datetime.now(timezone.utc).isoformat()}",
             f"**Config:** {self.config.name} (v{self.config.version})",
             "",
             "## Summary",
@@ -21195,12 +21359,12 @@ class Reporter:
         
         return "\n".join(md_lines)
     
-    def xǁReporterǁ_build_markdown__mutmut_29(self, results: list[ExecutionResult]) -> str:
+    def xǁReporterǁ_build_markdown__mutmut_30(self, results: list[ExecutionResult]) -> str:
         """Build Markdown report."""
         md_lines = [
             "# md-evals Results",
             "",
-            f"**Generated:** {datetime.utcnow().isoformat()}",
+            f"**Generated:** {datetime.now(timezone.utc).isoformat()}",
             f"**Config:** {self.config.name} (v{self.config.version})",
             "",
             "## Summary",
@@ -21245,12 +21409,12 @@ class Reporter:
         
         return "\n".join(md_lines)
     
-    def xǁReporterǁ_build_markdown__mutmut_30(self, results: list[ExecutionResult]) -> str:
+    def xǁReporterǁ_build_markdown__mutmut_31(self, results: list[ExecutionResult]) -> str:
         """Build Markdown report."""
         md_lines = [
             "# md-evals Results",
             "",
-            f"**Generated:** {datetime.utcnow().isoformat()}",
+            f"**Generated:** {datetime.now(timezone.utc).isoformat()}",
             f"**Config:** {self.config.name} (v{self.config.version})",
             "",
             "## Summary",
@@ -21295,12 +21459,12 @@ class Reporter:
         
         return "\n".join(md_lines)
     
-    def xǁReporterǁ_build_markdown__mutmut_31(self, results: list[ExecutionResult]) -> str:
+    def xǁReporterǁ_build_markdown__mutmut_32(self, results: list[ExecutionResult]) -> str:
         """Build Markdown report."""
         md_lines = [
             "# md-evals Results",
             "",
-            f"**Generated:** {datetime.utcnow().isoformat()}",
+            f"**Generated:** {datetime.now(timezone.utc).isoformat()}",
             f"**Config:** {self.config.name} (v{self.config.version})",
             "",
             "## Summary",
@@ -21345,12 +21509,12 @@ class Reporter:
         
         return "\n".join(md_lines)
     
-    def xǁReporterǁ_build_markdown__mutmut_32(self, results: list[ExecutionResult]) -> str:
+    def xǁReporterǁ_build_markdown__mutmut_33(self, results: list[ExecutionResult]) -> str:
         """Build Markdown report."""
         md_lines = [
             "# md-evals Results",
             "",
-            f"**Generated:** {datetime.utcnow().isoformat()}",
+            f"**Generated:** {datetime.now(timezone.utc).isoformat()}",
             f"**Config:** {self.config.name} (v{self.config.version})",
             "",
             "## Summary",
@@ -21395,12 +21559,12 @@ class Reporter:
         
         return "\n".join(md_lines)
     
-    def xǁReporterǁ_build_markdown__mutmut_33(self, results: list[ExecutionResult]) -> str:
+    def xǁReporterǁ_build_markdown__mutmut_34(self, results: list[ExecutionResult]) -> str:
         """Build Markdown report."""
         md_lines = [
             "# md-evals Results",
             "",
-            f"**Generated:** {datetime.utcnow().isoformat()}",
+            f"**Generated:** {datetime.now(timezone.utc).isoformat()}",
             f"**Config:** {self.config.name} (v{self.config.version})",
             "",
             "## Summary",
@@ -21445,12 +21609,12 @@ class Reporter:
         
         return "\n".join(md_lines)
     
-    def xǁReporterǁ_build_markdown__mutmut_34(self, results: list[ExecutionResult]) -> str:
+    def xǁReporterǁ_build_markdown__mutmut_35(self, results: list[ExecutionResult]) -> str:
         """Build Markdown report."""
         md_lines = [
             "# md-evals Results",
             "",
-            f"**Generated:** {datetime.utcnow().isoformat()}",
+            f"**Generated:** {datetime.now(timezone.utc).isoformat()}",
             f"**Config:** {self.config.name} (v{self.config.version})",
             "",
             "## Summary",
@@ -21495,12 +21659,12 @@ class Reporter:
         
         return "\n".join(md_lines)
     
-    def xǁReporterǁ_build_markdown__mutmut_35(self, results: list[ExecutionResult]) -> str:
+    def xǁReporterǁ_build_markdown__mutmut_36(self, results: list[ExecutionResult]) -> str:
         """Build Markdown report."""
         md_lines = [
             "# md-evals Results",
             "",
-            f"**Generated:** {datetime.utcnow().isoformat()}",
+            f"**Generated:** {datetime.now(timezone.utc).isoformat()}",
             f"**Config:** {self.config.name} (v{self.config.version})",
             "",
             "## Summary",
@@ -21545,12 +21709,12 @@ class Reporter:
         
         return "\n".join(md_lines)
     
-    def xǁReporterǁ_build_markdown__mutmut_36(self, results: list[ExecutionResult]) -> str:
+    def xǁReporterǁ_build_markdown__mutmut_37(self, results: list[ExecutionResult]) -> str:
         """Build Markdown report."""
         md_lines = [
             "# md-evals Results",
             "",
-            f"**Generated:** {datetime.utcnow().isoformat()}",
+            f"**Generated:** {datetime.now(timezone.utc).isoformat()}",
             f"**Config:** {self.config.name} (v{self.config.version})",
             "",
             "## Summary",
@@ -21595,12 +21759,12 @@ class Reporter:
         
         return "\n".join(md_lines)
     
-    def xǁReporterǁ_build_markdown__mutmut_37(self, results: list[ExecutionResult]) -> str:
+    def xǁReporterǁ_build_markdown__mutmut_38(self, results: list[ExecutionResult]) -> str:
         """Build Markdown report."""
         md_lines = [
             "# md-evals Results",
             "",
-            f"**Generated:** {datetime.utcnow().isoformat()}",
+            f"**Generated:** {datetime.now(timezone.utc).isoformat()}",
             f"**Config:** {self.config.name} (v{self.config.version})",
             "",
             "## Summary",
@@ -21645,12 +21809,12 @@ class Reporter:
         
         return "\n".join(md_lines)
     
-    def xǁReporterǁ_build_markdown__mutmut_38(self, results: list[ExecutionResult]) -> str:
+    def xǁReporterǁ_build_markdown__mutmut_39(self, results: list[ExecutionResult]) -> str:
         """Build Markdown report."""
         md_lines = [
             "# md-evals Results",
             "",
-            f"**Generated:** {datetime.utcnow().isoformat()}",
+            f"**Generated:** {datetime.now(timezone.utc).isoformat()}",
             f"**Config:** {self.config.name} (v{self.config.version})",
             "",
             "## Summary",
@@ -21695,12 +21859,12 @@ class Reporter:
         
         return "\n".join(md_lines)
     
-    def xǁReporterǁ_build_markdown__mutmut_39(self, results: list[ExecutionResult]) -> str:
+    def xǁReporterǁ_build_markdown__mutmut_40(self, results: list[ExecutionResult]) -> str:
         """Build Markdown report."""
         md_lines = [
             "# md-evals Results",
             "",
-            f"**Generated:** {datetime.utcnow().isoformat()}",
+            f"**Generated:** {datetime.now(timezone.utc).isoformat()}",
             f"**Config:** {self.config.name} (v{self.config.version})",
             "",
             "## Summary",
@@ -21745,12 +21909,12 @@ class Reporter:
         
         return "\n".join(md_lines)
     
-    def xǁReporterǁ_build_markdown__mutmut_40(self, results: list[ExecutionResult]) -> str:
+    def xǁReporterǁ_build_markdown__mutmut_41(self, results: list[ExecutionResult]) -> str:
         """Build Markdown report."""
         md_lines = [
             "# md-evals Results",
             "",
-            f"**Generated:** {datetime.utcnow().isoformat()}",
+            f"**Generated:** {datetime.now(timezone.utc).isoformat()}",
             f"**Config:** {self.config.name} (v{self.config.version})",
             "",
             "## Summary",
@@ -21795,12 +21959,12 @@ class Reporter:
         
         return "\n".join(md_lines)
     
-    def xǁReporterǁ_build_markdown__mutmut_41(self, results: list[ExecutionResult]) -> str:
+    def xǁReporterǁ_build_markdown__mutmut_42(self, results: list[ExecutionResult]) -> str:
         """Build Markdown report."""
         md_lines = [
             "# md-evals Results",
             "",
-            f"**Generated:** {datetime.utcnow().isoformat()}",
+            f"**Generated:** {datetime.now(timezone.utc).isoformat()}",
             f"**Config:** {self.config.name} (v{self.config.version})",
             "",
             "## Summary",
@@ -21845,12 +22009,12 @@ class Reporter:
         
         return "\n".join(md_lines)
     
-    def xǁReporterǁ_build_markdown__mutmut_42(self, results: list[ExecutionResult]) -> str:
+    def xǁReporterǁ_build_markdown__mutmut_43(self, results: list[ExecutionResult]) -> str:
         """Build Markdown report."""
         md_lines = [
             "# md-evals Results",
             "",
-            f"**Generated:** {datetime.utcnow().isoformat()}",
+            f"**Generated:** {datetime.now(timezone.utc).isoformat()}",
             f"**Config:** {self.config.name} (v{self.config.version})",
             "",
             "## Summary",
@@ -21895,12 +22059,12 @@ class Reporter:
         
         return "\n".join(md_lines)
     
-    def xǁReporterǁ_build_markdown__mutmut_43(self, results: list[ExecutionResult]) -> str:
+    def xǁReporterǁ_build_markdown__mutmut_44(self, results: list[ExecutionResult]) -> str:
         """Build Markdown report."""
         md_lines = [
             "# md-evals Results",
             "",
-            f"**Generated:** {datetime.utcnow().isoformat()}",
+            f"**Generated:** {datetime.now(timezone.utc).isoformat()}",
             f"**Config:** {self.config.name} (v{self.config.version})",
             "",
             "## Summary",
@@ -21945,12 +22109,12 @@ class Reporter:
         
         return "\n".join(md_lines)
     
-    def xǁReporterǁ_build_markdown__mutmut_44(self, results: list[ExecutionResult]) -> str:
+    def xǁReporterǁ_build_markdown__mutmut_45(self, results: list[ExecutionResult]) -> str:
         """Build Markdown report."""
         md_lines = [
             "# md-evals Results",
             "",
-            f"**Generated:** {datetime.utcnow().isoformat()}",
+            f"**Generated:** {datetime.now(timezone.utc).isoformat()}",
             f"**Config:** {self.config.name} (v{self.config.version})",
             "",
             "## Summary",
@@ -21995,12 +22159,12 @@ class Reporter:
         
         return "\n".join(md_lines)
     
-    def xǁReporterǁ_build_markdown__mutmut_45(self, results: list[ExecutionResult]) -> str:
+    def xǁReporterǁ_build_markdown__mutmut_46(self, results: list[ExecutionResult]) -> str:
         """Build Markdown report."""
         md_lines = [
             "# md-evals Results",
             "",
-            f"**Generated:** {datetime.utcnow().isoformat()}",
+            f"**Generated:** {datetime.now(timezone.utc).isoformat()}",
             f"**Config:** {self.config.name} (v{self.config.version})",
             "",
             "## Summary",
@@ -22045,12 +22209,12 @@ class Reporter:
         
         return "\n".join(md_lines)
     
-    def xǁReporterǁ_build_markdown__mutmut_46(self, results: list[ExecutionResult]) -> str:
+    def xǁReporterǁ_build_markdown__mutmut_47(self, results: list[ExecutionResult]) -> str:
         """Build Markdown report."""
         md_lines = [
             "# md-evals Results",
             "",
-            f"**Generated:** {datetime.utcnow().isoformat()}",
+            f"**Generated:** {datetime.now(timezone.utc).isoformat()}",
             f"**Config:** {self.config.name} (v{self.config.version})",
             "",
             "## Summary",
@@ -22095,12 +22259,12 @@ class Reporter:
         
         return "\n".join(md_lines)
     
-    def xǁReporterǁ_build_markdown__mutmut_47(self, results: list[ExecutionResult]) -> str:
+    def xǁReporterǁ_build_markdown__mutmut_48(self, results: list[ExecutionResult]) -> str:
         """Build Markdown report."""
         md_lines = [
             "# md-evals Results",
             "",
-            f"**Generated:** {datetime.utcnow().isoformat()}",
+            f"**Generated:** {datetime.now(timezone.utc).isoformat()}",
             f"**Config:** {self.config.name} (v{self.config.version})",
             "",
             "## Summary",
@@ -22145,12 +22309,12 @@ class Reporter:
         
         return "\n".join(md_lines)
     
-    def xǁReporterǁ_build_markdown__mutmut_48(self, results: list[ExecutionResult]) -> str:
+    def xǁReporterǁ_build_markdown__mutmut_49(self, results: list[ExecutionResult]) -> str:
         """Build Markdown report."""
         md_lines = [
             "# md-evals Results",
             "",
-            f"**Generated:** {datetime.utcnow().isoformat()}",
+            f"**Generated:** {datetime.now(timezone.utc).isoformat()}",
             f"**Config:** {self.config.name} (v{self.config.version})",
             "",
             "## Summary",
@@ -22195,12 +22359,12 @@ class Reporter:
         
         return "\n".join(md_lines)
     
-    def xǁReporterǁ_build_markdown__mutmut_49(self, results: list[ExecutionResult]) -> str:
+    def xǁReporterǁ_build_markdown__mutmut_50(self, results: list[ExecutionResult]) -> str:
         """Build Markdown report."""
         md_lines = [
             "# md-evals Results",
             "",
-            f"**Generated:** {datetime.utcnow().isoformat()}",
+            f"**Generated:** {datetime.now(timezone.utc).isoformat()}",
             f"**Config:** {self.config.name} (v{self.config.version})",
             "",
             "## Summary",
@@ -22245,12 +22409,12 @@ class Reporter:
         
         return "\n".join(md_lines)
     
-    def xǁReporterǁ_build_markdown__mutmut_50(self, results: list[ExecutionResult]) -> str:
+    def xǁReporterǁ_build_markdown__mutmut_51(self, results: list[ExecutionResult]) -> str:
         """Build Markdown report."""
         md_lines = [
             "# md-evals Results",
             "",
-            f"**Generated:** {datetime.utcnow().isoformat()}",
+            f"**Generated:** {datetime.now(timezone.utc).isoformat()}",
             f"**Config:** {self.config.name} (v{self.config.version})",
             "",
             "## Summary",
@@ -22295,12 +22459,12 @@ class Reporter:
         
         return "\n".join(md_lines)
     
-    def xǁReporterǁ_build_markdown__mutmut_51(self, results: list[ExecutionResult]) -> str:
+    def xǁReporterǁ_build_markdown__mutmut_52(self, results: list[ExecutionResult]) -> str:
         """Build Markdown report."""
         md_lines = [
             "# md-evals Results",
             "",
-            f"**Generated:** {datetime.utcnow().isoformat()}",
+            f"**Generated:** {datetime.now(timezone.utc).isoformat()}",
             f"**Config:** {self.config.name} (v{self.config.version})",
             "",
             "## Summary",
@@ -22345,12 +22509,12 @@ class Reporter:
         
         return "\n".join(md_lines)
     
-    def xǁReporterǁ_build_markdown__mutmut_52(self, results: list[ExecutionResult]) -> str:
+    def xǁReporterǁ_build_markdown__mutmut_53(self, results: list[ExecutionResult]) -> str:
         """Build Markdown report."""
         md_lines = [
             "# md-evals Results",
             "",
-            f"**Generated:** {datetime.utcnow().isoformat()}",
+            f"**Generated:** {datetime.now(timezone.utc).isoformat()}",
             f"**Config:** {self.config.name} (v{self.config.version})",
             "",
             "## Summary",
@@ -22395,12 +22559,12 @@ class Reporter:
         
         return "\n".join(md_lines)
     
-    def xǁReporterǁ_build_markdown__mutmut_53(self, results: list[ExecutionResult]) -> str:
+    def xǁReporterǁ_build_markdown__mutmut_54(self, results: list[ExecutionResult]) -> str:
         """Build Markdown report."""
         md_lines = [
             "# md-evals Results",
             "",
-            f"**Generated:** {datetime.utcnow().isoformat()}",
+            f"**Generated:** {datetime.now(timezone.utc).isoformat()}",
             f"**Config:** {self.config.name} (v{self.config.version})",
             "",
             "## Summary",
@@ -22445,12 +22609,12 @@ class Reporter:
         
         return "\n".join(md_lines)
     
-    def xǁReporterǁ_build_markdown__mutmut_54(self, results: list[ExecutionResult]) -> str:
+    def xǁReporterǁ_build_markdown__mutmut_55(self, results: list[ExecutionResult]) -> str:
         """Build Markdown report."""
         md_lines = [
             "# md-evals Results",
             "",
-            f"**Generated:** {datetime.utcnow().isoformat()}",
+            f"**Generated:** {datetime.now(timezone.utc).isoformat()}",
             f"**Config:** {self.config.name} (v{self.config.version})",
             "",
             "## Summary",
@@ -22495,12 +22659,12 @@ class Reporter:
         
         return "\n".join(None)
     
-    def xǁReporterǁ_build_markdown__mutmut_55(self, results: list[ExecutionResult]) -> str:
+    def xǁReporterǁ_build_markdown__mutmut_56(self, results: list[ExecutionResult]) -> str:
         """Build Markdown report."""
         md_lines = [
             "# md-evals Results",
             "",
-            f"**Generated:** {datetime.utcnow().isoformat()}",
+            f"**Generated:** {datetime.now(timezone.utc).isoformat()}",
             f"**Config:** {self.config.name} (v{self.config.version})",
             "",
             "## Summary",
@@ -22600,7 +22764,8 @@ class Reporter:
         'xǁReporterǁ_build_markdown__mutmut_52': xǁReporterǁ_build_markdown__mutmut_52, 
         'xǁReporterǁ_build_markdown__mutmut_53': xǁReporterǁ_build_markdown__mutmut_53, 
         'xǁReporterǁ_build_markdown__mutmut_54': xǁReporterǁ_build_markdown__mutmut_54, 
-        'xǁReporterǁ_build_markdown__mutmut_55': xǁReporterǁ_build_markdown__mutmut_55
+        'xǁReporterǁ_build_markdown__mutmut_55': xǁReporterǁ_build_markdown__mutmut_55, 
+        'xǁReporterǁ_build_markdown__mutmut_56': xǁReporterǁ_build_markdown__mutmut_56
     }
     xǁReporterǁ_build_markdown__mutmut_orig.__name__ = 'xǁReporterǁ_build_markdown'
     
