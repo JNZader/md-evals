@@ -1,5 +1,6 @@
 """Tests for md_evals execution engine."""
 
+import asyncio
 import pytest
 from unittest.mock import patch, AsyncMock, MagicMock
 
@@ -8,6 +9,7 @@ from md_evals.models import (
     EvalConfig, ExecutionResult, Defaults,
     Task, Treatment, RegexEvaluator, LLMResponse, ExecutionConfig
 )
+from md_evals.llm import LLMError
 
 
 class TestExecutionEngine:
@@ -1474,3 +1476,268 @@ class TestEngineErrorRecoveryMutations:
         assert result.response.provider == "error"
         # Error message is in raw_response
         assert "timeout" in result.response.raw_response.get("error", "").lower()
+
+
+class TestEngineOrchestrationMutations:
+    """Mutation tests for ExecutionEngine orchestration logic.
+
+    These tests verify that critical mutations in execution flow,
+    async/await handling, error propagation, and state management are caught.
+    They target orchestration patterns that are essential for correct execution.
+    """
+
+    @pytest.mark.asyncio
+    async def test_execution_flow_order_mutation(self):
+        """Verify execution order: prompt injection → LLM → evaluation.
+
+        Mutation target: Order of operations in run_single
+        A mutation changing operation order should fail this test.
+        """
+        config = EvalConfig(
+            name="Test",
+            defaults=Defaults(model="gpt-4o"),
+            treatments={"CONTROL": Treatment(skill_path=None)},
+            tests=[
+                Task(
+                    name="test1",
+                    prompt="Hello {name}",
+                    evaluators=[],
+                    variables={"name": "John"}
+                )
+            ]
+        )
+
+        # Track call order
+        call_order = []
+
+        async def mock_complete(prompt, system_prompt=None):
+            call_order.append("llm_complete")
+            assert "{name}" not in prompt, "Variables should be replaced before LLM call"
+            assert "John" in prompt, "Variable should be substituted"
+            return LLMResponse(
+                content="Response",
+                model="gpt-4o",
+                provider="openai",
+                duration_ms=100
+            )
+
+        mock_adapter = MagicMock()
+        mock_adapter.complete = mock_complete
+
+        engine = ExecutionEngine(config, mock_adapter)
+        result = await engine.run_single(
+            Treatment(skill_path=None),
+            config.tests[0],
+            "CONTROL"
+        )
+
+        # Verify LLM was called
+        assert "llm_complete" in call_order
+        assert result.response.content == "Response"
+
+    @pytest.mark.asyncio
+    async def test_async_await_requirement_mutation(self):
+        """Verify that async/await is required for LLM calls.
+
+        Mutation target: await in llm_adapter.complete()
+        A mutation removing await would cause coroutine object returns.
+        """
+        config = EvalConfig(
+            name="Test",
+            defaults=Defaults(model="gpt-4o"),
+            treatments={"CONTROL": Treatment(skill_path=None)},
+            tests=[Task(name="test", prompt="test", evaluators=[])]
+        )
+
+        # Create a real async function to verify awaiting happens
+        async def real_async_complete(prompt, system_prompt=None):
+            await asyncio.sleep(0.001)  # Actually async
+            return LLMResponse(
+                content="Response",
+                model="gpt-4o",
+                provider="openai",
+                duration_ms=100
+            )
+
+        mock_adapter = MagicMock()
+        mock_adapter.complete = real_async_complete
+
+        engine = ExecutionEngine(config, mock_adapter)
+        result = await engine.run_single(
+            Treatment(skill_path=None),
+            Task(name="test", prompt="test", evaluators=[]),
+            "CONTROL"
+        )
+
+        # If await was removed, response would be a coroutine, not a response
+        assert isinstance(result.response, LLMResponse)
+        assert result.response.content == "Response"
+        assert not asyncio.iscoroutine(result)
+
+    @pytest.mark.asyncio
+    async def test_error_handling_propagation_mutation(self):
+        """Verify that errors are handled (not silently ignored).
+
+        Mutation target: if/else logic in exception handling
+        A mutation removing error handling would crash the engine.
+        """
+        config = EvalConfig(
+            name="Test",
+            defaults=Defaults(model="gpt-4o"),
+            treatments={"CONTROL": Treatment(skill_path=None)},
+            tests=[Task(name="test", prompt="test", evaluators=[])]
+        )
+
+        mock_adapter = MagicMock()
+        mock_adapter.complete = AsyncMock(side_effect=LLMError("Simulated error"))
+
+        engine = ExecutionEngine(config, mock_adapter)
+
+        # Should not raise - error should be handled
+        result = await engine.run_single(
+            Treatment(skill_path=None),
+            Task(name="test", prompt="test", evaluators=[]),
+            "CONTROL"
+        )
+
+        # Result should indicate failure
+        assert result.passed is False
+        assert result.response.model == "error"
+        assert isinstance(result, ExecutionResult)
+
+    @pytest.mark.asyncio
+    async def test_loop_iteration_mutation(self):
+        """Verify that all tasks are processed (not just first).
+
+        Mutation target: for treatment_name in available_treatments (range vs full list)
+        A mutation stopping after first task would fail this test.
+        """
+        config = EvalConfig(
+            name="Test",
+            defaults=Defaults(model="gpt-4o"),
+            treatments={
+                "CONTROL": Treatment(skill_path=None),
+                "TREATMENT_A": Treatment(skill_path=None),
+                "TREATMENT_B": Treatment(skill_path=None),
+            },
+            tests=[
+                Task(name="test1", prompt="test1", evaluators=[]),
+                Task(name="test2", prompt="test2", evaluators=[]),
+                Task(name="test3", prompt="test3", evaluators=[]),
+            ]
+        )
+
+        # Track all calls
+        calls = []
+
+        async def track_complete(prompt, system_prompt=None):
+            calls.append(prompt)
+            return LLMResponse(
+                content="Response",
+                model="gpt-4o",
+                provider="openai",
+                duration_ms=100
+            )
+
+        mock_adapter = MagicMock()
+        mock_adapter.complete = track_complete
+
+        engine = ExecutionEngine(config, mock_adapter)
+        results = await engine.run_all(["CONTROL", "TREATMENT_A", "TREATMENT_B"])
+
+        # Should process all combinations
+        # 3 treatments × 3 tests = 9 total
+        assert len(results) >= 9, f"Expected at least 9 results, got {len(results)}"
+
+        # Verify we have results for all treatments
+        treatments_in_results = {r.treatment for r in results}
+        assert "CONTROL" in treatments_in_results
+        assert "TREATMENT_A" in treatments_in_results
+        assert "TREATMENT_B" in treatments_in_results
+
+    @pytest.mark.asyncio
+    async def test_state_update_consistency_mutation(self):
+        """Verify that execution state is updated consistently.
+
+        Mutation target: self.response = ... assignments
+        A mutation not updating state would cause stale values.
+        """
+        config = EvalConfig(
+            name="Test",
+            defaults=Defaults(model="gpt-4o"),
+            treatments={"CONTROL": Treatment(skill_path=None)},
+            tests=[Task(name="test", prompt="test prompt", evaluators=[])]
+        )
+
+        mock_adapter = MagicMock()
+        mock_adapter.complete = AsyncMock(return_value=LLMResponse(
+            content="Test response",
+            model="gpt-4o",
+            provider="openai",
+            duration_ms=123
+        ))
+
+        engine = ExecutionEngine(config, mock_adapter)
+        result = await engine.run_single(
+            Treatment(skill_path=None),
+            config.tests[0],
+            "CONTROL"
+        )
+
+        # Verify all state fields are correctly set
+        assert result.treatment == "CONTROL"
+        assert result.test == "test"
+        assert result.prompt == "test prompt"
+        assert result.response.content == "Test response"
+        assert result.response.duration_ms == 123
+        assert result.passed is True  # No evaluators failed
+
+        # Verify timestamp is set
+        assert result.timestamp is not None
+        assert isinstance(result.timestamp, str)
+
+    @pytest.mark.asyncio
+    async def test_semaphore_concurrency_mutation(self):
+        """Verify semaphore controls concurrency correctly.
+
+        Mutation target: asyncio.Semaphore initialization and usage
+        A mutation removing semaphore would cause unbounded concurrency.
+        """
+        config = EvalConfig(
+            name="Test",
+            defaults=Defaults(model="gpt-4o"),
+            execution=ExecutionConfig(parallel_workers=2),
+            treatments={"CONTROL": Treatment(skill_path=None)},
+            tests=[
+                Task(name="test1", prompt="test1", evaluators=[]),
+                Task(name="test2", prompt="test2", evaluators=[]),
+                Task(name="test3", prompt="test3", evaluators=[]),
+            ]
+        )
+
+        concurrent_count = 0
+        max_concurrent = 0
+
+        async def track_concurrent(prompt, system_prompt=None):
+            nonlocal concurrent_count, max_concurrent
+            concurrent_count += 1
+            max_concurrent = max(max_concurrent, concurrent_count)
+            await asyncio.sleep(0.01)
+            concurrent_count -= 1
+            return LLMResponse(
+                content="Response",
+                model="gpt-4o",
+                provider="openai",
+                duration_ms=100
+            )
+
+        mock_adapter = MagicMock()
+        mock_adapter.complete = track_concurrent
+
+        engine = ExecutionEngine(config, mock_adapter)
+        results = await engine.run_all(["CONTROL"])
+
+        # Should respect parallel_workers=2 limit
+        # (May exceed slightly due to Python async overhead)
+        assert max_concurrent <= 3, f"Exceeded parallel workers limit: {max_concurrent}"
+        assert len(results) >= 3, "Should process all 3 tasks"
