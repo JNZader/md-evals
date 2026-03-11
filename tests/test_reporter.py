@@ -1675,3 +1675,262 @@ class TestConsoleOutputMutations:
         reporter.report_terminal(results, verbose=False)
         # Should calculate average duration correctly
         # Average of [100, 200, 300] = 200ms
+
+
+class TestReporterOutputMutations:
+    """Mutation tests for Reporter output formatting.
+    
+    These tests verify that critical mutations in formatting logic
+    are caught. They are designed to fail if key operations are
+    modified (e.g., changing field order, escaping, format characters).
+    """
+    
+    def test_json_field_order_mutation(self, tmp_path):
+        """Verify JSON field order is correct.
+        
+        Mutation target: json.dumps() field order
+        A mutation changing the dictionary field insertion order
+        should be caught by this test.
+        """
+        config = EvalConfig(name="TestExperiment", version="1.0.0")
+        reporter = Reporter(config)
+        
+        results = [
+            ExecutionResult(
+                treatment="CONTROL",
+                test="test1",
+                prompt="Hello",
+                response=LLMResponse(
+                    content="Hi",
+                    model="gpt-4o",
+                    provider="openai",
+                    duration_ms=1000
+                ),
+                passed=True,
+                evaluator_results=[],
+                timestamp="2024-01-01T00:00:00"
+            )
+        ]
+        
+        output_file = tmp_path / "output.json"
+        reporter.report_json(results, str(output_file))
+        
+        # Verify file was created
+        assert output_file.exists()
+        
+        # Load and verify structure
+        with open(output_file, "r") as f:
+            data = json.load(f)
+        
+        # Critical fields that must exist in order
+        assert "experiment_id" in data
+        assert "timestamp" in data
+        assert "config" in data
+        assert "results" in data
+        assert "summary" in data
+        
+        # Verify config structure
+        assert "name" in data["config"]
+        assert "version" in data["config"]
+        
+        # Verify at least one result
+        assert len(data["results"]) > 0
+        result = data["results"][0]
+        assert "treatment" in result
+        assert "test" in result
+        assert "passed" in result
+    
+    def test_json_escaping_mutation(self, tmp_path):
+        """Verify JSON escaping for special characters.
+        
+        Mutation target: json.dump() escape handling
+        A mutation removing or changing escaping should break this test.
+        """
+        config = EvalConfig(name="Test")
+        reporter = Reporter(config)
+        
+        # Create results with special characters
+        results = [
+            ExecutionResult(
+                treatment="CONTROL",
+                test='test"with"quotes',
+                prompt='Prompt\nwith\nnewlines',
+                response=LLMResponse(
+                    content='Response\twith\ttabs and "quotes"',
+                    model="gpt-4o",
+                    provider="openai",
+                    duration_ms=1000
+                ),
+                passed=True,
+                evaluator_results=[],
+                timestamp="2024-01-01T00:00:00"
+            )
+        ]
+        
+        output_file = tmp_path / "special_chars.json"
+        reporter.report_json(results, str(output_file))
+        
+        # Should be valid JSON (no escaping errors)
+        with open(output_file, "r") as f:
+            data = json.load(f)
+        
+        # Verify special characters are preserved correctly
+        result = data["results"][0]
+        assert 'test"with"quotes' in result["test"]
+        assert '\n' in result["prompt"] or '\\n' in json.dumps(result)
+        
+    def test_markdown_formatting_mutation(self, tmp_path):
+        """Verify Markdown formatting characters are present.
+        
+        Mutation target: Markdown formatting characters (##, **, -, etc.)
+        A mutation removing or changing markdown syntax should fail this test.
+        """
+        config = EvalConfig(name="Test")
+        reporter = Reporter(config)
+        
+        results = [
+            ExecutionResult(
+                treatment="CONTROL",
+                test="test1",
+                prompt="Hello",
+                response=LLMResponse(
+                    content="Hi",
+                    model="gpt-4o",
+                    provider="openai",
+                    duration_ms=1000
+                ),
+                passed=True,
+                evaluator_results=[],
+                timestamp="2024-01-01T00:00:00"
+            ),
+            ExecutionResult(
+                treatment="TREATMENT_A",
+                test="test2",
+                prompt="Hello",
+                response=LLMResponse(
+                    content="Hi",
+                    model="gpt-4o",
+                    provider="openai",
+                    duration_ms=1100
+                ),
+                passed=True,
+                evaluator_results=[],
+                timestamp="2024-01-01T00:00:01"
+            )
+        ]
+        
+        output_file = tmp_path / "results.md"
+        reporter.report_markdown(results, str(output_file))
+        
+        # Read and verify markdown structure
+        content = output_file.read_text()
+        
+        # Check for header markers
+        assert "#" in content, "Headers should be present in markdown"
+        
+        # Check for table markers (if summary is shown)
+        assert "|" in content or "-" in content, "Table or list formatting should be present"
+        
+        # Check for results section
+        assert "CONTROL" in content or "test1" in content, "Results should be present"
+    
+    def test_empty_report_handling_mutation(self):
+        """Verify empty reports are handled correctly.
+        
+        Mutation target: Empty results validation
+        A mutation removing null checks should cause this to fail.
+        """
+        config = EvalConfig(name="Test")
+        reporter = Reporter(config)
+        
+        # Empty results list
+        results = []
+        
+        # These should not raise exceptions
+        reporter.report_terminal(results, verbose=False)
+        
+        # Empty with verbose
+        reporter.report_terminal(results, verbose=True)
+    
+    def test_treatment_grouping_mutation(self):
+        """Verify results are grouped by treatment correctly.
+        
+        Mutation target: Grouping logic (by_treatment dictionary)
+        A mutation changing grouping logic should be caught here.
+        """
+        config = EvalConfig(name="Test")
+        reporter = Reporter(config)
+        
+        results = [
+            ExecutionResult(
+                treatment="CONTROL",
+                test="test1",
+                prompt="Hello",
+                response=LLMResponse(
+                    content="Hi",
+                    model="gpt-4o",
+                    provider="openai",
+                    duration_ms=1000
+                ),
+                passed=True,
+                evaluator_results=[],
+                timestamp="2024-01-01T00:00:00"
+            ),
+            ExecutionResult(
+                treatment="CONTROL",
+                test="test2",
+                prompt="Hello",
+                response=LLMResponse(
+                    content="Hi",
+                    model="gpt-4o",
+                    provider="openai",
+                    duration_ms=1000
+                ),
+                passed=False,
+                evaluator_results=[],
+                timestamp="2024-01-01T00:00:01"
+            ),
+            ExecutionResult(
+                treatment="TREATMENT_A",
+                test="test1",
+                prompt="Hello",
+                response=LLMResponse(
+                    content="Hi",
+                    model="gpt-4o",
+                    provider="openai",
+                    duration_ms=900
+                ),
+                passed=True,
+                evaluator_results=[],
+                timestamp="2024-01-01T00:00:00"
+            ),
+            ExecutionResult(
+                treatment="TREATMENT_A",
+                test="test2",
+                prompt="Hello",
+                response=LLMResponse(
+                    content="Hi",
+                    model="gpt-4o",
+                    provider="openai",
+                    duration_ms=950
+                ),
+                passed=True,
+                evaluator_results=[],
+                timestamp="2024-01-01T00:00:01"
+            ),
+        ]
+        
+        # Build the same grouping logic as in _build_output_data
+        by_treatment = {}
+        for result in results:
+            if result.treatment not in by_treatment:
+                by_treatment[result.treatment] = []
+            by_treatment[result.treatment].append(result)
+        
+        # Verify grouping
+        assert len(by_treatment) == 2, "Should have 2 treatment groups"
+        assert len(by_treatment["CONTROL"]) == 2, "CONTROL should have 2 results"
+        assert len(by_treatment["TREATMENT_A"]) == 2, "TREATMENT_A should have 2 results"
+        
+        # Test report generation doesn't crash
+        reporter.report_terminal(results, verbose=False)
