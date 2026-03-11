@@ -1060,3 +1060,263 @@ class TestEngineRefinements:
         assert result.evaluator_results[0].passed is True  # hello matches
         assert result.evaluator_results[1].passed is False  # missing doesn't match
         assert result.evaluator_results[2].passed is True  # goodbye matches
+
+
+# ============================================================================
+# PHASE 9c-1: Variable Substitution Mutation Tests
+# ============================================================================
+# Purpose: Target 18 mutations in variable substitution logic
+# Strategy: Verify exact values and order preservation
+# ============================================================================
+
+class TestVariableSubstitutionMutations:
+    """Phase 9c-1: Mutation-focused tests for variable substitution.
+    
+    These tests target mutations in the variable substitution logic (lines 61-63):
+    ```python
+    for key, value in task.variables.items():
+        placeholder = f"{{{key}}}"
+        final_prompt = final_prompt.replace(placeholder, value)
+    ```
+    
+    Mutations to catch:
+    - String.replace() → String.split()+join()
+    - f-string mutations (missing {}, extra {})
+    - .replace() → other string methods (.format, .substitute)
+    - value mutations (wrong type conversion)
+    - Preserving values exactly without modification
+    """
+    
+    @pytest.mark.asyncio
+    async def test_single_variable_exact_value_matching(self):
+        """Verify exact variable substitution - catches .replace mutations.
+        
+        Mutation targets:
+        - String.replace() → String.format() or .substitute()
+        - value type conversions
+        """
+        config = EvalConfig(
+            name="Test",
+            defaults=Defaults(model="gpt-4o"),
+            treatments={"CONTROL": Treatment(skill_path=None)},
+            tests=[Task(name="test", prompt="Hello {name}", variables={"name": "Alice"}, evaluators=[])]
+        )
+        
+        mock_adapter = MagicMock()
+        mock_response = LLMResponse(
+            content="Response",
+            model="gpt-4o",
+            provider="openai",
+            tokens=5,
+            duration_ms=100,
+            raw_response={}
+        )
+        mock_adapter.complete = AsyncMock(return_value=mock_response)
+        
+        engine = ExecutionEngine(config, mock_adapter)
+        result = await engine.run_single(
+            Treatment(skill_path=None),
+            Task(name="test", prompt="Hello {name}", variables={"name": "Alice"}, evaluators=[]),
+            "CONTROL"
+        )
+        
+        # Must match exactly - catches .replace mutations and wrong method usage
+        assert result.prompt == "Hello Alice"
+        assert "{name}" not in result.prompt  # Ensure substitution happened
+        assert "Alice" in result.prompt  # Verify correct value
+        assert result.prompt != "Hello {name}"  # Ensure not skipped
+    
+    @pytest.mark.asyncio
+    async def test_multiple_variables_order_preservation(self):
+        """Verify multiple variables substituted in order - catches value swaps.
+        
+        Mutation targets:
+        - Variable value assignment swaps
+        - Order-dependent mutations
+        """
+        config = EvalConfig(
+            name="Test",
+            defaults=Defaults(model="gpt-4o"),
+            treatments={"CONTROL": Treatment(skill_path=None)},
+            tests=[Task(
+                name="test",
+                prompt="{first} and {second} and {third}",
+                variables={"first": "A", "second": "B", "third": "C"},
+                evaluators=[]
+            )]
+        )
+        
+        mock_adapter = MagicMock()
+        mock_response = LLMResponse(
+            content="Response",
+            model="gpt-4o",
+            provider="openai",
+            tokens=5,
+            duration_ms=100,
+            raw_response={}
+        )
+        mock_adapter.complete = AsyncMock(return_value=mock_response)
+        
+        engine = ExecutionEngine(config, mock_adapter)
+        result = await engine.run_single(
+            Treatment(skill_path=None),
+            Task(
+                name="test",
+                prompt="{first} and {second} and {third}",
+                variables={"first": "A", "second": "B", "third": "C"},
+                evaluators=[]
+            ),
+            "CONTROL"
+        )
+        
+        # Catches mutations that swap variable values
+        assert result.prompt == "A and B and C"
+        assert result.prompt != "A and C and B"  # Wrong order mutation
+        assert result.prompt != "B and A and C"  # Swapped mutation
+    
+    @pytest.mark.asyncio
+    async def test_special_characters_preserved_exactly(self):
+        """Verify special characters in values are preserved.
+        
+        Mutation targets:
+        - String operations that strip special characters
+        - Encoding/decoding mutations
+        """
+        config = EvalConfig(
+            name="Test",
+            defaults=Defaults(model="gpt-4o"),
+            treatments={"CONTROL": Treatment(skill_path=None)},
+            tests=[Task(
+                name="test",
+                prompt="Email: {email}",
+                variables={"email": "test@example.com!@#$%"},
+                evaluators=[]
+            )]
+        )
+        
+        mock_adapter = MagicMock()
+        mock_response = LLMResponse(
+            content="Response",
+            model="gpt-4o",
+            provider="openai",
+            tokens=5,
+            duration_ms=100,
+            raw_response={}
+        )
+        mock_adapter.complete = AsyncMock(return_value=mock_response)
+        
+        engine = ExecutionEngine(config, mock_adapter)
+        result = await engine.run_single(
+            Treatment(skill_path=None),
+            Task(
+                name="test",
+                prompt="Email: {email}",
+                variables={"email": "test@example.com!@#$%"},
+                evaluators=[]
+            ),
+            "CONTROL"
+        )
+        
+        # Catches mutations that strip/modify special chars
+        assert result.prompt == "Email: test@example.com!@#$%"
+        assert "@" in result.prompt
+        assert "#" in result.prompt
+        assert "$" in result.prompt
+        assert "%" in result.prompt
+    
+    @pytest.mark.asyncio
+    async def test_undefined_variables_preserved_as_is(self):
+        """Verify undefined variables remain as placeholders.
+        
+        Mutation targets:
+        - Placeholder preservation logic
+        - Conditional replacement logic
+        """
+        config = EvalConfig(
+            name="Test",
+            defaults=Defaults(model="gpt-4o"),
+            treatments={"CONTROL": Treatment(skill_path=None)},
+            tests=[Task(
+                name="test",
+                prompt="Hello {name}, score: {score}",
+                variables={"name": "Bob"},
+                evaluators=[]
+            )]
+        )
+        
+        mock_adapter = MagicMock()
+        mock_response = LLMResponse(
+            content="Response",
+            model="gpt-4o",
+            provider="openai",
+            tokens=5,
+            duration_ms=100,
+            raw_response={}
+        )
+        mock_adapter.complete = AsyncMock(return_value=mock_response)
+        
+        engine = ExecutionEngine(config, mock_adapter)
+        result = await engine.run_single(
+            Treatment(skill_path=None),
+            Task(
+                name="test",
+                prompt="Hello {name}, score: {score}",
+                variables={"name": "Bob"},
+                evaluators=[]
+            ),
+            "CONTROL"
+        )
+        
+        # Undefined variables must remain as placeholders (not in our variables dict)
+        # Note: Current implementation substitutes only provided variables
+        assert "Bob" in result.prompt
+        assert result.prompt == "Hello Bob, score: {score}"  # {score} not in variables
+    
+    @pytest.mark.asyncio
+    async def test_repeated_variables_all_substituted(self):
+        """Verify repeated variables are all substituted.
+        
+        Mutation targets:
+        - Replace logic that only replaces first occurrence
+        - Loop iteration logic
+        """
+        config = EvalConfig(
+            name="Test",
+            defaults=Defaults(model="gpt-4o"),
+            treatments={"CONTROL": Treatment(skill_path=None)},
+            tests=[Task(
+                name="test",
+                prompt="{name} and {name} said {name}",
+                variables={"name": "Bob"},
+                evaluators=[]
+            )]
+        )
+        
+        mock_adapter = MagicMock()
+        mock_response = LLMResponse(
+            content="Response",
+            model="gpt-4o",
+            provider="openai",
+            tokens=5,
+            duration_ms=100,
+            raw_response={}
+        )
+        mock_adapter.complete = AsyncMock(return_value=mock_response)
+        
+        engine = ExecutionEngine(config, mock_adapter)
+        result = await engine.run_single(
+            Treatment(skill_path=None),
+            Task(
+                name="test",
+                prompt="{name} and {name} said {name}",
+                variables={"name": "Bob"},
+                evaluators=[]
+            ),
+            "CONTROL"
+        )
+        
+        # .replace() replaces ALL occurrences (not just first)
+        # Catches mutations that only replace first with .replace(..., count=1)
+        assert result.prompt == "Bob and Bob said Bob"
+        assert result.prompt.count("Bob") == 3
+        assert "{name}" not in result.prompt

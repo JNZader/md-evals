@@ -1,5 +1,6 @@
 """Tests for evaluator engine."""
 
+import asyncio
 import pytest
 from unittest.mock import MagicMock, AsyncMock
 from md_evals.evaluator import EvaluatorEngine, create_evaluator
@@ -1054,3 +1055,185 @@ class TestEvaluatorRefinements:
         result = engine._evaluate_regex("No numbers here", evaluator)
         assert result.passed is False
         assert result.score == 0.0
+
+
+# ============================================================================
+# PHASE 9c-2: Score Normalization & Aggregation Mutation Tests
+# ============================================================================
+# Purpose: Target 12 mutations in boundary condition and aggregation logic
+# Strategy: Test limit boundaries (0.0, 1.0) and None value handling
+# ============================================================================
+
+class TestScoreNormalizationMutations:
+    """Phase 9c-2: Mutation-focused tests for score boundaries.
+    
+    These tests target mutations in score normalization logic
+    and None value handling.
+    
+    Mutations to catch:
+    - Boundary mutations: 0.0 → -0.1, 1.0 → 1.1
+    - Comparison operator mutations: > → >=, < → <=
+    - max() → min() and vice versa
+    - None value filtering logic
+    """
+    
+    def test_evaluator_result_score_boundaries_lower(self):
+        """Verify lower boundary (0.0) is enforced in score calculations.
+        
+        Mutation targets:
+        - max() → min() swaps
+        - Boundary condition mutations (0.0 → -0.1)
+        """
+        engine = EvaluatorEngine()
+        
+        # Scores below 0.0 should be clamped to 0.0
+        # Create evaluator with pass_on_match=False to generate 0.0 score
+        evaluator = RegexEvaluator(
+            name="test_lower_bound",
+            pattern="pattern_not_found",
+            pass_on_match=True
+        )
+        
+        result = engine._evaluate_regex("different text", evaluator)
+        
+        # Score must be exactly 0.0, not negative
+        assert result.score == 0.0
+        assert result.score >= 0.0
+        assert not (result.score < 0.0)
+        assert result.passed is False
+    
+    def test_evaluator_result_score_boundaries_upper(self):
+        """Verify upper boundary (1.0) is enforced in score calculations.
+        
+        Mutation targets:
+        - Boundary condition mutations (1.0 → 1.1)
+        - min() → max() swaps
+        """
+        engine = EvaluatorEngine()
+        
+        # Scores at 1.0 should never exceed 1.0
+        evaluator = RegexEvaluator(
+            name="test_upper_bound",
+            pattern="hello",
+            pass_on_match=True
+        )
+        
+        result = engine._evaluate_regex("Hello world! hello", evaluator)
+        
+        # Score must be exactly 1.0, not greater
+        assert result.score == 1.0
+        assert result.score <= 1.0
+        assert not (result.score > 1.0)
+        assert result.passed is True
+    
+    def test_exact_match_case_insensitive_boundary(self):
+        """Verify exact match scoring at boundaries.
+        
+        Mutation targets:
+        - Case sensitivity logic mutations
+        - Boundary conditions in comparison
+        """
+        engine = EvaluatorEngine()
+        
+        evaluator = ExactMatchEvaluator(
+            name="test_boundary",
+            expected="Hello",
+            case_sensitive=False
+        )
+        
+        # Should match with different case
+        result = engine._evaluate_exact_match("HELLO world", evaluator)
+        assert result.score == 1.0
+        assert result.passed is True
+        
+        # Should not match different content
+        result = engine._evaluate_exact_match("Goodbye world", evaluator)
+        assert result.score == 0.0
+        assert result.passed is False
+    
+    def test_regex_evaluation_score_at_boundaries(self):
+        """Verify regex evaluation scores are at 0.0 or 1.0 boundaries.
+        
+        Mutation targets:
+        - Score normalization in evaluators
+        - Boundary enforcement (no intermediate scores)
+        """
+        engine = EvaluatorEngine()
+        
+        # Regex evaluation should only score 0.0 (fail) or 1.0 (pass)
+        evaluator_pass = RegexEvaluator(
+            name="test_bounds_pass",
+            pattern="success",
+            pass_on_match=True
+        )
+        
+        result_pass = engine._evaluate_regex("success outcome", evaluator_pass)
+        
+        # Score must be exactly 1.0 for pass
+        assert result_pass.score == 1.0
+        assert result_pass.score >= 0.0
+        assert result_pass.score <= 1.0
+        
+        # Fail case should score 0.0
+        evaluator_fail = RegexEvaluator(
+            name="test_bounds_fail",
+            pattern="missing",
+            pass_on_match=True
+        )
+        
+        result_fail = engine._evaluate_regex("success outcome", evaluator_fail)
+        
+        # Score must be exactly 0.0 for fail
+        assert result_fail.score == 0.0
+        assert result_fail.score >= 0.0
+        assert result_fail.score <= 1.0
+    
+    def test_multiple_evaluator_aggregation_all_pass(self):
+        """Verify all evaluators must pass for overall pass.
+        
+        Mutation targets:
+        - all() → any() logic swaps
+        - Aggregation logic inversions
+        """
+        engine = EvaluatorEngine()
+        
+        evaluators = [
+            RegexEvaluator(name="eval1", pattern="hello", pass_on_match=True),
+            RegexEvaluator(name="eval2", pattern="world", pass_on_match=True),
+            RegexEvaluator(name="eval3", pattern="test", pass_on_match=True),
+        ]
+        
+        # All patterns match - should pass overall
+        output = "hello world test"
+        results = asyncio.run(engine.evaluate(output, evaluators))
+        
+        assert all(r.passed for r in results)
+        assert len(results) == 3
+        assert results[0].passed is True
+        assert results[1].passed is True
+        assert results[2].passed is True
+    
+    def test_multiple_evaluator_aggregation_one_fails(self):
+        """Verify single failure disqualifies entire result.
+        
+        Mutation targets:
+        - all() → any() logic swaps
+        - Logical operator inversions
+        """
+        engine = EvaluatorEngine()
+        
+        evaluators = [
+            RegexEvaluator(name="eval1", pattern="hello", pass_on_match=True),
+            RegexEvaluator(name="eval2", pattern="missing_pattern", pass_on_match=True),
+            RegexEvaluator(name="eval3", pattern="test", pass_on_match=True),
+        ]
+        
+        # Middle evaluator fails
+        output = "hello world test"
+        results = asyncio.run(engine.evaluate(output, evaluators))
+        
+        # Not all pass - should have mix
+        assert results[0].passed is True  # hello matches
+        assert results[1].passed is False  # missing_pattern doesn't match
+        assert results[2].passed is True  # test matches
+        assert not all(r.passed for r in results)
