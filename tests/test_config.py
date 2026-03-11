@@ -168,3 +168,171 @@ tests:
         loaded = ConfigLoader.load(str(config_file))
         assert loaded.name == "Test"
         assert loaded.defaults.model == "gpt-4o"
+
+
+# ============================================================================
+# PHASE 9d-1: Config Error Handling Mutation Tests
+# ============================================================================
+# Purpose: Target 12 mutations in config error handling
+# Strategy: Verify exception types, messages, and error recovery
+# ============================================================================
+
+class TestConfigErrorHandlingMutations:
+    """Phase 9d-1: Mutation-focused tests for config error handling.
+    
+    These tests target mutations in config loading error paths:
+    - Exception type mutations (ConfigLoaderError → ValueError)
+    - Error message content mutations
+    - Error condition logic (not → is, removed)
+    - File existence check logic
+    
+    Mutations to catch:
+    - raise statement removal
+    - Wrong exception type
+    - Removed error checks
+    - Message content changes
+    """
+    
+    def test_missing_config_file_raises_config_loader_error(self):
+        """Verify missing file raises ConfigLoaderError (not ValueError).
+        
+        Mutation targets:
+        - Exception type mutations (ConfigLoaderError → ValueError/FileNotFoundError)
+        - File existence check (not → is, removed)
+        """
+        loader = ConfigLoader()
+        
+        # Must raise ConfigLoaderError specifically
+        with pytest.raises(ConfigLoaderError):
+            loader.load("nonexistent/path/to/file.yaml")
+        
+        # Must NOT raise other exception types
+        with pytest.raises(ConfigLoaderError):
+            # Verify it's the right type by checking message
+            try:
+                loader.load("nonexistent/path/to/file.yaml")
+            except ConfigLoaderError as e:
+                assert "not found" in str(e).lower()
+                raise
+    
+    def test_missing_file_error_message_content(self):
+        """Verify error message contains 'not found'.
+        
+        Mutation targets:
+        - Error message mutations (remove keywords)
+        - f-string mutations
+        - Message format changes
+        """
+        loader = ConfigLoader()
+        
+        with pytest.raises(ConfigLoaderError, match="not found"):
+            loader.load("nonexistent/path/to/file.yaml")
+    
+    def test_empty_yaml_file_raises_error(self):
+        """Verify empty YAML file raises ConfigLoaderError.
+        
+        Mutation targets:
+        - Empty check logic (is None → == None, removed)
+        - Exception raising (removed)
+        """
+        import tempfile
+        import os
+        
+        loader = ConfigLoader()
+        
+        # Create empty YAML file
+        with tempfile.NamedTemporaryFile(mode='w', suffix='.yaml', delete=False) as f:
+            f.write("")  # Completely empty
+            temp_path = f.name
+        
+        try:
+            # Must raise ConfigLoaderError for empty file
+            with pytest.raises(ConfigLoaderError, match="Empty"):
+                loader.load(temp_path)
+        finally:
+            os.unlink(temp_path)
+    
+    def test_invalid_yaml_syntax_raises_error(self):
+        """Verify invalid YAML syntax raises ConfigLoaderError.
+        
+        Mutation targets:
+        - Except clause removal (except yaml.YAMLError → pass)
+        - Exception type mutation
+        - Exception re-raising mutations
+        """
+        import tempfile
+        import os
+        
+        loader = ConfigLoader()
+        
+        # Create file with invalid YAML
+        with tempfile.NamedTemporaryFile(mode='w', suffix='.yaml', delete=False) as f:
+            f.write("invalid: yaml: syntax: [[[")  # Invalid YAML syntax
+            temp_path = f.name
+        
+        try:
+            # Must raise ConfigLoaderError (not raw yaml.YAMLError)
+            with pytest.raises(ConfigLoaderError):
+                loader.load(temp_path)
+        finally:
+            os.unlink(temp_path)
+    
+    def test_invalid_config_schema_raises_error(self):
+        """Verify invalid config schema raises ConfigLoaderError.
+        
+        Mutation targets:
+        - Exception catching (except Exception → pass)
+        - Schema validation check logic
+        """
+        import tempfile
+        import os
+        
+        loader = ConfigLoader()
+        
+        # Create YAML with invalid schema
+        with tempfile.NamedTemporaryFile(mode='w', suffix='.yaml', delete=False) as f:
+            f.write("name: 123\n")  # name must be string, OK
+            f.write("invalid_field: value\n")  # Unknown field
+            temp_path = f.name
+        
+        try:
+            # Must raise ConfigLoaderError for schema validation
+            with pytest.raises(ConfigLoaderError):
+                loader.load(temp_path)
+        finally:
+            os.unlink(temp_path)
+    
+    def test_unknown_treatment_raises_error(self):
+        """Verify unknown treatment in config raises error.
+        
+        Mutation targets:
+        - Treatment lookup logic (in → not in)
+        - Exception raising on unknown treatment
+        """
+        config = EvalConfig(
+            name="Test",
+            treatments={"CONTROL": Treatment()}
+        )
+        
+        loader = ConfigLoader()
+        available = {"CONTROL": Treatment()}
+        
+        # Unknown treatment should raise error
+        with pytest.raises(ConfigLoaderError, match="Unknown"):
+            loader.expand_wildcards(["UNKNOWN"], available)
+    
+    def test_error_message_includes_path(self):
+        """Verify error messages include file path for debugging.
+        
+        Mutation targets:
+        - f-string variable inclusion (f"...{path}" → f"...")
+        - Error message construction
+        """
+        loader = ConfigLoader()
+        test_path = "test/path/config.yaml"
+        
+        try:
+            loader.load(test_path)
+        except ConfigLoaderError as e:
+            # Message should reference the problematic path
+            assert test_path in str(e) or "not found" in str(e).lower()

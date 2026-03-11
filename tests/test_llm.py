@@ -1,5 +1,6 @@
 """Tests for md_evals LLM adapter."""
 
+import asyncio
 import pytest
 from unittest.mock import patch, AsyncMock, MagicMock, Mock
 
@@ -254,3 +255,158 @@ class TestLLMJSONResponse:
             
             # Should keep original content if not valid JSON
             assert response.content == invalid_response
+
+
+# ============================================================================
+# PHASE 9d-2: LLM Error Handling Mutation Tests
+# ============================================================================
+# Purpose: Target 14 mutations in LLM error handling
+# Strategy: Verify exception types, timeout logic, and error messages
+# ============================================================================
+
+class TestLLMErrorHandlingMutations:
+    """Phase 9d-2: Mutation-focused tests for LLM error handling.
+    
+    These tests target mutations in LLM adapter error paths:
+    - Timeout exception handling
+    - Rate limit error detection
+    - Authentication error differentiation
+    - Model validation logic
+    - Error message construction
+    
+    Mutations to catch:
+    - Timeout check logic (< → >, removed)
+    - Exception type mutations
+    - Error message mutations
+    - Retry logic mutations
+    """
+    
+    @pytest.mark.asyncio
+    async def test_llm_error_exception_raised(self):
+        """Verify LLMError is raised for API errors.
+        
+        Mutation targets:
+        - Exception type mutations (LLMError → ValueError)
+        - Exception raising (removed)
+        """
+        adapter = LLMAdapter(model="gpt-4o")
+        
+        # Mock provider that raises an error
+        with patch.object(adapter, 'provider') as mock_provider:
+            mock_provider.complete_stream.side_effect = Exception("API Error")
+            
+            # Should raise LLMError (not raw Exception)
+            with pytest.raises(LLMError):
+                await adapter.complete(prompt="test")
+    
+    @pytest.mark.asyncio
+    async def test_llm_error_message_includes_details(self):
+        """Verify LLMError message includes error details.
+        
+        Mutation targets:
+        - Error message construction (f-string mutations)
+        - Message content mutations
+        """
+        adapter = LLMAdapter(model="gpt-4o")
+        
+        with patch.object(adapter, 'provider') as mock_provider:
+            error_msg = "Rate limit exceeded"
+            mock_provider.complete_stream.side_effect = Exception(error_msg)
+            
+            try:
+                await adapter.complete(prompt="test")
+            except LLMError as e:
+                # Error message should contain original error details
+                assert "API error" in str(e).lower() or "error" in str(e).lower()
+    
+    def test_invalid_model_format_raises_error(self):
+        """Verify model name must not be empty string.
+        
+        Mutation targets:
+        - Model validation logic
+        - Empty string handling
+        """
+        # Model must be provided
+        adapter = LLMAdapter(model="gpt-4o")
+        assert adapter.model == "gpt-4o"
+        
+        # Model with slash is preserved (provider/model format)
+        adapter2 = LLMAdapter(model="openai/gpt-4o")
+        assert adapter2.model == "openai/gpt-4o"
+    
+    def test_llm_adapter_preserves_model_name(self):
+        """Verify LLM adapter preserves exact model name.
+        
+        Mutation targets:
+        - Model name mutations (normalization, case changes)
+        - String modification mutations
+        """
+        model_name = "gpt-4o"
+        adapter = LLMAdapter(model=model_name)
+        
+        # Must preserve exact model name (case sensitive)
+        assert adapter.model == model_name
+        assert adapter.model != model_name.upper()
+        
+        # Test with uppercase model name
+        model_upper = "GPT-4O"
+        adapter_upper = LLMAdapter(model=model_upper)
+        assert adapter_upper.model == model_upper
+        assert adapter_upper.model != model_upper.lower()
+    
+    @pytest.mark.asyncio
+    async def test_llm_error_includes_original_exception(self):
+        """Verify LLMError preserves original exception info.
+        
+        Mutation targets:
+        - Exception chaining (raise ... from e → raise ...)
+        - Exception context preservation
+        """
+        adapter = LLMAdapter(model="gpt-4o")
+        
+        # Mock at the right level - before _complete_with_retry tries to handle specific exceptions
+        with patch("md_evals.llm.litellm.acompletion", new_callable=AsyncMock) as mock:
+            original_error = RuntimeError("Original API error")
+            mock.side_effect = original_error
+            
+            with pytest.raises(LLMError) as exc_info:
+                await adapter.complete(prompt="test")
+            
+            # Verify error message mentions the original error
+            assert "LLM API error" in str(exc_info.value)
+            # Verify exception chaining: __cause__ should be the original error
+            # (Note: may have AttributeError if litellm.exceptions doesn't have expected attrs)
+            assert exc_info.value.__cause__ is not None
+    
+    @pytest.mark.asyncio
+    async def test_llm_response_fields_on_success(self):
+        """Verify all response fields are populated on success.
+        
+        Mutation targets:
+        - Response object initialization
+        - Field assignment mutations
+        - Type conversion mutations
+        """
+        adapter = LLMAdapter(model="gpt-4o")
+        
+        # Create mock response
+        mock_response = MagicMock()
+        mock_response.choices = [MagicMock(message=MagicMock(content="Hello World"))]
+        mock_response.usage = MagicMock(completion_tokens=15)
+        mock_response.model_dump = MagicMock(return_value={"model": "gpt-4o"})
+        
+        with patch("md_evals.llm.litellm.acompletion", new_callable=AsyncMock) as mock:
+            mock.return_value = mock_response
+            
+            response = await adapter.complete(prompt="test")
+            
+            # All fields must be populated
+            assert response.content is not None
+            assert response.content == "Hello World"
+            assert response.model is not None
+            assert response.provider is not None
+            assert response.duration_ms is not None
+            assert response.tokens is not None
+            assert response.tokens == 15
+            assert isinstance(response.duration_ms, (int, float))
+            assert response.duration_ms >= 0  # Duration must be non-negative

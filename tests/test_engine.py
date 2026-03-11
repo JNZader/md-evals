@@ -1320,3 +1320,157 @@ class TestVariableSubstitutionMutations:
         assert result.prompt == "Bob and Bob said Bob"
         assert result.prompt.count("Bob") == 3
         assert "{name}" not in result.prompt
+
+
+@pytest.mark.unit
+class TestEngineErrorRecoveryMutations:
+    """Phase 9d-3: Mutation-focused tests for engine error recovery."""
+    
+    @pytest.mark.asyncio
+    async def test_llm_error_creates_error_response(self):
+        """Verify LLM errors create error response with proper fields.
+        
+        Mutation targets:
+        - Error response construction
+        - LLMResponse field mutations
+        """
+        from md_evals.llm import LLMError
+        
+        config = EvalConfig(
+            name="Test",
+            defaults=Defaults(model="gpt-4o"),
+            treatments={"CONTROL": Treatment(skill_path=None)},
+            tests=[Task(name="test", prompt="test", evaluators=[])]
+        )
+        
+        mock_adapter = MagicMock()
+        mock_adapter.complete = AsyncMock(side_effect=LLMError("API Error"))
+        
+        engine = ExecutionEngine(config, mock_adapter)
+        result = await engine.run_single(
+            Treatment(skill_path=None),
+            Task(name="test", prompt="test", evaluators=[]),
+            "CONTROL"
+        )
+        
+        # Error response should have proper structure
+        assert result.response is not None
+        assert result.response.model == "error"
+        assert result.response.provider == "error"
+        # Error info is in raw_response dict
+        assert "error" in result.response.raw_response
+    
+    @pytest.mark.asyncio
+    async def test_error_response_duration_is_zero(self):
+        """Verify error responses have 0 duration.
+        
+        Mutation targets:
+        - Default value mutations (0 → 1, -1)
+        - Error response assignment logic
+        """
+        from md_evals.llm import LLMError
+        
+        config = EvalConfig(
+            name="Test",
+            defaults=Defaults(model="gpt-4o"),
+            treatments={"CONTROL": Treatment(skill_path=None)},
+            tests=[Task(name="test", prompt="test", evaluators=[])]
+        )
+        
+        mock_adapter = MagicMock()
+        mock_adapter.complete = AsyncMock(side_effect=LLMError("API Error"))
+        
+        engine = ExecutionEngine(config, mock_adapter)
+        result = await engine.run_single(
+            Treatment(skill_path=None),
+            Task(name="test", prompt="test", evaluators=[]),
+            "CONTROL"
+        )
+        
+        # Duration for error must be 0
+        assert result.response.duration_ms == 0
+        assert result.response.duration_ms >= 0
+        assert isinstance(result.response.duration_ms, int)
+    
+    @pytest.mark.asyncio
+    async def test_error_disqualifies_all_evaluators(self):
+        """Verify error response fails all evaluators.
+        
+        Mutation targets:
+        - Passed flag logic (should be False)
+        - Evaluator execution logic
+        """
+        from md_evals.llm import LLMError
+        from md_evals.evaluator import EvaluatorEngine
+        
+        config = EvalConfig(
+            name="Test",
+            defaults=Defaults(model="gpt-4o"),
+            treatments={"CONTROL": Treatment(skill_path=None)},
+            tests=[Task(
+                name="test",
+                prompt="test",
+                evaluators=[
+                    RegexEvaluator(name="eval1", pattern=".*", pass_on_match=True)
+                ]
+            )]
+        )
+        
+        mock_adapter = MagicMock()
+        mock_adapter.complete = AsyncMock(side_effect=LLMError("API Error"))
+        
+        engine = ExecutionEngine(
+            config,
+            mock_adapter,
+            EvaluatorEngine()
+        )
+        
+        task = Task(
+            name="test",
+            prompt="test",
+            evaluators=[
+                RegexEvaluator(name="eval1", pattern=".*", pass_on_match=True)
+            ]
+        )
+        
+        result = await engine.run_single(Treatment(skill_path=None), task, "CONTROL")
+        
+        # Error means task failed
+        assert result.passed is False
+        # No evaluators run when LLM errors (evaluators can't run without content)
+        assert len(result.evaluator_results) == 0
+    
+    @pytest.mark.asyncio
+    async def test_error_propagates_to_result(self):
+        """Verify error status is preserved in result.
+        
+        Mutation targets:
+        - Error flag/status field mutations
+        - Result initialization
+        """
+        from md_evals.llm import LLMError
+        
+        config = EvalConfig(
+            name="Test",
+            defaults=Defaults(model="gpt-4o"),
+            treatments={"CONTROL": Treatment(skill_path=None)},
+            tests=[Task(name="test", prompt="test", evaluators=[])]
+        )
+        
+        mock_adapter = MagicMock()
+        mock_adapter.complete = AsyncMock(side_effect=LLMError("Timeout"))
+        
+        engine = ExecutionEngine(config, mock_adapter)
+        result = await engine.run_single(
+            Treatment(skill_path=None),
+            Task(name="test", prompt="test", evaluators=[]),
+            "CONTROL"
+        )
+        
+        # Result indicates error occurred
+        assert result.passed is False
+        # Error model/provider are marked as "error"
+        assert result.response.model == "error"
+        assert result.response.provider == "error"
+        # Error message is in raw_response
+        assert "timeout" in result.response.raw_response.get("error", "").lower()

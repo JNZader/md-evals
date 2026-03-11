@@ -1237,3 +1237,80 @@ class TestScoreNormalizationMutations:
         assert results[1].passed is False  # missing_pattern doesn't match
         assert results[2].passed is True  # test matches
         assert not all(r.passed for r in results)
+
+
+@pytest.mark.unit
+class TestEvaluatorErrorHandlingMutations:
+    """Phase 9d-4: Mutation-focused tests for evaluator error handling."""
+    
+    def test_regex_error_creates_failed_result(self):
+        """Verify invalid regex creates failed result (not exception).
+        
+        Mutation targets:
+        - Exception catching (except → pass)
+        - Error result construction
+        - Result field initialization
+        """
+        engine = EvaluatorEngine()
+        
+        evaluator = RegexEvaluator(
+            name="invalid_regex",
+            pattern="[invalid",  # Invalid regex syntax
+            pass_on_match=True
+        )
+        
+        result = engine._evaluate_regex("test output", evaluator)
+        
+        # Must return failed result, not raise exception
+        assert result is not None
+        assert result.passed is False
+        assert result.score == 0.0
+        assert result.evaluator_name == "invalid_regex"
+        assert result.reason is not None  # Has error message
+        assert "Invalid regex" in result.reason
+    
+    def test_exact_match_type_error_handling(self):
+        """Verify exact match with expected value.
+        
+        Mutation targets:
+        - Case sensitivity mutations
+        - String comparison logic
+        """
+        engine = EvaluatorEngine()
+        
+        evaluator = ExactMatchEvaluator(
+            name="test",
+            expected="Hello",
+            case_sensitive=False
+        )
+        
+        # Case insensitive match
+        result = engine._evaluate_exact_match("hello world", evaluator)
+        
+        # Should match due to case insensitivity
+        assert result is not None
+        assert result.passed is True
+        assert result.evaluator_name == "test"
+    
+    def test_exact_match_case_sensitive_mismatch(self):
+        """Verify case sensitivity in exact match.
+        
+        Mutation targets:
+        - Case sensitivity toggle (case_sensitive True → False)
+        - String comparison logic mutations
+        """
+        engine = EvaluatorEngine()
+        
+        evaluator = ExactMatchEvaluator(
+            name="test",
+            expected="Hello",
+            case_sensitive=True
+        )
+        
+        # Case sensitive - no match because case differs
+        result = engine._evaluate_exact_match("hello world", evaluator)
+        
+        # Should not match - case sensitive and case doesn't match
+        assert result is not None
+        assert result.passed is False
+        assert result.evaluator_name == "test"
