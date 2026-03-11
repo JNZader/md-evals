@@ -35,7 +35,13 @@ dev = [
     "pytest-asyncio>=0.23.0",
     "pytest-xdist>=3.5.0",
     "pytest-mock>=3.12.0",
+    "pytest-cov>=7.0.0",
+    "pytest-html>=4.1.1",
+    "pytest-json-report>=1.5.0",
+    "pytest-timeout>=2.1.0",
+    "pytest-benchmark>=4.0.0",
     "ruff>=0.3.0",
+    "coverage[toml]>=7.4.0",
 ]
 github-models = [
     "python-dotenv>=1.0.0",
@@ -58,3 +64,57 @@ target-version = "py312"
 [tool.pytest.ini_options]
 asyncio_mode = "auto"
 testpaths = ["tests"]
+# Coverage settings
+addopts = [
+    "--cov=md_evals",
+    "--cov-report=term-missing:skip-covered",
+    "--cov-report=html:htmlcov",
+    "--cov-report=xml:coverage.xml",
+    "--cov-report=json:coverage.json",
+    "--cov-branch",
+    "--strict-markers",
+    "-v",
+    "--tb=short",
+    "--durations=10",
+]
+
+# Coverage thresholds
+# Uncomment to enforce minimum coverage in CI
+# [tool.coverage.report]
+# fail_under = 96
+
+[tool.coverage.run]
+source = ["md_evals"]
+branch = true
+omit = [
+    "*/tests/*",
+    "*/test_*.py",
+    "*/__main__.py",
+]
+
+[tool.coverage.report]
+precision = 2
+show_missing = true
+skip_covered = false
+exclude_lines = [
+    "pragma: no cover",
+    "def __repr__",
+    "raise AssertionError",
+    "raise NotImplementedError",
+    "if __name__ == .__main__.:",
+    "if TYPE_CHECKING:",
+    "if (typing\\.)?TYPE_CHECKING:",
+    "class .*\\(Protocol\\):",
+    "@(abc\\.)?abstractmethod",
+    "@overload",
+]
+
+[tool.coverage.html]
+directory = "htmlcov"
+
+[tool.coverage.xml]
+output = "coverage.xml"
+
+[tool.coverage.json]
+output = "coverage.json"
+pretty_print = true
