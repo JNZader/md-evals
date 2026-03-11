@@ -833,6 +833,12 @@ class TestVersionCommand:
 class TestHelpMessages:
     """Test help messages for commands."""
     
+    @staticmethod
+    def _strip_ansi(text):
+        """Remove ANSI escape codes from text for testing."""
+        import re
+        return re.sub(r'\x1b\[[0-9;]*m', '', text)
+    
     def test_run_help_output(self):
         """Test run command help message."""
         from typer.testing import CliRunner
@@ -841,10 +847,12 @@ class TestHelpMessages:
         result = runner.invoke(app, ["run", "--help"])
         
         assert result.exit_code == 0
-        assert "--config" in result.stdout
-        assert "--debug" in result.stdout
-        assert "--provider" in result.stdout
-    
+        # Strip ANSI codes before checking for options
+        clean_output = self._strip_ansi(result.stdout)
+        assert "--config" in clean_output
+        assert "--debug" in clean_output
+        assert "--provider" in clean_output
+     
     def test_init_help_output(self):
         """Test init command help message."""
         from typer.testing import CliRunner
@@ -853,7 +861,8 @@ class TestHelpMessages:
         result = runner.invoke(app, ["init", "--help"])
         
         assert result.exit_code == 0
-        assert "--force" in result.stdout or "-f" in result.stdout
+        clean_output = self._strip_ansi(result.stdout)
+        assert "--force" in clean_output or "-f" in clean_output
     
     def test_lint_help_output(self):
         """Test lint command help message."""
@@ -863,8 +872,9 @@ class TestHelpMessages:
         result = runner.invoke(app, ["lint", "--help"])
         
         assert result.exit_code == 0
-        assert "--fail" in result.stdout or "-f" in result.stdout
-        assert "--verbose" in result.stdout or "-v" in result.stdout
+        clean_output = self._strip_ansi(result.stdout)
+        assert "--fail" in clean_output or "-f" in clean_output
+        assert "--verbose" in clean_output or "-v" in clean_output
     
     def test_list_models_help_output(self):
         """Test list-models command help message."""
@@ -874,8 +884,9 @@ class TestHelpMessages:
         result = runner.invoke(app, ["list-models", "--help"])
         
         assert result.exit_code == 0
-        assert "--provider" in result.stdout or "-p" in result.stdout
-        assert "--verbose" in result.stdout or "-v" in result.stdout
+        clean_output = self._strip_ansi(result.stdout)
+        assert "--provider" in clean_output or "-p" in clean_output
+        assert "--verbose" in clean_output or "-v" in clean_output
 
 
 class TestExecutionExitCodes:
