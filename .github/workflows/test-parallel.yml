@@ -63,12 +63,12 @@ jobs:
           fail_ci_if_error: false
           verbose: true
 
-      - name: Upload test results
-        uses: actions/upload-artifact@v3
-        if: always()
-        with:
-          name: test-results-py${{ matrix.python-version }}
-          path: test-results.xml
+       - name: Upload test results
+         uses: actions/upload-artifact@v4
+         if: always()
+         with:
+           name: test-results-py${{ matrix.python-version }}
+           path: test-results.xml
 
   # Optional: Performance comparison job
   performance:
