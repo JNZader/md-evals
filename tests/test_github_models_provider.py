@@ -858,3 +858,198 @@ class TestTokenEstimationMutations:
         assert GitHubModelsProvider._estimate_tokens("a" * 6) == 1
         assert GitHubModelsProvider._estimate_tokens("a" * 7) == 1
         assert GitHubModelsProvider._estimate_tokens("a" * 8) == 2
+
+
+# ===== FASE 12-4: Numeric Computation Properties (Property-Based Testing) =====
+
+from hypothesis import given, settings, HealthCheck
+from hypothesis import strategies as st
+
+
+class TestGitHubModelsNumericProperties:
+    """Property-based tests for numeric computation in GitHub Models provider."""
+    
+    @given(
+        text_length=st.integers(min_value=0, max_value=10000)
+    )
+    @settings(suppress_health_check=[HealthCheck.filter_too_much])
+    def test_token_estimation_never_negative(self, text_length):
+        """
+        Property: Token estimation always returns non-negative values.
+        This catches mutations that could cause negative token counts.
+        """
+        from md_evals.providers.github_models import GitHubModelsProvider
+        
+        # Create text of the specified length
+        text = "a" * text_length
+        estimated = GitHubModelsProvider._estimate_tokens(text)
+        
+        # Property: Never negative
+        assert estimated >= 0, f"Token count should be non-negative, got {estimated}"
+        
+        # Property: Integer result
+        assert isinstance(estimated, int), "Token count must be an integer"
+        
+        # Property: For empty text, return 0
+        if text_length == 0:
+            assert estimated == 0, "Empty text should give 0 tokens"
+        else:
+            # For non-empty text, at least 1 token
+            assert estimated >= 1, "Non-empty text should have at least 1 token"
+    
+    @given(
+        text_length=st.integers(min_value=1, max_value=5000)
+    )
+    @settings(suppress_health_check=[HealthCheck.filter_too_much])
+    def test_token_estimation_monotonic_growth(self, text_length):
+        """
+        Property: Token estimation grows monotonically with text length.
+        Longer text always produces same or more tokens.
+        """
+        from md_evals.providers.github_models import GitHubModelsProvider
+        
+        text1 = "a" * text_length
+        tokens1 = GitHubModelsProvider._estimate_tokens(text1)
+        
+        # Property: More text = more or equal tokens
+        text2 = "a" * (text_length + 4)
+        tokens2 = GitHubModelsProvider._estimate_tokens(text2)
+        
+        assert tokens2 >= tokens1, (
+            f"Longer text should produce >= tokens: "
+            f"{text_length} chars → {tokens1} tokens, "
+            f"{text_length + 4} chars → {tokens2} tokens"
+        )
+    
+    @given(
+        text_length=st.integers(min_value=1, max_value=5000)
+    )
+    @settings(suppress_health_check=[HealthCheck.filter_too_much])
+    def test_token_estimation_consistency(self, text_length):
+        """
+        Property: Token estimation is deterministic.
+        Same text always produces same token count (no randomness).
+        """
+        from md_evals.providers.github_models import GitHubModelsProvider
+        
+        text = "a" * text_length
+        
+        # Call multiple times - should get same result
+        tokens1 = GitHubModelsProvider._estimate_tokens(text)
+        tokens2 = GitHubModelsProvider._estimate_tokens(text)
+        tokens3 = GitHubModelsProvider._estimate_tokens(text)
+        
+        # Property: Consistent results
+        assert tokens1 == tokens2 == tokens3, (
+            f"Token estimation should be deterministic: "
+            f"{tokens1}, {tokens2}, {tokens3}"
+        )
+    
+    @given(
+        text_length=st.integers(min_value=0, max_value=10000)
+    )
+    @settings(suppress_health_check=[HealthCheck.filter_too_much])
+    def test_token_estimation_approximation_ratio(self, text_length):
+        """
+        Property: Token estimation approximates 1 token per 4 characters.
+        This verifies the linear approximation formula is correct.
+        """
+        from md_evals.providers.github_models import GitHubModelsProvider
+        
+        text = "a" * text_length
+        estimated = GitHubModelsProvider._estimate_tokens(text)
+        
+        # Property: For text_length >= 4, estimated ≈ text_length / 4
+        if text_length > 0:
+            # Expected from floor division: text_length // 4, but at least 1
+            expected = max(1, text_length // 4)
+            assert estimated == expected, (
+                f"Token estimation formula incorrect: "
+                f"{text_length} chars should give {expected} tokens, "
+                f"got {estimated}"
+            )
+    
+    @given(
+        text_length1=st.integers(min_value=1, max_value=2000),
+        text_length2=st.integers(min_value=1, max_value=2000)
+    )
+    @settings(suppress_health_check=[HealthCheck.filter_too_much])
+    def test_token_estimation_additivity(self, text_length1, text_length2):
+        """
+        Property: Token counts are approximately additive.
+        tokens(text1 + text2) ≈ tokens(text1) + tokens(text2)
+        Verifies linear scaling property.
+        """
+        from md_evals.providers.github_models import GitHubModelsProvider
+        
+        text1 = "a" * text_length1
+        text2 = "b" * text_length2
+        combined = text1 + text2
+        
+        tokens1 = GitHubModelsProvider._estimate_tokens(text1)
+        tokens2 = GitHubModelsProvider._estimate_tokens(text2)
+        tokens_combined = GitHubModelsProvider._estimate_tokens(combined)
+        
+        # Property: Combined should equal sum (with floor rounding)
+        expected_sum = max(1, (text_length1 + text_length2) // 4)
+        assert tokens_combined == expected_sum, (
+            f"Token additivity failed: "
+            f"{text_length1} chars → {tokens1}, "
+            f"{text_length2} chars → {tokens2}, "
+            f"combined {text_length1 + text_length2} chars → {tokens_combined}, "
+            f"expected {expected_sum}"
+        )
+    
+    @given(
+        text_length=st.integers(min_value=0, max_value=10000)
+    )
+    @settings(suppress_health_check=[HealthCheck.filter_too_much])
+    def test_token_estimation_no_overflow(self, text_length):
+        """
+        Property: Token estimation handles large inputs without overflow.
+        Results should be finite and reasonable.
+        """
+        from md_evals.providers.github_models import GitHubModelsProvider
+        
+        text = "a" * text_length
+        estimated = GitHubModelsProvider._estimate_tokens(text)
+        
+        # Property: Result should be finite
+        assert isinstance(estimated, int), "Result must be an integer"
+        assert estimated >= 0, "Result must be non-negative"
+        
+        # Property: Result should be reasonable
+        # Expected: approximately text_length / 4
+        expected_max = max(1, text_length // 4) + 1  # Allow ±1 for edge cases
+        assert estimated <= expected_max, (
+            f"Token count unreasonably high: "
+            f"{text_length} chars → {estimated} tokens"
+        )
+    
+    @given(
+        text_length=st.integers(min_value=1, max_value=1000)
+    )
+    @settings(suppress_health_check=[HealthCheck.filter_too_much])
+    def test_token_estimation_text_type_invariant(self, text_length):
+        """
+        Property: Token estimation depends only on text length, not content.
+        Different text of same length gives same token count.
+        """
+        from md_evals.providers.github_models import GitHubModelsProvider
+        
+        # Create different texts of same length
+        text_a = "a" * text_length
+        text_b = "b" * text_length
+        text_c = "x" * text_length
+        
+        tokens_a = GitHubModelsProvider._estimate_tokens(text_a)
+        tokens_b = GitHubModelsProvider._estimate_tokens(text_b)
+        tokens_c = GitHubModelsProvider._estimate_tokens(text_c)
+        
+        # Property: All should have same token count (since length is same)
+        assert tokens_a == tokens_b == tokens_c, (
+            f"Token count should depend only on length, not content: "
+            f"'a'*{text_length} → {tokens_a}, "
+            f"'b'*{text_length} → {tokens_b}, "
+            f"'x'*{text_length} → {tokens_c}"
+        )
