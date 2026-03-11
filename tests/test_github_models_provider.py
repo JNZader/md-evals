@@ -800,3 +800,61 @@ class TestGitHubModelsAPIErrorMutations:
                 
                 error_msg = str(exc_info.value)
                 assert "authentication" in error_msg.lower() or "token" in error_msg.lower()
+
+class TestTokenEstimationMutations:
+    """Mutation tests for token estimation logic in GitHubModelsProvider."""
+
+    def test_token_calculation_factor_mutation(self):
+        """Verify token calculation uses correct factor (4 chars per token)."""
+        from md_evals.providers.github_models import GitHubModelsProvider
+        assert GitHubModelsProvider._estimate_tokens("a" * 100) == 25
+        assert GitHubModelsProvider._estimate_tokens("a" * 1000) == 250
+        assert GitHubModelsProvider._estimate_tokens("a" * 40) == 10
+
+    def test_token_limit_boundary_mutation(self):
+        """Verify empty text returns 0, small text returns at least 1."""
+        from md_evals.providers.github_models import GitHubModelsProvider
+        assert GitHubModelsProvider._estimate_tokens("") == 0
+        assert GitHubModelsProvider._estimate_tokens("a") >= 1
+        assert GitHubModelsProvider._estimate_tokens("abc") >= 1
+
+    def test_rounding_method_mutation(self):
+        """Verify rounding uses floor division (// not ceil)."""
+        from md_evals.providers.github_models import GitHubModelsProvider
+        # 5/4 = 1.25 → floor=1, ceil=2
+        assert GitHubModelsProvider._estimate_tokens("abcde") == 1
+        # 9/4 = 2.25 → floor=2, ceil=3
+        assert GitHubModelsProvider._estimate_tokens("abcdefghi") == 2
+        # 11/4 = 2.75 → floor=2, ceil=3
+        assert GitHubModelsProvider._estimate_tokens("a" * 11) == 2
+
+    def test_empty_text_fallback_mutation(self):
+        """Verify empty text returns 0, non-empty returns at least 1."""
+        from md_evals.providers.github_models import GitHubModelsProvider
+        assert GitHubModelsProvider._estimate_tokens("") == 0
+        assert GitHubModelsProvider._estimate_tokens("   ") >= 1
+
+    def test_token_estimation_consistency(self):
+        """Verify token estimation is consistent and scales linearly."""
+        from md_evals.providers.github_models import GitHubModelsProvider
+        text = "a" * 400
+        assert GitHubModelsProvider._estimate_tokens(text) == 100
+        assert GitHubModelsProvider._estimate_tokens("a" * 800) == 200
+
+    def test_token_validation_large_text(self):
+        """Verify token estimation handles large text without overflow."""
+        from md_evals.providers.github_models import GitHubModelsProvider
+        huge = "a" * (10**6)
+        estimated = GitHubModelsProvider._estimate_tokens(huge)
+        assert estimated == 250_000
+        assert estimated > 0
+        assert isinstance(estimated, int)
+
+    def test_token_estimation_boundary_cases(self):
+        """Verify token estimation on specific boundary cases."""
+        from md_evals.providers.github_models import GitHubModelsProvider
+        assert GitHubModelsProvider._estimate_tokens("a" * 4) == 1
+        assert GitHubModelsProvider._estimate_tokens("a" * 5) == 1
+        assert GitHubModelsProvider._estimate_tokens("a" * 6) == 1
+        assert GitHubModelsProvider._estimate_tokens("a" * 7) == 1
+        assert GitHubModelsProvider._estimate_tokens("a" * 8) == 2
