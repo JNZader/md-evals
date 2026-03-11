@@ -1314,3 +1314,165 @@ class TestEvaluatorErrorHandlingMutations:
         assert result is not None
         assert result.passed is False
         assert result.evaluator_name == "test"
+
+
+class TestEvaluatorBoundaryCasesMutations:
+    """
+    Phase 10-4: Advanced mutation testing for evaluator boundary cases.
+    
+    These tests target specific mutations in regex and matching logic:
+    - Regex flag mutations (IGNORECASE, MULTILINE removal)
+    - Match inversion mutations (is None ↔ is not None)
+    - Case sensitivity mutations (case_sensitive True ↔ False)
+    - Boundary condition mutations (empty string, unicode, special chars)
+    
+    Coverage Focus: evaluator.py lines 65-107 (regex and exact match evaluation)
+    Expected: +1-2% mutation kill rate improvement
+    """
+    
+    def test_regex_ignorecase_flag_required(self):
+        """
+        Mutation Target: Regex flags (line 72)
+        
+        Tests: pattern = re.compile(evaluator.pattern, re.MULTILINE | re.IGNORECASE)
+        
+        Case-insensitive matching is critical. Removing IGNORECASE should fail test.
+        Mutation: Remove re.IGNORECASE flag
+        """
+        engine = EvaluatorEngine()
+        
+        # Pattern with lowercase 'success'
+        evaluator = RegexEvaluator(
+            name="case_test",
+            pattern="success",
+            pass_on_match=True
+        )
+        
+        # Output with uppercase SUCCESS
+        result = engine._evaluate_regex("SUCCESS - test completed", evaluator)
+        
+        # IGNORECASE flag means it should match despite case difference
+        assert result.passed is True
+        assert result.score == 1.0
+    
+    def test_regex_multiline_flag_for_multiline_search(self):
+        """
+        Mutation Target: Regex flags (line 72)
+        
+        Tests: pattern = re.compile(evaluator.pattern, re.MULTILINE | re.IGNORECASE)
+        
+        MULTILINE flag allows ^ and $ to match line boundaries.
+        Mutation: Remove re.MULTILINE flag
+        """
+        engine = EvaluatorEngine()
+        
+        # Pattern using ^ anchor (requires MULTILINE)
+        evaluator = RegexEvaluator(
+            name="multiline_test",
+            pattern="^ERROR:",  # Anchor at line start
+            pass_on_match=True
+        )
+        
+        # Multi-line output with ERROR at start of second line
+        multiline_output = "Some content\nERROR: something failed"
+        result = engine._evaluate_regex(multiline_output, evaluator)
+        
+        # MULTILINE flag means ^ matches line start, not just string start
+        assert result.passed is True
+        assert result.score == 1.0
+    
+    def test_pass_on_match_true_requires_match_found(self):
+        """
+        Mutation Target: Match logic (line 75)
+        
+        Tests: passed = match is not None if evaluator.pass_on_match else match is None
+        
+        When pass_on_match=True, must find pattern. Mutation would flip logic.
+        Mutation: 'is not None' → 'is None' (inverts pass condition)
+        """
+        engine = EvaluatorEngine()
+        
+        evaluator = RegexEvaluator(
+            name="match_test",
+            pattern="SUCCESS",
+            pass_on_match=True  # Should PASS when pattern FOUND
+        )
+        
+        # Output contains pattern
+        result = engine._evaluate_regex("Task completed SUCCESS", evaluator)
+        
+        # pass_on_match=True + pattern found = should pass
+        assert result.passed is True
+        assert result.score == 1.0
+    
+    def test_pass_on_match_false_requires_no_match(self):
+        """
+        Mutation Target: Match logic (line 75)
+        
+        Tests: passed = match is not None if evaluator.pass_on_match else match is None
+        
+        When pass_on_match=False, must NOT find pattern. Mutation would flip logic.
+        Mutation: 'is None' → 'is not None' (inverts fail condition)
+        """
+        engine = EvaluatorEngine()
+        
+        evaluator = RegexEvaluator(
+            name="no_match_test",
+            pattern="ERROR",
+            pass_on_match=False  # Should PASS when pattern NOT found
+        )
+        
+        # Output does not contain pattern
+        result = engine._evaluate_regex("Task completed successfully", evaluator)
+        
+        # pass_on_match=False + pattern not found = should pass
+        assert result.passed is True
+        assert result.score == 1.0
+    
+    def test_exact_match_with_empty_output(self):
+        """
+        Mutation Target: Boundary case handling
+        
+        Tests: passed = evaluator.expected in output
+        
+        Empty output should not match unless looking for empty string.
+        Mutation: Missing length check or default value
+        """
+        engine = EvaluatorEngine()
+        
+        evaluator = ExactMatchEvaluator(
+            name="empty_test",
+            expected="hello",
+            case_sensitive=False
+        )
+        
+        # Empty output - should not match
+        result = engine._evaluate_exact_match("", evaluator)
+        
+        assert result.passed is False
+        assert result.score == 0.0
+    
+    def test_exact_match_case_insensitive_unicode(self):
+        """
+        Mutation Target: Unicode handling in case insensitivity
+        
+        Tests: evaluator.expected.lower() in output.lower()
+        
+        Unicode case conversion must work correctly.
+        Mutation: Missing .lower() call for unicode
+        """
+        engine = EvaluatorEngine()
+        
+        # Unicode character that has case variants
+        evaluator = ExactMatchEvaluator(
+            name="unicode_test",
+            expected="café",
+            case_sensitive=False
+        )
+        
+        # Output with uppercase variant
+        result = engine._evaluate_exact_match("CAFÉ is great", evaluator)
+        
+        # Case-insensitive with unicode should match
+        assert result.passed is True
+        assert result.score == 1.0
