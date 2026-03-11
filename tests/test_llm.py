@@ -410,3 +410,136 @@ class TestLLMErrorHandlingMutations:
             assert response.tokens == 15
             assert isinstance(response.duration_ms, (int, float))
             assert response.duration_ms >= 0  # Duration must be non-negative
+
+
+class TestLLMAdapterValidationMutations:
+    """
+    Phase 10-3: Advanced mutation testing for LLM Adapter validation.
+    
+    These tests target specific mutations in model validation and response handling:
+    - Model name parsing mutations (/ operator, provider prefix)
+    - Response format validation mutations
+    - Token extraction mutations (hasattr checks, fallback logic)
+    - Error message propagation mutations
+    
+    Coverage Focus: llm.py lines 35-112 (kwargs building, response handling)
+    Expected: +1-2% mutation kill rate improvement
+    """
+    
+    def test_model_name_with_provider_prefix(self):
+        """
+        Mutation Target: Model name building logic (line 44)
+        
+        Tests: "model": f"{self.provider}/{self.model}" if "/" not in self.model else self.model
+        
+        Model with "/" already present should NOT duplicate provider prefix.
+        Mutation: Remove "/" check (would create invalid model string)
+        """
+        # Model with provider prefix should not be modified
+        adapter = LLMAdapter(model="github-models/gpt-4o", provider="custom")
+        kwargs = adapter._build_kwargs()
+        
+        # Should use model as-is since it contains "/"
+        assert kwargs["model"] == "github-models/gpt-4o"
+        # Should NOT create "custom/github-models/gpt-4o"
+        assert kwargs["model"].count("/") == 1
+    
+    def test_model_name_without_provider_prefix(self):
+        """
+        Mutation Target: Model name building logic (line 44)
+        
+        Tests: "model": f"{self.provider}/{self.model}" if "/" not in self.model else self.model
+        
+        Model without "/" should have provider prefix added.
+        Mutation: Remove provider prefix check (would lose provider info)
+        """
+        adapter = LLMAdapter(model="gpt-4o", provider="openai")
+        kwargs = adapter._build_kwargs()
+        
+        # Should add provider prefix since no "/" in model
+        assert kwargs["model"] == "openai/gpt-4o"
+    
+    @pytest.mark.asyncio
+    async def test_response_content_extraction_with_choices(self):
+        """
+        Mutation Target: Response parsing logic (lines 95-98)
+        
+        Tests: if hasattr(response, "choices") and response.choices:
+        
+        Should extract content from response.choices when available.
+        Mutation: Remove hasattr check (would crash on missing attributes)
+        """
+        adapter = LLMAdapter(model="gpt-4o")
+        
+        mock_response = MagicMock()
+        mock_response.choices = [MagicMock(message=MagicMock(content="Test Response"))]
+        mock_response.usage = MagicMock(completion_tokens=10)
+        mock_response.model_dump = MagicMock(return_value={})
+        
+        with patch("md_evals.llm.litellm.acompletion", new_callable=AsyncMock) as mock:
+            mock.return_value = mock_response
+            
+            response = await adapter.complete(prompt="test")
+            
+            # Should extract content from choices
+            assert response.content == "Test Response"
+    
+    @pytest.mark.asyncio
+    async def test_token_count_extraction_with_usage(self):
+        """
+        Mutation Target: Token counting logic (lines 101-103)
+        
+        Tests: if hasattr(response, "usage") and response.usage:
+        
+        Should extract token count from response.usage when available.
+        Mutation: Remove usage check (would lose token count, default to 0)
+        """
+        adapter = LLMAdapter(model="gpt-4o")
+        
+        mock_response = MagicMock()
+        mock_response.choices = [MagicMock(message=MagicMock(content="Test"))]
+        mock_response.usage = MagicMock(completion_tokens=42)
+        mock_response.model_dump = MagicMock(return_value={})
+        
+        with patch("md_evals.llm.litellm.acompletion", new_callable=AsyncMock) as mock:
+            mock.return_value = mock_response
+            
+            response = await adapter.complete(prompt="test")
+            
+            # Should extract token count from usage
+            assert response.tokens == 42
+    
+    @pytest.mark.asyncio
+    async def test_response_fallback_when_no_choices(self):
+        """
+        Mutation Target: Response fallback logic (line 98)
+        
+        Tests: else: content = str(response)
+        
+        Should gracefully handle responses without choices attribute.
+        Mutation: Remove fallback (would crash or return None)
+        """
+        adapter = LLMAdapter(model="gpt-4o")
+        
+        # Create a custom mock that doesn't have choices attribute
+        class CustomResponse:
+            def __init__(self):
+                self.choices = None
+                self.usage = None
+            
+            def __str__(self):
+                return "Fallback Response"
+            
+            def model_dump(self):
+                return {}
+        
+        mock_response = CustomResponse()
+        
+        with patch("md_evals.llm.litellm.acompletion", new_callable=AsyncMock) as mock:
+            mock.return_value = mock_response
+            
+            response = await adapter.complete(prompt="test")
+            
+            # Should handle missing choices gracefully
+            assert response.content is not None
+            assert isinstance(response.content, str)
