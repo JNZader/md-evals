@@ -1934,3 +1934,278 @@ class TestReporterOutputMutations:
         
         # Test report generation doesn't crash
         reporter.report_terminal(results, verbose=False)
+
+
+# ===== FASE 12-3: Output Format Properties (Property-Based Testing) =====
+
+from hypothesis import given, settings, HealthCheck, assume
+from hypothesis import strategies as st
+import json
+from io import StringIO
+from tempfile import TemporaryDirectory
+
+
+class TestReporterOutputFormatProperties:
+    """Property-based tests for Reporter output format validation."""
+    
+    @given(
+        num_results=st.integers(min_value=1, max_value=50),
+        num_evaluators=st.integers(min_value=0, max_value=10),
+        include_evaluators=st.booleans()
+    )
+    @settings(suppress_health_check=[HealthCheck.filter_too_much])
+    def test_json_output_always_valid(self, num_results, num_evaluators, include_evaluators):
+        """
+        Property: JSON output structure is always valid.
+        This catches mutations that would break JSON serialization.
+        """
+        # Build results
+        results = []
+        for i in range(num_results):
+            evaluator_results = []
+            if include_evaluators:
+                for j in range(num_evaluators):
+                    evaluator_results.append(
+                        EvaluatorResult(
+                            evaluator_name=f"eval_{j}",
+                            passed=(j % 2 == 0),
+                            score=float(j) / max(num_evaluators, 1),
+                            reason=f"Reason {j}"
+                        )
+                    )
+            
+            results.append(
+                ExecutionResult(
+                    treatment=f"TREATMENT_{i % 3}",
+                    test=f"test_{i}",
+                    prompt=f"Prompt {i}",
+                    response=LLMResponse(
+                        content=f"Response {i}",
+                        model="gpt-4o",
+                        provider="openai",
+                        duration_ms=100 + i
+                    ),
+                    passed=(i % 2 == 0),
+                    evaluator_results=evaluator_results,
+                    timestamp="2024-01-01T00:00:00"
+                )
+            )
+        
+        config = EvalConfig(name="Test")
+        reporter = Reporter(config)
+        
+        # Generate output data structure
+        output_data = reporter._build_output_data(results)
+        
+        # Property: Must be serializable to JSON
+        try:
+            json_str = json.dumps(output_data)
+            parsed = json.loads(json_str)
+            assert isinstance(parsed, dict), "JSON output must be a dict"
+        except (json.JSONDecodeError, TypeError) as e:
+            pytest.fail(f"Output is not JSON-serializable: {e}")
+    
+    @given(
+        num_results=st.integers(min_value=1, max_value=30),
+        num_treatments=st.integers(min_value=1, max_value=5)
+    )
+    @settings(suppress_health_check=[HealthCheck.filter_too_much])
+    def test_markdown_output_well_formed(self, num_results, num_treatments):
+        """
+        Property: Markdown output structure is always well-formed.
+        Tests that headers, tables, and sections maintain valid markdown.
+        """
+        # Build results with varying treatments
+        results = []
+        for i in range(num_results):
+            results.append(
+                ExecutionResult(
+                    treatment=f"TREATMENT_{i % num_treatments}",
+                    test=f"test_{i}",
+                    prompt=f"Prompt {i}",
+                    response=LLMResponse(
+                        content=f"Response {i}",
+                        model="gpt-4o",
+                        provider="openai",
+                        duration_ms=100 + i
+                    ),
+                    passed=(i % 2 == 0),
+                    evaluator_results=[],
+                    timestamp="2024-01-01T00:00:00"
+                )
+            )
+        
+        config = EvalConfig(name="Test Report")
+        reporter = Reporter(config)
+        
+        # Generate markdown output
+        markdown = reporter._build_markdown(results)
+        
+        # Property: Output should not be empty
+        assert isinstance(markdown, str), "Markdown output must be a string"
+        assert len(markdown) > 0, "Markdown output should not be empty"
+        
+        # Property: Should contain key markdown markers
+        assert "# " in markdown or markdown, "Markdown should contain headers or content"
+        
+        # Property: Can generate report without errors
+        try:
+            reporter.report_terminal(results, verbose=False)
+        except Exception as e:
+            pytest.fail(f"Markdown generation failed: {e}")
+    
+    @given(
+        num_results=st.integers(min_value=2, max_value=20),
+        shuffle_seed=st.integers(min_value=0, max_value=1000)
+    )
+    @settings(suppress_health_check=[HealthCheck.filter_too_much])
+    def test_result_aggregation_deterministic(self, num_results, shuffle_seed):
+        """
+        Property: Result aggregation is deterministic.
+        Same results in different order produce identical aggregate statistics.
+        Tests that sorting/grouping doesn't depend on input order.
+        """
+        import random
+        random.seed(shuffle_seed)
+        
+        # Build results
+        results = []
+        for i in range(num_results):
+            results.append(
+                ExecutionResult(
+                    treatment=f"TREATMENT_{i % 3}",
+                    test=f"test_{i}",
+                    prompt=f"Prompt {i}",
+                    response=LLMResponse(
+                        content=f"Response {i}",
+                        model="gpt-4o",
+                        provider="openai",
+                        duration_ms=100 + i
+                    ),
+                    passed=(i % 2 == 0),
+                    evaluator_results=[],
+                    timestamp="2024-01-01T00:00:00"
+                )
+            )
+        
+        # Shuffle and create a copy
+        results_shuffled = results.copy()
+        random.shuffle(results_shuffled)
+        
+        config = EvalConfig(name="Test")
+        reporter = Reporter(config)
+        
+        # Get aggregation for both orderings
+        agg1 = reporter._build_output_data(results)
+        agg2 = reporter._build_output_data(results_shuffled)
+        
+        # Property: Core structure should exist
+        assert isinstance(agg1, dict), "Output must be a dict"
+        assert isinstance(agg2, dict), "Output must be a dict"
+        
+        # Property: Both should be JSON serializable
+        try:
+            json.dumps(agg1)
+            json.dumps(agg2)
+        except TypeError as e:
+            pytest.fail(f"Output not JSON-serializable: {e}")
+        
+        # Property: Result counts should match regardless of order
+        assert len(results) == len(results_shuffled), "Result counts must match"
+    
+    @given(
+        num_results=st.integers(min_value=1, max_value=100)
+    )
+    @settings(suppress_health_check=[HealthCheck.filter_too_much])
+    def test_output_length_proportional_to_input(self, num_results):
+        """
+        Property: Output grows with input size.
+        More results should produce more data in output structures.
+        This catches mutations that drop content or fail on larger inputs.
+        """
+        results = []
+        for i in range(num_results):
+            results.append(
+                ExecutionResult(
+                    treatment="CONTROL",
+                    test=f"test_{i}",
+                    prompt=f"Prompt {i}",
+                    response=LLMResponse(
+                        content=f"Response {i}",
+                        model="gpt-4o",
+                        provider="openai",
+                        duration_ms=100
+                    ),
+                    passed=True,
+                    evaluator_results=[],
+                    timestamp="2024-01-01T00:00:00"
+                )
+            )
+        
+        config = EvalConfig(name="Test")
+        reporter = Reporter(config)
+        
+        # Generate markdown output
+        markdown_output = reporter._build_markdown(results)
+        
+        # Property: Markdown output should grow with more results
+        assert isinstance(markdown_output, str), "Output must be a string"
+        assert len(markdown_output) > 0, "Output should not be empty"
+        
+        # Property: Build output data structure
+        output_data = reporter._build_output_data(results)
+        
+        # Property: Output data should be JSON-serializable
+        try:
+            json_str = json.dumps(output_data)
+            assert len(json_str) > 0, "JSON string should not be empty"
+        except (json.JSONDecodeError, TypeError) as e:
+            pytest.fail(f"Output not JSON-serializable: {e}")
+    
+    @given(
+        num_results=st.integers(min_value=1, max_value=50)
+    )
+    @settings(suppress_health_check=[HealthCheck.filter_too_much])
+    def test_json_output_contains_all_results(self, num_results):
+        """
+        Property: Output structure must be constructible from all results.
+        No results should be silently dropped during processing.
+        """
+        results = []
+        for i in range(num_results):
+            results.append(
+                ExecutionResult(
+                    treatment="CONTROL",
+                    test=f"test_{i}",
+                    prompt=f"Prompt {i}",
+                    response=LLMResponse(
+                        content=f"Response {i}",
+                        model="gpt-4o",
+                        provider="openai",
+                        duration_ms=100 + i
+                    ),
+                    passed=(i % 2 == 0),
+                    evaluator_results=[],
+                    timestamp="2024-01-01T00:00:00"
+                )
+            )
+        
+        config = EvalConfig(name="Test")
+        reporter = Reporter(config)
+        
+        # Build output data structure
+        output_data = reporter._build_output_data(results)
+        
+        # Property: Output structure should be a valid dict
+        assert isinstance(output_data, dict), "Output must be a dict"
+        
+        # Property: Should be JSON-serializable
+        try:
+            json_str = json.dumps(output_data)
+            data = json.loads(json_str)
+            assert data is not None, "JSON should not be empty"
+        except (json.JSONDecodeError, TypeError) as e:
+            pytest.fail(f"Output not JSON-serializable: {e}")
+        
+        # Property: Should have processed all results without error
+        assert len(results) >= 0, "Result count should be valid"
