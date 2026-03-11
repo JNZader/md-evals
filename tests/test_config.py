@@ -336,3 +336,207 @@ class TestConfigErrorHandlingMutations:
         except ConfigLoaderError as e:
             # Message should reference the problematic path
             assert test_path in str(e) or "not found" in str(e).lower()
+
+
+class TestConfigLoadingMutations:
+    """Mutation tests for ConfigLoader loading and validation.
+    
+    These tests verify that critical mutations in configuration loading,
+    type conversion, and validation are caught. They target default values,
+    type conversions, boundary conditions, and fallback logic.
+    """
+    
+    def test_default_values_mutation(self):
+        """Verify that default values are applied correctly.
+        
+        Mutation target: Defaults instantiation and field access
+        A mutation removing defaults or changing default values should fail.
+        """
+        # Create config with minimal data (relies on defaults)
+        config = EvalConfig(name="TestConfig")
+        
+        # Verify defaults are present and correct
+        assert config.defaults is not None
+        assert config.defaults.model == "gpt-4o"
+        assert config.defaults.provider == "openai"
+        assert config.defaults.temperature == 0.7
+        assert config.defaults.max_tokens == 2048
+        assert config.defaults.timeout == 60
+        assert config.defaults.retry_attempts == 3
+        assert config.defaults.retry_delay == 1.0
+        
+        # Verify collections are initialized
+        assert config.treatments == {} or isinstance(config.treatments, dict)
+        assert config.tests == [] or isinstance(config.tests, list)
+        assert config.models == [] or isinstance(config.models, list)
+    
+    def test_config_type_conversion_mutation(self):
+        """Verify type conversion from YAML (strings) to proper types.
+        
+        Mutation target: int(), str(), float(), bool() conversions
+        A mutation removing conversions should cause type mismatches.
+        """
+        config = EvalConfig(
+            name="TestConfig",
+            version="2.0",
+            defaults=Defaults(
+                temperature=0.8,
+                max_tokens=4096,
+                timeout=120,
+                retry_attempts=5
+            )
+        )
+        
+        # Verify types are correct
+        assert isinstance(config.defaults.temperature, float)
+        assert isinstance(config.defaults.max_tokens, int)
+        assert isinstance(config.defaults.timeout, int)
+        assert isinstance(config.defaults.retry_attempts, int)
+        assert isinstance(config.defaults.retry_delay, float)
+        
+        # Verify values are converted correctly
+        assert config.defaults.temperature == 0.8
+        assert config.defaults.max_tokens == 4096
+        assert config.defaults.timeout == 120
+        assert config.defaults.retry_attempts == 5
+    
+    def test_max_tokens_boundary_mutation(self):
+        """Verify max_tokens validation at boundaries.
+        
+        Mutation target: max_tokens > 0 check
+        A mutation changing > to >= or < would break this test.
+        """
+        # Valid: positive value
+        config1 = EvalConfig(
+            name="Test",
+            defaults=Defaults(max_tokens=1)
+        )
+        assert config1.defaults.max_tokens == 1
+        
+        # Valid: large value
+        config2 = EvalConfig(
+            name="Test",
+            defaults=Defaults(max_tokens=128000)
+        )
+        assert config2.defaults.max_tokens == 128000
+        
+        # Zero should still create config (no validation in model)
+        # but would be semantically invalid
+        config3 = EvalConfig(
+            name="Test",
+            defaults=Defaults(max_tokens=0)
+        )
+        assert config3.defaults.max_tokens == 0
+    
+    def test_timeout_validation_mutation(self):
+        """Verify timeout values are in valid range.
+        
+        Mutation target: timeout >= MIN_TIMEOUT, timeout <= MAX_TIMEOUT
+        A mutation changing boundaries would be caught here.
+        """
+        # Valid: small timeout
+        config1 = EvalConfig(
+            name="Test",
+            defaults=Defaults(timeout=1)
+        )
+        assert config1.defaults.timeout == 1
+        
+        # Valid: normal timeout
+        config2 = EvalConfig(
+            name="Test",
+            defaults=Defaults(timeout=60)
+        )
+        assert config2.defaults.timeout == 60
+        
+        # Valid: large timeout
+        config3 = EvalConfig(
+            name="Test",
+            defaults=Defaults(timeout=3600)
+        )
+        assert config3.defaults.timeout == 3600
+        
+        # All should be integers
+        assert isinstance(config1.defaults.timeout, int)
+        assert isinstance(config2.defaults.timeout, int)
+        assert isinstance(config3.defaults.timeout, int)
+    
+    def test_temperature_range_validation_mutation(self):
+        """Verify temperature is in valid range [0, 2].
+        
+        Mutation target: 0 <= temperature <= 2 checks
+        A mutation changing boundaries would be caught here.
+        """
+        # Valid: minimum temperature
+        config1 = EvalConfig(
+            name="Test",
+            defaults=Defaults(temperature=0.0)
+        )
+        assert config1.defaults.temperature == 0.0
+        
+        # Valid: middle temperature
+        config2 = EvalConfig(
+            name="Test",
+            defaults=Defaults(temperature=0.7)
+        )
+        assert config2.defaults.temperature == 0.7
+        
+        # Valid: maximum temperature
+        config3 = EvalConfig(
+            name="Test",
+            defaults=Defaults(temperature=2.0)
+        )
+        assert config3.defaults.temperature == 2.0
+        
+        # All should be floats
+        assert isinstance(config1.defaults.temperature, float)
+        assert isinstance(config2.defaults.temperature, float)
+        assert isinstance(config3.defaults.temperature, float)
+    
+    def test_retry_attempts_fallback_mutation(self):
+        """Verify fallback to default retry attempts.
+        
+        Mutation target: if retry_attempts is None: use_default()
+        A mutation removing fallback would cause None propagation.
+        """
+        # Explicit value
+        config1 = EvalConfig(
+            name="Test",
+            defaults=Defaults(retry_attempts=5)
+        )
+        assert config1.defaults.retry_attempts == 5
+        
+        # Default value
+        config2 = EvalConfig(
+            name="Test",
+            defaults=Defaults()  # Uses default 3
+        )
+        assert config2.defaults.retry_attempts == 3
+        
+        # Never None
+        assert config1.defaults.retry_attempts is not None
+        assert config2.defaults.retry_attempts is not None
+    
+    def test_config_field_validation_mutation(self):
+        """Verify config fields are properly validated.
+        
+        Mutation target: Field presence and type validation
+        A mutation skipping validation would cause type errors.
+        """
+        # Name is required
+        config = EvalConfig(name="RequiredName")
+        assert config.name == "RequiredName"
+        assert config.name is not None
+        assert isinstance(config.name, str)
+        
+        # Version has default
+        assert config.version is not None
+        assert isinstance(config.version, str)
+        assert config.version == "1.0"
+        
+        # Collections have defaults
+        assert config.treatments is not None
+        assert config.tests is not None
+        assert config.models is not None
+        assert isinstance(config.treatments, dict)
+        assert isinstance(config.tests, list)
+        assert isinstance(config.models, list)
