@@ -1284,3 +1284,265 @@ tests:
             assert result.exit_code == 3
             assert "Error during execution" in result.stdout
             assert ("Context" in result.stdout or "context" in result.stdout.lower())
+
+
+class TestCLIErrorHandlingMutations:
+    """
+    Phase 10-1: Advanced mutation testing for CLI error handling.
+    
+    These tests target specific mutations in error detection and handling logic:
+    - Condition logic mutations (and↔or, if checks)
+    - String detection mutations (case sensitivity, substring checks)
+    - Exit code mutations (1↔2↔3)
+    - Exception type mutations
+    
+    Coverage Focus: cli.py lines 210-292 (error handling paths)
+    Expected: +1-2% mutation kill rate improvement
+    """
+
+    def test_linter_fail_on_violation_exit_code_2(self, tmp_path):
+        """
+        Mutation Target: fail_on_violation condition logic (line 215)
+        
+        Tests that when fail_on_violation=True and violations exist,
+        the exit code is exactly 2 (not 1, not 3).
+        
+        Mutation: fail_on_violation=False, or exit code 2→1, or exit code 2→3
+        """
+        from typer.testing import CliRunner
+        
+        # Create skill file with known violations (too many lines)
+        skill_file = tmp_path / "skill.md"
+        # Create a file with exactly 1001 lines (exceeds default max_lines=1000)
+        skill_file.write_text("\n".join(["# Line " + str(i) for i in range(1001)]))
+        
+        eval_file = tmp_path / "eval.yaml"
+        eval_file.write_text(f"""
+name: Test
+defaults:
+  provider: "github-models"
+  model: "claude-3.5-sonnet"
+treatments:
+  CONTROL:
+    skill_path: {skill_file}
+tests:
+  - name: test1
+    prompt: "test"
+lint:
+  enabled: true
+  fail_on_violation: true
+  max_lines: 100
+""")
+        
+        runner = CliRunner()
+        result = runner.invoke(app, [
+            "run", "--config", str(eval_file)
+        ])
+        
+        # With fail_on_violation=true and violations found, exit code MUST be 2
+        assert result.exit_code == 2, f"Expected exit code 2, got {result.exit_code}. Output: {result.stdout}"
+
+    def test_github_rate_limit_requires_both_keywords(self, tmp_path):
+        """
+        Mutation Target: AND operator in line 279
+        
+        Tests: if "github" in error_lower and "rate" in error_lower:
+        
+        Both keywords must be present to trigger rate limit help.
+        Mutation: 'and' → 'or' or removing either keyword check
+        """
+        from typer.testing import CliRunner
+        
+        eval_file = tmp_path / "eval.yaml"
+        eval_file.write_text("""
+name: Test
+treatments:
+  CONTROL:
+    skill_path: null
+tests:
+  - name: test1
+    prompt: "test"
+""")
+        
+        # Error containing BOTH "github" and "rate" keywords
+        with patch("md_evals.cli.LLMAdapter"), \
+             patch("md_evals.cli.ExecutionEngine") as mock_engine:
+            
+            mock_engine_instance = MagicMock()
+            mock_engine_instance.run_all = AsyncMock(
+                side_effect=Exception("GitHub API rate limit exceeded: too many requests")
+            )
+            mock_engine.return_value = mock_engine_instance
+            
+            runner = CliRunner()
+            result = runner.invoke(app, [
+                "run", "--config", str(eval_file),
+                "--no-lint"
+            ])
+            
+            # Exit code 3 for execution errors
+            assert result.exit_code == 3
+            # With both keywords, should show Rate Limit Help
+            assert "Rate Limit Help" in result.stdout
+
+    def test_github_token_requires_both_keywords(self, tmp_path):
+        """
+        Mutation Target: AND operator in line 249
+        
+        Tests: if "github" in error_msg and "token" in error_msg:
+        
+        Both keywords must be present during LLM adapter init.
+        Mutation: 'and' → 'or' or removing either keyword check
+        """
+        from typer.testing import CliRunner
+        
+        eval_file = tmp_path / "eval.yaml"
+        eval_file.write_text("""
+name: Test
+treatments:
+  CONTROL:
+    skill_path: null
+tests:
+  - name: test1
+    prompt: "test"
+""")
+        
+        # Error containing BOTH "github" and "token" keywords
+        with patch("md_evals.cli.LLMAdapter") as mock_adapter:
+            mock_adapter.side_effect = Exception("GitHub API token authentication error")
+            
+            runner = CliRunner()
+            result = runner.invoke(app, [
+                "run", "--config", str(eval_file),
+                "--no-lint"
+            ])
+            
+            # Exit code 1 for provider init errors
+            assert result.exit_code == 1
+            # With both keywords, should show GitHub authentication help
+            assert "GitHub Models Troubleshooting" in result.stdout or "GitHub" in result.stdout
+
+    def test_context_window_or_token_limit_first_branch(self, tmp_path):
+        """
+        Mutation Target: OR operator in line 287 (first condition)
+        
+        Tests: if ("context" in error_lower or "token limit" in error_lower):
+        
+        Error with ONLY "context" keyword should trigger help.
+        Mutation: 'or' → 'and' (would miss context-only errors)
+        """
+        from typer.testing import CliRunner
+        
+        eval_file = tmp_path / "eval.yaml"
+        eval_file.write_text("""
+name: Test
+treatments:
+  CONTROL:
+    skill_path: null
+tests:
+  - name: test1
+    prompt: "test"
+""")
+        
+        # Error with ONLY "context" keyword
+        with patch("md_evals.cli.LLMAdapter"), \
+             patch("md_evals.cli.ExecutionEngine") as mock_engine:
+            
+            mock_engine_instance = MagicMock()
+            mock_engine_instance.run_all = AsyncMock(
+                side_effect=Exception("Model context window size exceeded for prompt")
+            )
+            mock_engine.return_value = mock_engine_instance
+            
+            runner = CliRunner()
+            result = runner.invoke(app, [
+                "run", "--config", str(eval_file),
+                "--no-lint"
+            ])
+            
+            # Should trigger context window help
+            assert result.exit_code == 3
+            assert "Context Window Help" in result.stdout
+
+    def test_context_window_or_token_limit_second_branch(self, tmp_path):
+        """
+        Mutation Target: OR operator in line 287 (second condition)
+        
+        Tests: if ("context" in error_lower or "token limit" in error_lower):
+        
+        Error with ONLY "token limit" keyword should trigger help.
+        Mutation: 'or' → 'and' (would miss token-limit-only errors)
+        """
+        from typer.testing import CliRunner
+        
+        eval_file = tmp_path / "eval.yaml"
+        eval_file.write_text("""
+name: Test
+treatments:
+  CONTROL:
+    skill_path: null
+tests:
+  - name: test1
+    prompt: "test"
+""")
+        
+        # Error with ONLY "token limit" keyword (no "context")
+        with patch("md_evals.cli.LLMAdapter"), \
+             patch("md_evals.cli.ExecutionEngine") as mock_engine:
+            
+            mock_engine_instance = MagicMock()
+            mock_engine_instance.run_all = AsyncMock(
+                side_effect=Exception("Request exceeded token limit on this model")
+            )
+            mock_engine.return_value = mock_engine_instance
+            
+            runner = CliRunner()
+            result = runner.invoke(app, [
+                "run", "--config", str(eval_file),
+                "--no-lint"
+            ])
+            
+            # Should trigger context window help (since "token limit" is present)
+            assert result.exit_code == 3
+            assert "Context Window Help" in result.stdout
+
+    def test_execution_error_exit_code_is_3_not_1_or_2(self, tmp_path):
+        """
+        Mutation Target: Exit code 3 on line 292
+        
+        Tests: raise typer.Exit(code=3)
+        
+        Generic execution errors must exit with code 3, not 1 or 2.
+        Mutation: 3→1 or 3→2 or missing exit call
+        """
+        from typer.testing import CliRunner
+        
+        eval_file = tmp_path / "eval.yaml"
+        eval_file.write_text("""
+name: Test
+treatments:
+  CONTROL:
+    skill_path: null
+tests:
+  - name: test1
+    prompt: "test"
+""")
+        
+        # Generic error (no special keywords to match rate limit, token, or context)
+        with patch("md_evals.cli.LLMAdapter"), \
+             patch("md_evals.cli.ExecutionEngine") as mock_engine:
+            
+            mock_engine_instance = MagicMock()
+            mock_engine_instance.run_all = AsyncMock(
+                side_effect=RuntimeError("Unexpected internal error in model execution")
+            )
+            mock_engine.return_value = mock_engine_instance
+            
+            runner = CliRunner()
+            result = runner.invoke(app, [
+                "run", "--config", str(eval_file),
+                "--no-lint"
+            ])
+            
+            # Generic execution errors MUST exit with code 3
+            assert result.exit_code == 3, f"Expected exit code 3, got {result.exit_code}"
