@@ -676,3 +676,127 @@ class TestProviderInitializationErrors:
             
             error_msg = str(exc_info.value)
             assert "token" in error_msg.lower() or "github" in error_msg.lower()
+
+
+class TestGitHubModelsAPIErrorMutations:
+    """
+    Phase 10-2: Advanced mutation testing for GitHub Models API error handling.
+    
+    These tests target specific mutations in error detection and handling:
+    - Logical OR mutations (or↔and in keyword detection)
+    - String pattern mutations (keyword presence, HTTP status codes)
+    - Exception type mutations (which error class is raised)
+    - Error priority mutations (elif ordering)
+    
+    Coverage Focus: github_models.py lines 288-312 (error detection in complete method)
+    Expected: +1-2% mutation kill rate improvement
+    """
+    
+    @pytest.mark.asyncio
+    async def test_rate_limit_with_rate_keyword(self):
+        """
+        Mutation Target: OR operator in line 292
+        
+        Tests: if "rate" in error_str or "429" in error_str:
+        
+        Error with ONLY "rate" keyword should raise RateLimitError.
+        Mutation: 'or' → 'and' (would miss rate-only errors)
+        """
+        with patch.dict(os.environ, {"GITHUB_TOKEN": "test_token"}):
+            provider = GitHubModelsProvider("gpt-4o")
+            
+            with patch.object(provider, "_stream_completion") as mock_stream:
+                mock_stream.side_effect = Exception("Rate limit exceeded for this model")
+                
+                with pytest.raises(RateLimitError) as exc_info:
+                    await provider.complete("test prompt")
+                
+                error_msg = str(exc_info.value)
+                assert "rate limit" in error_msg.lower()
+    
+    @pytest.mark.asyncio
+    async def test_rate_limit_with_429_status_code(self):
+        """
+        Mutation Target: OR operator in line 292
+        
+        Tests: if "rate" in error_str or "429" in error_str:
+        
+        Error with HTTP 429 status code should raise RateLimitError.
+        Mutation: 'or' → 'and' (would miss 429-only errors)
+        """
+        with patch.dict(os.environ, {"GITHUB_TOKEN": "test_token"}):
+            provider = GitHubModelsProvider("gpt-4o")
+            
+            with patch.object(provider, "_stream_completion") as mock_stream:
+                # Simulate Azure SDK error with 429 status code
+                mock_stream.side_effect = Exception("HTTP 429: Too Many Requests")
+                
+                with pytest.raises(RateLimitError):
+                    await provider.complete("test prompt")
+    
+    @pytest.mark.asyncio
+    async def test_context_window_with_context_keyword(self):
+        """
+        Mutation Target: OR operator in line 298
+        
+        Tests: if "context" in error_str or "token limit" in error_str:
+        
+        Error with ONLY "context" keyword should raise ContextWindowError.
+        Mutation: 'or' → 'and' (would miss context-only errors)
+        """
+        with patch.dict(os.environ, {"GITHUB_TOKEN": "test_token"}):
+            provider = GitHubModelsProvider("gpt-4o")
+            
+            with patch.object(provider, "_stream_completion") as mock_stream:
+                mock_stream.side_effect = Exception("Context window size exceeded")
+                
+                with pytest.raises(ContextWindowError) as exc_info:
+                    await provider.complete("test prompt")
+                
+                error_msg = str(exc_info.value)
+                assert "context" in error_msg.lower() or "window" in error_msg.lower()
+    
+    @pytest.mark.asyncio
+    async def test_timeout_with_timeout_keyword(self):
+        """
+        Mutation Target: OR operator in line 303
+        
+        Tests: elif "timeout" in error_str or "connect" in error_str:
+        
+        Error with ONLY "timeout" keyword should raise StreamingError.
+        Mutation: 'or' → 'and' (would miss timeout-only errors)
+        """
+        with patch.dict(os.environ, {"GITHUB_TOKEN": "test_token"}):
+            provider = GitHubModelsProvider("gpt-4o")
+            
+            with patch.object(provider, "_stream_completion") as mock_stream:
+                mock_stream.side_effect = Exception("Request timeout after 30 seconds")
+                
+                with pytest.raises(StreamingError) as exc_info:
+                    await provider.complete("test prompt")
+                
+                error_msg = str(exc_info.value)
+                assert "network" in error_msg.lower() or "timeout" in error_msg.lower() or "streaming" in error_msg.lower()
+    
+    @pytest.mark.asyncio
+    async def test_authentication_with_401_status_code(self):
+        """
+        Mutation Target: OR operator in line 307
+        
+        Tests: elif "authentication" in error_str or "401" in error_str:
+        
+        Error with HTTP 401 status code should raise AuthenticationError.
+        Mutation: 'or' → 'and' (would miss 401-only errors)
+        """
+        with patch.dict(os.environ, {"GITHUB_TOKEN": "test_token"}):
+            provider = GitHubModelsProvider("gpt-4o")
+            
+            with patch.object(provider, "_stream_completion") as mock_stream:
+                # Simulate Azure SDK error with 401 status code
+                mock_stream.side_effect = Exception("HTTP 401: Unauthorized - invalid credentials")
+                
+                with pytest.raises(AuthenticationError) as exc_info:
+                    await provider.complete("test prompt")
+                
+                error_msg = str(exc_info.value)
+                assert "authentication" in error_msg.lower() or "token" in error_msg.lower()
