@@ -918,3 +918,139 @@ class TestEvaluatorEngineIntegration:
         assert "test output" in prompt
         assert "Test if output is good" in prompt
         assert "score" in prompt
+
+
+# PHASE 9 REFINEMENTS
+class TestEvaluatorRefinements:
+    """Phase 9 Test Refinements for Mutation Testing."""
+    
+    # Refinement 3: Score Normalization Boundaries
+    def test_evaluate_exact_match_boundary_case_sensitive(self):
+        """Test exact match with boundary case sensitivity."""
+        engine = EvaluatorEngine()
+        
+        evaluator = ExactMatchEvaluator(
+            name="test",
+            expected="Hello",
+            case_sensitive=True
+        )
+        
+        # Should match exact case
+        result = engine._evaluate_exact_match("Hello World", evaluator)
+        assert result.passed is True
+        assert result.score == 1.0
+        
+        # Should NOT match different case
+        result = engine._evaluate_exact_match("hello World", evaluator)
+        assert result.passed is False
+        assert result.score == 0.0
+    
+    def test_evaluate_exact_match_boundary_case_insensitive(self):
+        """Test exact match with case insensitivity boundary."""
+        engine = EvaluatorEngine()
+        
+        evaluator = ExactMatchEvaluator(
+            name="test",
+            expected="Hello",
+            case_sensitive=False
+        )
+        
+        # Should match regardless of case
+        result = engine._evaluate_exact_match("hello World", evaluator)
+        assert result.passed is True
+        assert result.score == 1.0
+        
+        result = engine._evaluate_exact_match("HELLO world", evaluator)
+        assert result.passed is True
+        assert result.score == 1.0
+    
+    def test_evaluate_regex_boundary_match_vs_no_match(self):
+        """Test regex with boundary between match and no-match."""
+        engine = EvaluatorEngine()
+        
+        # Test: pass_on_match=True (should pass when pattern matches)
+        evaluator_pass = RegexEvaluator(
+            name="test",
+            pattern="hello",
+            pass_on_match=True
+        )
+        
+        result = engine._evaluate_regex("Hello there", evaluator_pass)
+        assert result.passed is True  # Case insensitive by default
+        assert result.score == 1.0
+        
+        result = engine._evaluate_regex("goodbye", evaluator_pass)
+        assert result.passed is False
+        assert result.score == 0.0
+    
+    def test_evaluate_regex_boundary_pass_on_match_false(self):
+        """Test regex with pass_on_match=False boundary."""
+        engine = EvaluatorEngine()
+        
+        # Test: pass_on_match=False (should pass when pattern does NOT match)
+        evaluator_fail = RegexEvaluator(
+            name="test",
+            pattern="error",
+            pass_on_match=False
+        )
+        
+        result = engine._evaluate_regex("Success", evaluator_fail)
+        assert result.passed is True  # No "error" found, so passes
+        assert result.score == 1.0
+        
+        result = engine._evaluate_regex("Error occurred", evaluator_fail)
+        assert result.passed is False  # "error" found, so fails
+        assert result.score == 0.0
+    
+    def test_evaluate_exact_match_empty_string(self):
+        """Test exact match with empty string edge case."""
+        engine = EvaluatorEngine()
+        
+        # Empty expected string should match any output
+        evaluator = ExactMatchEvaluator(
+            name="test",
+            expected="",
+            case_sensitive=True
+        )
+        
+        result = engine._evaluate_exact_match("Hello World", evaluator)
+        assert result.passed is True  # Empty string is in any string
+        assert result.score == 1.0
+    
+    def test_evaluate_regex_empty_pattern(self):
+        """Test regex with empty pattern edge case."""
+        engine = EvaluatorEngine()
+        
+        # Empty pattern matches everything
+        evaluator = RegexEvaluator(
+            name="test",
+            pattern="",
+            pass_on_match=True
+        )
+        
+        result = engine._evaluate_regex("Hello World", evaluator)
+        assert result.passed is True
+        assert result.score == 1.0
+        
+        result = engine._evaluate_regex("", evaluator)
+        assert result.passed is True
+        assert result.score == 1.0
+    
+    def test_evaluate_regex_special_characters(self):
+        """Test regex with special characters in pattern."""
+        engine = EvaluatorEngine()
+        
+        # Pattern with regex special chars
+        evaluator = RegexEvaluator(
+            name="test",
+            pattern=r"\d+",  # Match digits
+            pass_on_match=True
+        )
+        
+        result = engine._evaluate_regex("Version 123", evaluator)
+        assert result.passed is True
+        assert result.score == 1.0
+        
+        result = engine._evaluate_regex("No numbers here", evaluator)
+        assert result.passed is False
+        assert result.score == 0.0
