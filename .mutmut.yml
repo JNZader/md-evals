@@ -1,0 +1,64 @@
+# Mutation testing configuration for md-evals
+# mutmut - Python mutation testing framework
+
+# Paths to mutate
+paths:
+  - md_evals
+
+# Files/paths to exclude from mutation
+exclude_paths:
+  - tests
+  - examples
+  - docs
+
+# Python files to exclude from mutation
+exclude_files:
+  - __init__.py
+  - __main__.py
+  - conftest.py
+
+# Test command to run for each mutation
+tests_dir: tests
+
+# Coverage options
+cache_only_mode: false
+
+# Output options
+output:
+  html: mutmut_report.html
+  json: mutmut_report.json
+
+# Timeout for test execution (seconds)
+timeout: 30
+timeout_multiplier: 2
+
+# Only run these lines (useful for focusing on specific code)
+# lines_to_mutate: null
+
+# Database file for caching
+database_name: mutmut_db.sqlite
+
+# Show coverage statistics
+show_coverage: true
+
+# Number of workers for parallel mutation testing
+workers: 4
+
+# Mutation operators to include (can be limited)
+# operators: default
+
+# Verbosity level
+verbosity: 2
+
+# Report progress
+progress: true
+
+# Only show killed mutations
+#show_killed_only: false
+
+# Dict with plugin configurations
+plugins:
+  python_operators: default
+
+# Kill timeout (how long mutation can run before timeout)
+kill_timeout: 30
