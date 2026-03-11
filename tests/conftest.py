@@ -53,6 +53,13 @@ def pytest_configure(config):
     config.addinivalue_line(
         "markers", "requires_provider: Tests requiring external provider (mocked in CI)"
     )
+    # Phase 7: Parallel execution markers
+    config.addinivalue_line(
+        "markers", "serial: Tests that must run serially (not parallelizable)"
+    )
+    config.addinivalue_line(
+        "markers", "isolated: Tests are fully isolated and safe for parallel execution"
+    )
 
 
 # ============================================================================

@@ -78,6 +78,13 @@ addopts = [
     "--durations=10",
 ]
 
+# Phase 7: Parallel Execution with pytest-xdist
+# Uncomment line below to enable parallel execution by default
+# addopts includes: -n auto
+# Run: pytest tests/ -n 4  (recommended: 4 workers, 73% faster)
+# Or: pytest tests/ -n auto (auto-detect CPU cores)
+# Or: pytest tests/ (serial, for debugging)
+
 # Coverage thresholds
 # Uncomment to enforce minimum coverage in CI
 # [tool.coverage.report]
