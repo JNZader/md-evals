@@ -222,7 +222,7 @@ def run(
             treatments = [t.strip() for t in treatment.split(",")]
             treatments = ConfigLoader.expand_wildcards(treatments, config_obj.treatments)
         else:
-            treatments = list(config_obj.treatments.keys())
+            treatments = [k for k in config_obj.treatments.keys()]
     except ConfigLoaderError as e:
         console.print(f"[red]Error: {e}[/red]")
         raise typer.Exit(code=1)

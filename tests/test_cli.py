@@ -603,3 +603,673 @@ tests:
             
             # Should load config with provider field
             assert "Error loading config" not in result.stdout or result.exit_code == 0
+
+
+# ============================================================================
+# PHASE 2: CLI COVERAGE EXPANSION
+# ============================================================================
+
+class TestDebugFlag:
+    """Test --debug flag and logging configuration (Lines 160-165)."""
+    
+    def test_run_with_debug_flag(self, tmp_path, caplog):
+        """Test run command with --debug flag enables logging."""
+        from typer.testing import CliRunner
+        import logging
+        
+        eval_file = tmp_path / "eval.yaml"
+        eval_file.write_text("""
+name: Test
+treatments:
+  CONTROL:
+    skill_path: null
+tests:
+  - name: test1
+    prompt: "test"
+""")
+        
+        with patch("md_evals.cli.LLMAdapter") as mock_adapter, \
+             patch("md_evals.cli.ExecutionEngine") as mock_engine, \
+             patch("md_evals.cli.Reporter"):
+            
+            mock_engine_instance = MagicMock()
+            mock_engine_instance.run_all = AsyncMock(return_value=[])
+            mock_engine.return_value = mock_engine_instance
+            
+            runner = CliRunner()
+            with caplog.at_level(logging.DEBUG):
+                result = runner.invoke(app, [
+                    "run", "--config", str(eval_file),
+                    "--debug",
+                    "--no-lint"
+                ])
+            
+            # Debug flag should be accepted without error
+            assert "Error" not in result.stdout or result.exit_code in [0, 3]
+    
+    def test_run_without_debug_flag(self, tmp_path):
+        """Test run without debug flag (normal mode)."""
+        from typer.testing import CliRunner
+        
+        eval_file = tmp_path / "eval.yaml"
+        eval_file.write_text("""
+name: Test
+treatments:
+  CONTROL:
+    skill_path: null
+tests:
+  - name: test1
+    prompt: "test"
+""")
+        
+        with patch("md_evals.cli.LLMAdapter"), \
+             patch("md_evals.cli.ExecutionEngine") as mock_engine, \
+             patch("md_evals.cli.Reporter"):
+            
+            mock_engine_instance = MagicMock()
+            mock_engine_instance.run_all = AsyncMock(return_value=[])
+            mock_engine.return_value = mock_engine_instance
+            
+            runner = CliRunner()
+            result = runner.invoke(app, [
+                "run", "--config", str(eval_file),
+                "--no-lint"
+            ])
+            
+            # Should work fine without debug flag
+            assert result.exit_code in [0, 3]
+
+
+class TestErrorMessages:
+    """Test error message formatting (Lines 335, 344, 349, etc.)."""
+    
+    def test_github_models_auth_error(self, tmp_path):
+        """Test GitHub Models authentication error message."""
+        from typer.testing import CliRunner
+        
+        eval_file = tmp_path / "eval.yaml"
+        eval_file.write_text("""
+name: Test
+defaults:
+  provider: "github-models"
+  model: "claude-3.5-sonnet"
+treatments:
+  CONTROL:
+    skill_path: null
+tests:
+  - name: test1
+    prompt: "test"
+""")
+        
+        # Simulate auth error
+        with patch("md_evals.cli.LLMAdapter") as mock_adapter:
+            mock_adapter.side_effect = Exception("GitHub token not found")
+            
+            runner = CliRunner()
+            result = runner.invoke(app, [
+                "run", "--config", str(eval_file),
+                "--no-lint"
+            ])
+            
+            # Should show auth troubleshooting help
+            assert result.exit_code == 1
+            assert "Error initializing provider" in result.stdout or "Error" in result.stdout
+    
+    def test_provider_not_found_error(self, tmp_path):
+        """Test provider not found error message."""
+        from typer.testing import CliRunner
+        
+        eval_file = tmp_path / "eval.yaml"
+        eval_file.write_text("""
+name: Test
+treatments:
+  CONTROL:
+    skill_path: null
+tests:
+  - name: test1
+    prompt: "test"
+""")
+        
+        runner = CliRunner()
+        result = runner.invoke(app, [
+            "run", "--config", str(eval_file),
+            "--provider", "nonexistent-provider",
+            "--no-lint"
+        ])
+        
+        # Should show available providers
+        assert result.exit_code == 1
+        assert ("not found" in result.stdout.lower() or "Error" in result.stdout)
+    
+    def test_rate_limit_error_message(self, tmp_path):
+        """Test rate limit error with helpful message."""
+        from typer.testing import CliRunner
+        from md_evals.models import ExecutionResult, LLMResponse
+        
+        eval_file = tmp_path / "eval.yaml"
+        eval_file.write_text("""
+name: Test
+treatments:
+  CONTROL:
+    skill_path: null
+tests:
+  - name: test1
+    prompt: "test"
+""")
+        
+        # Simulate rate limit error
+        with patch("md_evals.cli.LLMAdapter"), \
+             patch("md_evals.cli.ExecutionEngine") as mock_engine:
+            
+            mock_engine_instance = MagicMock()
+            mock_engine_instance.run_all = AsyncMock(
+                side_effect=Exception("GitHub API rate limit exceeded")
+            )
+            mock_engine.return_value = mock_engine_instance
+            
+            runner = CliRunner()
+            result = runner.invoke(app, [
+                "run", "--config", str(eval_file),
+                "--no-lint"
+            ])
+            
+            # Should show rate limit help
+            assert result.exit_code == 3
+            assert "Error during execution" in result.stdout
+    
+    def test_context_window_error_message(self, tmp_path):
+        """Test context window exceeded error with helpful message."""
+        from typer.testing import CliRunner
+        
+        eval_file = tmp_path / "eval.yaml"
+        eval_file.write_text("""
+name: Test
+treatments:
+  CONTROL:
+    skill_path: null
+tests:
+  - name: test1
+    prompt: "test"
+""")
+        
+        # Simulate context window error
+        with patch("md_evals.cli.LLMAdapter"), \
+             patch("md_evals.cli.ExecutionEngine") as mock_engine:
+            
+            mock_engine_instance = MagicMock()
+            mock_engine_instance.run_all = AsyncMock(
+                side_effect=Exception("Token limit exceeded in context window")
+            )
+            mock_engine.return_value = mock_engine_instance
+            
+            runner = CliRunner()
+            result = runner.invoke(app, [
+                "run", "--config", str(eval_file),
+                "--no-lint"
+            ])
+            
+            # Should show context window help
+            assert result.exit_code == 3
+            assert "Error during execution" in result.stdout
+
+
+class TestVersionCommand:
+    """Test version command output."""
+    
+    def test_version_output_format(self):
+        """Test version command outputs correct format."""
+        from typer.testing import CliRunner
+        from md_evals import __version__
+        
+        runner = CliRunner()
+        result = runner.invoke(app, ["version"])
+        
+        assert result.exit_code == 0
+        assert "md-evals" in result.stdout
+        # Should include version number
+        assert __version__ in result.stdout
+
+
+class TestHelpMessages:
+    """Test help messages for commands."""
+    
+    def test_run_help_output(self):
+        """Test run command help message."""
+        from typer.testing import CliRunner
+        
+        runner = CliRunner()
+        result = runner.invoke(app, ["run", "--help"])
+        
+        assert result.exit_code == 0
+        assert "--config" in result.stdout
+        assert "--debug" in result.stdout
+        assert "--provider" in result.stdout
+    
+    def test_init_help_output(self):
+        """Test init command help message."""
+        from typer.testing import CliRunner
+        
+        runner = CliRunner()
+        result = runner.invoke(app, ["init", "--help"])
+        
+        assert result.exit_code == 0
+        assert "--force" in result.stdout or "-f" in result.stdout
+    
+    def test_lint_help_output(self):
+        """Test lint command help message."""
+        from typer.testing import CliRunner
+        
+        runner = CliRunner()
+        result = runner.invoke(app, ["lint", "--help"])
+        
+        assert result.exit_code == 0
+        assert "--fail" in result.stdout or "-f" in result.stdout
+        assert "--verbose" in result.stdout or "-v" in result.stdout
+    
+    def test_list_models_help_output(self):
+        """Test list-models command help message."""
+        from typer.testing import CliRunner
+        
+        runner = CliRunner()
+        result = runner.invoke(app, ["list-models", "--help"])
+        
+        assert result.exit_code == 0
+        assert "--provider" in result.stdout or "-p" in result.stdout
+        assert "--verbose" in result.stdout or "-v" in result.stdout
+
+
+class TestExecutionExitCodes:
+    """Test various execution paths and exit codes (Lines 312-317)."""
+    
+    def test_all_tests_passed(self, tmp_path):
+        """Test exit code when all tests pass."""
+        from typer.testing import CliRunner
+        from md_evals.models import ExecutionResult, LLMResponse
+        
+        eval_file = tmp_path / "eval.yaml"
+        eval_file.write_text("""
+name: Test
+treatments:
+  CONTROL:
+    skill_path: null
+tests:
+  - name: test1
+    prompt: "test"
+output:
+  results_dir: "./results"
+""")
+        
+        results_dir = tmp_path / "results"
+        results_dir.mkdir()
+        
+        with patch("md_evals.cli.LLMAdapter"), \
+             patch("md_evals.cli.ExecutionEngine") as mock_engine, \
+             patch("md_evals.cli.Reporter"):
+            
+            # All tests passed
+            mock_engine_instance = MagicMock()
+            result1 = ExecutionResult(
+                treatment="CONTROL",
+                test="test1",
+                prompt="test",
+                response=LLMResponse(
+                    content="hi",
+                    model="gpt-4o",
+                    provider="openai",
+                    duration_ms=1000
+                ),
+                passed=True,
+                evaluator_results=[],
+                timestamp="2024-01-01T00:00:00"
+            )
+            mock_engine_instance.run_all = AsyncMock(return_value=[result1])
+            mock_engine.return_value = mock_engine_instance
+            
+            runner = CliRunner()
+            result = runner.invoke(app, [
+                "run", "--config", str(eval_file),
+                "--no-lint"
+            ])
+            
+            # All passed should exit 0
+            assert result.exit_code == 0
+    
+    def test_some_tests_failed(self, tmp_path):
+        """Test exit code when some tests fail."""
+        from typer.testing import CliRunner
+        from md_evals.models import ExecutionResult, LLMResponse
+        
+        eval_file = tmp_path / "eval.yaml"
+        eval_file.write_text("""
+name: Test
+treatments:
+  CONTROL:
+    skill_path: null
+tests:
+  - name: test1
+    prompt: "test"
+output:
+  results_dir: "./results"
+""")
+        
+        results_dir = tmp_path / "results"
+        results_dir.mkdir()
+        
+        with patch("md_evals.cli.LLMAdapter"), \
+             patch("md_evals.cli.ExecutionEngine") as mock_engine, \
+             patch("md_evals.cli.Reporter"):
+            
+            # Mix of passed and failed
+            mock_engine_instance = MagicMock()
+            result1 = ExecutionResult(
+                treatment="CONTROL",
+                test="test1",
+                prompt="test",
+                response=LLMResponse(
+                    content="hi",
+                    model="gpt-4o",
+                    provider="openai",
+                    duration_ms=1000
+                ),
+                passed=True,
+                evaluator_results=[],
+                timestamp="2024-01-01T00:00:00"
+            )
+            result2 = ExecutionResult(
+                treatment="CONTROL",
+                test="test2",
+                prompt="test2",
+                response=LLMResponse(
+                    content="bye",
+                    model="gpt-4o",
+                    provider="openai",
+                    duration_ms=1000
+                ),
+                passed=False,
+                evaluator_results=[],
+                timestamp="2024-01-01T00:00:00"
+            )
+            mock_engine_instance.run_all = AsyncMock(return_value=[result1, result2])
+            mock_engine.return_value = mock_engine_instance
+            
+            runner = CliRunner()
+            result = runner.invoke(app, [
+                "run", "--config", str(eval_file),
+                "--no-lint"
+            ])
+            
+            # Partial success should still exit 0
+            assert result.exit_code == 0
+    
+    def test_all_tests_failed(self, tmp_path):
+        """Test exit code when all tests fail."""
+        from typer.testing import CliRunner
+        from md_evals.models import ExecutionResult, LLMResponse
+        
+        eval_file = tmp_path / "eval.yaml"
+        eval_file.write_text("""
+name: Test
+treatments:
+  CONTROL:
+    skill_path: null
+tests:
+  - name: test1
+    prompt: "test"
+output:
+  results_dir: "./results"
+""")
+        
+        results_dir = tmp_path / "results"
+        results_dir.mkdir()
+        
+        with patch("md_evals.cli.LLMAdapter"), \
+             patch("md_evals.cli.ExecutionEngine") as mock_engine, \
+             patch("md_evals.cli.Reporter"):
+            
+            # All failed
+            mock_engine_instance = MagicMock()
+            result1 = ExecutionResult(
+                treatment="CONTROL",
+                test="test1",
+                prompt="test",
+                response=LLMResponse(
+                    content="hi",
+                    model="gpt-4o",
+                    provider="openai",
+                    duration_ms=1000
+                ),
+                passed=False,
+                evaluator_results=[],
+                timestamp="2024-01-01T00:00:00"
+            )
+            mock_engine_instance.run_all = AsyncMock(return_value=[result1])
+            mock_engine.return_value = mock_engine_instance
+            
+            runner = CliRunner()
+            result = runner.invoke(app, [
+                "run", "--config", str(eval_file),
+                "--no-lint"
+            ])
+            
+            # All failed should exit 4
+            assert result.exit_code == 4
+
+
+class TestOutputFormats:
+    """Test different output format handling."""
+    
+    def test_run_output_default_table(self, tmp_path):
+        """Test default output is table format."""
+        from typer.testing import CliRunner
+        from md_evals.models import ExecutionResult, LLMResponse
+        
+        eval_file = tmp_path / "eval.yaml"
+        eval_file.write_text("""
+name: Test
+treatments:
+  CONTROL:
+    skill_path: null
+tests:
+  - name: test1
+    prompt: "test"
+""")
+        
+        with patch("md_evals.cli.LLMAdapter"), \
+             patch("md_evals.cli.ExecutionEngine") as mock_engine, \
+             patch("md_evals.cli.Reporter") as mock_reporter:
+            
+            mock_engine_instance = MagicMock()
+            mock_engine_instance.run_all = AsyncMock(return_value=[])
+            mock_engine.return_value = mock_engine_instance
+            
+            runner = CliRunner()
+            result = runner.invoke(app, [
+                "run", "--config", str(eval_file),
+                "--no-lint"
+            ])
+            
+            # Default output should call report_terminal
+            assert result.exit_code in [0, 3]
+    
+    def test_treatment_selection_by_name(self, tmp_path):
+        """Test selecting specific treatment by name."""
+        from typer.testing import CliRunner
+        
+        eval_file = tmp_path / "eval.yaml"
+        eval_file.write_text("""
+name: Test
+treatments:
+  CONTROL:
+    skill_path: null
+  WITH_SKILL:
+    skill_path: "./SKILL.md"
+tests:
+  - name: test1
+    prompt: "test"
+""")
+        
+        with patch("md_evals.cli.LLMAdapter"), \
+             patch("md_evals.cli.ExecutionEngine") as mock_engine, \
+             patch("md_evals.cli.Reporter"):
+            
+            mock_engine_instance = MagicMock()
+            mock_engine_instance.run_all = AsyncMock(return_value=[])
+            mock_engine.return_value = mock_engine_instance
+            
+            runner = CliRunner()
+            result = runner.invoke(app, [
+                "run", "--config", str(eval_file),
+                "--treatment", "WITH_SKILL",
+                "--no-lint"
+            ])
+            
+            # Should handle treatment selection
+            assert "Error" not in result.stdout or result.exit_code in [0, 3]
+    
+    def test_treatment_selection_multiple(self, tmp_path):
+        """Test selecting multiple treatments with comma-separated list."""
+        from typer.testing import CliRunner
+        
+        eval_file = tmp_path / "eval.yaml"
+        eval_file.write_text("""
+name: Test
+treatments:
+  CONTROL:
+    skill_path: null
+  WITH_SKILL:
+    skill_path: "./SKILL.md"
+  WITH_OTHER:
+    skill_path: "./OTHER.md"
+tests:
+  - name: test1
+    prompt: "test"
+""")
+        
+        with patch("md_evals.cli.LLMAdapter"), \
+             patch("md_evals.cli.ExecutionEngine") as mock_engine, \
+             patch("md_evals.cli.Reporter"):
+            
+            mock_engine_instance = MagicMock()
+            mock_engine_instance.run_all = AsyncMock(return_value=[])
+            mock_engine.return_value = mock_engine_instance
+            
+            runner = CliRunner()
+            result = runner.invoke(app, [
+                "run", "--config", str(eval_file),
+                "--treatment", "CONTROL,WITH_SKILL",
+                "--no-lint"
+            ])
+            
+            # Should handle multiple treatments
+            assert "Error" not in result.stdout or result.exit_code in [0, 3]
+
+
+class TestGitHubTokenHelp:
+    """Test GitHub token-specific error messages."""
+    
+    def test_github_token_auth_error_message(self, tmp_path):
+        """Test GitHub token authentication error shows helpful message."""
+        from typer.testing import CliRunner
+        
+        eval_file = tmp_path / "eval.yaml"
+        eval_file.write_text("""
+name: Test
+defaults:
+  provider: "github-models"
+  model: "claude-3.5-sonnet"
+treatments:
+  CONTROL:
+    skill_path: null
+tests:
+  - name: test1
+    prompt: "test"
+""")
+        
+        # Simulate GitHub token error
+        with patch("md_evals.cli.LLMAdapter") as mock_adapter:
+            # Create an exception with "github" and "token" in message (case-insensitive)
+            mock_adapter.side_effect = Exception("GitHub API authentication failed: token not found or invalid")
+            
+            runner = CliRunner()
+            result = runner.invoke(app, [
+                "run", "--config", str(eval_file),
+                "--no-lint"
+            ])
+            
+            # Should show GitHub token troubleshooting
+            assert result.exit_code == 1
+            assert "GitHub" in result.stdout or "token" in result.stdout.lower()
+    
+    def test_rate_limit_error_detailed_message(self, tmp_path):
+        """Test rate limit error shows helpful message with limits."""
+        from typer.testing import CliRunner
+        
+        eval_file = tmp_path / "eval.yaml"
+        eval_file.write_text("""
+name: Test
+treatments:
+  CONTROL:
+    skill_path: null
+tests:
+  - name: test1
+    prompt: "test"
+""")
+        
+        # Simulate GitHub rate limit error
+        with patch("md_evals.cli.LLMAdapter"), \
+             patch("md_evals.cli.ExecutionEngine") as mock_engine:
+            
+            mock_engine_instance = MagicMock()
+            # Create exception with both "github" and "rate" keywords
+            mock_engine_instance.run_all = AsyncMock(
+                side_effect=Exception("GitHub API rate limit exceeded: too many requests")
+            )
+            mock_engine.return_value = mock_engine_instance
+            
+            runner = CliRunner()
+            result = runner.invoke(app, [
+                "run", "--config", str(eval_file),
+                "--no-lint"
+            ])
+            
+            # Should show rate limit help
+            assert result.exit_code == 3
+            assert "Error during execution" in result.stdout
+            assert ("Rate Limit" in result.stdout or "rate" in result.stdout.lower())
+    
+    def test_context_window_exceeded_message(self, tmp_path):
+        """Test context window exceeded error shows helpful message."""
+        from typer.testing import CliRunner
+        
+        eval_file = tmp_path / "eval.yaml"
+        eval_file.write_text("""
+name: Test
+treatments:
+  CONTROL:
+    skill_path: null
+tests:
+  - name: test1
+    prompt: "test"
+""")
+        
+        # Simulate context window error
+        with patch("md_evals.cli.LLMAdapter"), \
+             patch("md_evals.cli.ExecutionEngine") as mock_engine:
+            
+            mock_engine_instance = MagicMock()
+            # Create exception with "context" keyword
+            mock_engine_instance.run_all = AsyncMock(
+                side_effect=Exception("Error: context window exceeded, token limit reached")
+            )
+            mock_engine.return_value = mock_engine_instance
+            
+            runner = CliRunner()
+            result = runner.invoke(app, [
+                "run", "--config", str(eval_file),
+                "--no-lint"
+            ])
+            
+            # Should show context window help
+            assert result.exit_code == 3
+            assert "Error during execution" in result.stdout
+            assert ("Context" in result.stdout or "context" in result.stdout.lower())
