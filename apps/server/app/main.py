@@ -10,6 +10,8 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.config import settings
 from app.models.database import Base, engine
 from app.routes.auth import router as auth_router
+from app.routes.eval import router as eval_router
+from app.routes.providers import router as providers_router
 
 logger = logging.getLogger(__name__)
 
@@ -48,6 +50,8 @@ app.add_middleware(
 
 # --- Routers ---
 app.include_router(auth_router)
+app.include_router(providers_router)
+app.include_router(eval_router)
 
 
 # --- Health ---
