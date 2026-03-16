@@ -54,6 +54,7 @@ class LLMAdapter:
         system_prompt: str | None = None,
         temperature: float | None = None,
         max_tokens: int | None = None,
+        stage_type: str = "single_pass",
     ) -> LLMResponse:
         """Complete a prompt.
         
@@ -62,6 +63,7 @@ class LLMAdapter:
             system_prompt: Optional system prompt
             temperature: Override temperature
             max_tokens: Override max tokens
+            stage_type: Stage label for orchestrator support
             
         Returns:
             LLMResponse instance
@@ -96,10 +98,36 @@ class LLMAdapter:
         else:
             content = str(response)
         
-        # Count tokens (approximate)
-        tokens = 0
+        # Extract token usage
+        tokens = 0                      # Legacy field — backward compat
+        prompt_tokens = None
+        completion_tokens_detail = None
+        total_tokens_val = None
+        
         if hasattr(response, "usage") and response.usage:
-            tokens = response.usage.completion_tokens or 0
+            usage = response.usage
+            raw_completion = getattr(usage, "completion_tokens", None)
+            raw_prompt = getattr(usage, "prompt_tokens", None)
+            
+            # Only accept integer values (guard against non-numeric types)
+            if isinstance(raw_completion, int):
+                completion_tokens_detail = raw_completion
+            if isinstance(raw_prompt, int):
+                prompt_tokens = raw_prompt
+            
+            # Legacy field — keep as completion_tokens or 0
+            tokens = completion_tokens_detail or 0
+            
+            # Clamp negatives (EC-03 from spec)
+            if prompt_tokens is not None and prompt_tokens < 0:
+                prompt_tokens = 0
+            if completion_tokens_detail is not None and completion_tokens_detail < 0:
+                completion_tokens_detail = 0
+                tokens = 0
+            
+            # Calculate total
+            if prompt_tokens is not None and completion_tokens_detail is not None:
+                total_tokens_val = prompt_tokens + completion_tokens_detail
         
         return LLMResponse(
             content=content,
@@ -107,7 +135,11 @@ class LLMAdapter:
             provider=self.provider,
             tokens=tokens,
             duration_ms=duration_ms,
-            raw_response=response.model_dump() if hasattr(response, "model_dump") else {}
+            raw_response=response.model_dump() if hasattr(response, "model_dump") else {},
+            prompt_tokens=prompt_tokens,
+            completion_tokens_detail=completion_tokens_detail,
+            total_tokens=total_tokens_val,
+            stage_type=stage_type,
         )
     
     @retry(

@@ -1748,6 +1748,195 @@ class TestCLIStringProcessingProperties:
         assert sensitive_count >= 0  # Always true, but detects logic errors
 
 
+class TestUsageMetricsFlag:
+    """Test --collect-usage-metrics / --no-collect-usage-metrics flag precedence.
+
+    Covers T-11 (CLI flag) and AC-16 (precedence: CLI > YAML > default).
+    4 scenarios from spec §REQ-04-S1 to S4.
+    """
+
+    def test_default_off_no_flag_no_yaml(self, tmp_path):
+        """S1: CLI not passed + YAML absent → off (default False)."""
+        from typer.testing import CliRunner
+
+        eval_file = tmp_path / "eval.yaml"
+        eval_file.write_text("""
+name: Test
+treatments:
+  CONTROL:
+    skill_path: null
+tests:
+  - name: test1
+    prompt: "test"
+""")
+
+        captured_config = {}
+
+        with patch("md_evals.cli.LLMAdapter"), \
+             patch("md_evals.cli.ExecutionEngine") as mock_engine, \
+             patch("md_evals.cli.Reporter") as mock_reporter:
+
+            mock_engine_instance = MagicMock()
+            mock_engine_instance.run_all = AsyncMock(return_value=[])
+            mock_engine.return_value = mock_engine_instance
+
+            def capture_config(config):
+                captured_config["config"] = config
+                return MagicMock()
+
+            mock_reporter.side_effect = capture_config
+
+            runner = CliRunner()
+            runner.invoke(app, [
+                "run", "--config", str(eval_file),
+                "--no-lint"
+            ])
+
+        assert "config" in captured_config
+        assert captured_config["config"].output.include_usage_metrics is False
+
+    def test_cli_on_overrides_yaml_off(self, tmp_path):
+        """S2: CLI --collect-usage-metrics + YAML false → on (CLI wins)."""
+        from typer.testing import CliRunner
+
+        eval_file = tmp_path / "eval.yaml"
+        eval_file.write_text("""
+name: Test
+treatments:
+  CONTROL:
+    skill_path: null
+tests:
+  - name: test1
+    prompt: "test"
+output:
+  include_usage_metrics: false
+""")
+
+        captured_config = {}
+
+        with patch("md_evals.cli.LLMAdapter"), \
+             patch("md_evals.cli.ExecutionEngine") as mock_engine, \
+             patch("md_evals.cli.Reporter") as mock_reporter:
+
+            mock_engine_instance = MagicMock()
+            mock_engine_instance.run_all = AsyncMock(return_value=[])
+            mock_engine.return_value = mock_engine_instance
+
+            def capture_config(config):
+                captured_config["config"] = config
+                return MagicMock()
+
+            mock_reporter.side_effect = capture_config
+
+            runner = CliRunner()
+            runner.invoke(app, [
+                "run", "--config", str(eval_file),
+                "--collect-usage-metrics",
+                "--no-lint"
+            ])
+
+        assert "config" in captured_config
+        assert captured_config["config"].output.include_usage_metrics is True
+
+    def test_yaml_on_without_cli_flag(self, tmp_path):
+        """S3: CLI not passed + YAML true → on (YAML value preserved)."""
+        from typer.testing import CliRunner
+
+        eval_file = tmp_path / "eval.yaml"
+        eval_file.write_text("""
+name: Test
+treatments:
+  CONTROL:
+    skill_path: null
+tests:
+  - name: test1
+    prompt: "test"
+output:
+  include_usage_metrics: true
+""")
+
+        captured_config = {}
+
+        with patch("md_evals.cli.LLMAdapter"), \
+             patch("md_evals.cli.ExecutionEngine") as mock_engine, \
+             patch("md_evals.cli.Reporter") as mock_reporter:
+
+            mock_engine_instance = MagicMock()
+            mock_engine_instance.run_all = AsyncMock(return_value=[])
+            mock_engine.return_value = mock_engine_instance
+
+            def capture_config(config):
+                captured_config["config"] = config
+                return MagicMock()
+
+            mock_reporter.side_effect = capture_config
+
+            runner = CliRunner()
+            runner.invoke(app, [
+                "run", "--config", str(eval_file),
+                "--no-lint"
+            ])
+
+        assert "config" in captured_config
+        assert captured_config["config"].output.include_usage_metrics is True
+
+    def test_cli_off_overrides_yaml_on(self, tmp_path):
+        """S4: CLI --no-collect-usage-metrics + YAML true → off (CLI wins)."""
+        from typer.testing import CliRunner
+
+        eval_file = tmp_path / "eval.yaml"
+        eval_file.write_text("""
+name: Test
+treatments:
+  CONTROL:
+    skill_path: null
+tests:
+  - name: test1
+    prompt: "test"
+output:
+  include_usage_metrics: true
+""")
+
+        captured_config = {}
+
+        with patch("md_evals.cli.LLMAdapter"), \
+             patch("md_evals.cli.ExecutionEngine") as mock_engine, \
+             patch("md_evals.cli.Reporter") as mock_reporter:
+
+            mock_engine_instance = MagicMock()
+            mock_engine_instance.run_all = AsyncMock(return_value=[])
+            mock_engine.return_value = mock_engine_instance
+
+            def capture_config(config):
+                captured_config["config"] = config
+                return MagicMock()
+
+            mock_reporter.side_effect = capture_config
+
+            runner = CliRunner()
+            runner.invoke(app, [
+                "run", "--config", str(eval_file),
+                "--no-collect-usage-metrics",
+                "--no-lint"
+            ])
+
+        assert "config" in captured_config
+        assert captured_config["config"].output.include_usage_metrics is False
+
+    def test_help_shows_collect_usage_metrics_option(self):
+        """Verify --help shows the --collect-usage-metrics option."""
+        from typer.testing import CliRunner
+        import re
+
+        runner = CliRunner()
+        result = runner.invoke(app, ["run", "--help"])
+
+        assert result.exit_code == 0
+        clean = re.sub(r'\x1b\[[0-9;]*m', '', result.stdout)
+        # Rich may truncate long option names with "…", so check prefix
+        assert "--collect-usage-me" in clean
+
+
 class TestCLIEdgeCases:
     """Edge case tests for CLI string processing."""
     

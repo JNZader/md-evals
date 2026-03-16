@@ -64,6 +64,7 @@ class OutputConfig(BaseModel):
     save_results: bool = True
     results_dir: str = "./results"
     verbose: bool = False
+    include_usage_metrics: bool = False
 
 
 # ============== Execution Configuration ==============
@@ -138,6 +139,8 @@ class EvalConfig(BaseModel):
     tests: list[Task] = Field(default_factory=list)
     output: OutputConfig = Field(default_factory=OutputConfig)
     execution: ExecutionConfig = Field(default_factory=ExecutionConfig)
+    cost_map: dict[str, dict[str, float]] = Field(default_factory=dict)
+    context_window_overrides: dict[str, int] = Field(default_factory=dict)
 
 
 # ============== Runtime Models ==============
@@ -148,9 +151,14 @@ class LLMResponse(BaseModel):
     content: str
     model: str
     provider: str
-    tokens: int = 0
+    tokens: int = 0                           # LEGACY — completion_tokens, do not rename
     duration_ms: int = 0
     raw_response: dict[str, Any] = Field(default_factory=dict)
+    # ─── New fields (additive, optional with defaults) ───
+    prompt_tokens: int | None = None          # Input tokens from provider telemetry
+    completion_tokens_detail: int | None = None  # Output tokens (explicit, separate from legacy)
+    total_tokens: int | None = None           # prompt + completion
+    stage_type: str = "single_pass"           # Stage label for orchestrator support
 
 
 class EvaluatorResult(BaseModel):

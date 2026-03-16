@@ -164,6 +164,7 @@ def run(
     no_lint: Annotated[bool, typer.Option("--no-lint", help="Skip linting")] = False,
     verbose: Annotated[bool, typer.Option("--verbose", "-v", help="Verbose output")] = False,
     debug: Annotated[bool, typer.Option("--debug", help="Enable debug logging for provider initialization")] = False,
+    collect_usage_metrics: Annotated[Optional[bool], typer.Option("--collect-usage-metrics/--no-collect-usage-metrics", help="Collect extended usage metrics (cost + context)")] = None,
 ):
     """Run evaluations with support for GitHub Models and other providers."""
     # Configure logging if debug is enabled
@@ -200,6 +201,12 @@ def run(
             for pname in ProviderRegistry.list_providers().keys():
                 console.print(f"  - {pname}")
             raise typer.Exit(code=1)
+    
+    # Resolve usage metrics flag (CLI > YAML > default)
+    if collect_usage_metrics is not None:
+        # CLI flag was explicitly passed — takes precedence
+        config_obj.output.include_usage_metrics = collect_usage_metrics
+    # else: keep YAML value (or default False)
     
     # Run linter first (optional)
     if not no_lint:

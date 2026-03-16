@@ -324,7 +324,13 @@ class GitHubModelsProvider:
             )
             
             # Handle streaming response
-            response_content, token_count = await self._handle_stream(response)
+            (
+                response_content,
+                token_count,
+                prompt_tokens,
+                completion_tokens_detail,
+                total_tokens,
+            ) = await self._handle_stream(response)
             
         except Exception as e:
             # Handle specific error types
@@ -360,7 +366,10 @@ class GitHubModelsProvider:
             provider="github-models",
             tokens=token_count,
             duration_ms=duration_ms,
-            raw_response={"model": self.model_name, "provider": "github-models"}
+            raw_response={"model": self.model_name, "provider": "github-models"},
+            prompt_tokens=prompt_tokens,
+            completion_tokens_detail=completion_tokens_detail,
+            total_tokens=total_tokens,
         )
     
     async def _stream_completion(
@@ -394,15 +403,18 @@ class GitHubModelsProvider:
         response = await loop.run_in_executor(None, make_request)
         return response
     
-    async def _handle_stream(self, response) -> tuple[str, int]:
+    async def _handle_stream(
+        self, response
+    ) -> tuple[str, int, int | None, int | None, int | None]:
         """
-        Handle streaming response and extract token count.
+        Handle streaming response and extract token counts.
         
         Args:
             response: Response object from Azure SDK
             
         Returns:
-            Tuple of (content, token_count)
+            Tuple of (content, legacy_token_count, prompt_tokens,
+                       completion_tokens_detail, total_tokens)
         """
         try:
             # Extract content and token count from response
@@ -415,22 +427,46 @@ class GitHubModelsProvider:
                 else:
                     content = ""
                 
-                # Get token count from usage if available
+                # Get token counts from usage if available
                 token_count = 0
+                prompt_tokens = None
+                completion_tokens_detail = None
+                total_tokens = None
+                
                 if hasattr(response, 'usage') and response.usage:
-                    if hasattr(response.usage, 'completion_tokens'):
-                        token_count = response.usage.completion_tokens or 0
+                    usage = response.usage
+                    raw_completion = getattr(usage, 'completion_tokens', None)
+                    raw_prompt = getattr(usage, 'prompt_tokens', None)
+                    
+                    # Only accept integer values (guard against Mock objects)
+                    if isinstance(raw_completion, int):
+                        completion_tokens_detail = raw_completion
+                    if isinstance(raw_prompt, int):
+                        prompt_tokens = raw_prompt
+                    
+                    token_count = completion_tokens_detail or 0
+                    
+                    # Clamp negatives (EC-03 from spec)
+                    if prompt_tokens is not None and prompt_tokens < 0:
+                        prompt_tokens = 0
+                    if completion_tokens_detail is not None and completion_tokens_detail < 0:
+                        completion_tokens_detail = 0
+                        token_count = 0
+                    
+                    # Calculate total
+                    if prompt_tokens is not None and completion_tokens_detail is not None:
+                        total_tokens = prompt_tokens + completion_tokens_detail
                 
                 # Fallback: estimate tokens if not provided
                 if token_count == 0 and content:
                     token_count = self._estimate_tokens(content)
                 
-                return content, token_count
+                return content, token_count, prompt_tokens, completion_tokens_detail, total_tokens
             else:
                 # Fallback for different response format
                 content = str(response) if response else ""
                 token_count = self._estimate_tokens(content)
-                return content, token_count
+                return content, token_count, None, None, None
                 
         except Exception as e:
             logger.error(f"Error handling stream: {e}")

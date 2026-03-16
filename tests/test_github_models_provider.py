@@ -563,10 +563,15 @@ class TestStreamingErrorHandling:
             usage=None
         )
         
-        content, token_count = await provider_with_mock_client._handle_stream(response)
+        content, token_count, prompt_tokens, completion_detail, total = (
+            await provider_with_mock_client._handle_stream(response)
+        )
         
         assert content == "Test content"
         assert token_count > 0  # Should estimate tokens
+        assert prompt_tokens is None
+        assert completion_detail is None
+        assert total is None
     
     @pytest.mark.asyncio
     async def test_handle_stream_with_empty_content(self, provider_with_mock_client):
@@ -576,7 +581,9 @@ class TestStreamingErrorHandling:
             usage=Mock(completion_tokens=0)
         )
         
-        content, token_count = await provider_with_mock_client._handle_stream(response)
+        content, token_count, prompt_tokens, completion_detail, total = (
+            await provider_with_mock_client._handle_stream(response)
+        )
         
         assert content == ""
         assert token_count == 0
@@ -590,8 +597,13 @@ class TestStreamingErrorHandling:
         
         # Should handle fallback format
         try:
-            content, token_count = await provider_with_mock_client._handle_stream(response)
+            content, token_count, prompt_tokens, completion_detail, total = (
+                await provider_with_mock_client._handle_stream(response)
+            )
             assert content == "Alternative response format"
+            assert prompt_tokens is None
+            assert completion_detail is None
+            assert total is None
         except StreamingError:
             # This is acceptable - StreamingError for unexpected format
             pass

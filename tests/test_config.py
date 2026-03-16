@@ -841,3 +841,240 @@ class TestConfigEdgeCases:
         assert isinstance(config.defaults.model, str)
         assert isinstance(config.defaults.provider, str)
 
+
+# ============================================================================
+# PHASE 4: T-12 — cost_map, context_window_overrides, include_usage_metrics
+# ============================================================================
+
+
+class TestCostMapParsing:
+    """T-12: Verify cost_map parsing from YAML and direct construction."""
+
+    def test_cost_map_from_yaml(self, tmp_path):
+        """YAML with cost_map parses rates correctly."""
+        config_file = tmp_path / "eval.yaml"
+        config_file.write_text("""
+name: Test
+cost_map:
+  gpt-4o:
+    input_rate_per_million: 2.50
+    output_rate_per_million: 10.00
+  claude-sonnet-4-20250514:
+    input_rate_per_million: 3.00
+    output_rate_per_million: 15.00
+treatments:
+  CONTROL:
+    skill_path: null
+tests:
+  - name: test1
+    prompt: "test"
+""")
+        config = ConfigLoader.load(str(config_file))
+
+        assert "gpt-4o" in config.cost_map
+        assert config.cost_map["gpt-4o"]["input_rate_per_million"] == 2.50
+        assert config.cost_map["gpt-4o"]["output_rate_per_million"] == 10.00
+        assert "claude-sonnet-4-20250514" in config.cost_map
+        assert config.cost_map["claude-sonnet-4-20250514"]["input_rate_per_million"] == 3.00
+        assert config.cost_map["claude-sonnet-4-20250514"]["output_rate_per_million"] == 15.00
+
+    def test_cost_map_absent_defaults_to_empty(self, tmp_path):
+        """YAML without cost_map → config.cost_map == {} (AC-19)."""
+        config_file = tmp_path / "eval.yaml"
+        config_file.write_text("""
+name: Test
+treatments:
+  CONTROL:
+    skill_path: null
+tests:
+  - name: test1
+    prompt: "test"
+""")
+        config = ConfigLoader.load(str(config_file))
+
+        assert config.cost_map == {}
+
+    def test_cost_map_direct_construction(self):
+        """EvalConfig constructed with cost_map dict preserves values."""
+        config = EvalConfig(
+            name="Test",
+            cost_map={
+                "gpt-4o": {"input_rate_per_million": 5.0, "output_rate_per_million": 15.0}
+            },
+        )
+        assert config.cost_map["gpt-4o"]["input_rate_per_million"] == 5.0
+        assert config.cost_map["gpt-4o"]["output_rate_per_million"] == 15.0
+
+
+class TestContextWindowOverridesParsing:
+    """T-12: Verify context_window_overrides parsing from YAML."""
+
+    def test_context_window_overrides_from_yaml(self, tmp_path):
+        """YAML with context_window_overrides parses ints correctly."""
+        config_file = tmp_path / "eval.yaml"
+        config_file.write_text("""
+name: Test
+context_window_overrides:
+  my-custom-model: 32000
+  gpt-4o: 128000
+treatments:
+  CONTROL:
+    skill_path: null
+tests:
+  - name: test1
+    prompt: "test"
+""")
+        config = ConfigLoader.load(str(config_file))
+
+        assert config.context_window_overrides["my-custom-model"] == 32000
+        assert config.context_window_overrides["gpt-4o"] == 128000
+
+    def test_context_window_overrides_absent_defaults_to_empty(self, tmp_path):
+        """YAML without context_window_overrides → empty dict (AC-20 prerequisite)."""
+        config_file = tmp_path / "eval.yaml"
+        config_file.write_text("""
+name: Test
+treatments:
+  CONTROL:
+    skill_path: null
+tests:
+  - name: test1
+    prompt: "test"
+""")
+        config = ConfigLoader.load(str(config_file))
+
+        assert config.context_window_overrides == {}
+
+    def test_context_window_overrides_direct_construction(self):
+        """EvalConfig constructed with context_window_overrides preserves values."""
+        config = EvalConfig(
+            name="Test",
+            context_window_overrides={"my-model": 16000},
+        )
+        assert config.context_window_overrides["my-model"] == 16000
+
+
+class TestIncludeUsageMetricsParsing:
+    """T-12: Verify output.include_usage_metrics parsed from YAML."""
+
+    def test_include_usage_metrics_true_from_yaml(self, tmp_path):
+        """YAML with include_usage_metrics: true → flag on."""
+        config_file = tmp_path / "eval.yaml"
+        config_file.write_text("""
+name: Test
+treatments:
+  CONTROL:
+    skill_path: null
+tests:
+  - name: test1
+    prompt: "test"
+output:
+  include_usage_metrics: true
+""")
+        config = ConfigLoader.load(str(config_file))
+
+        assert config.output.include_usage_metrics is True
+
+    def test_include_usage_metrics_false_from_yaml(self, tmp_path):
+        """YAML with include_usage_metrics: false → flag off."""
+        config_file = tmp_path / "eval.yaml"
+        config_file.write_text("""
+name: Test
+treatments:
+  CONTROL:
+    skill_path: null
+tests:
+  - name: test1
+    prompt: "test"
+output:
+  include_usage_metrics: false
+""")
+        config = ConfigLoader.load(str(config_file))
+
+        assert config.output.include_usage_metrics is False
+
+    def test_include_usage_metrics_absent_defaults_false(self, tmp_path):
+        """YAML without include_usage_metrics → default False (AC-02)."""
+        config_file = tmp_path / "eval.yaml"
+        config_file.write_text("""
+name: Test
+treatments:
+  CONTROL:
+    skill_path: null
+tests:
+  - name: test1
+    prompt: "test"
+""")
+        config = ConfigLoader.load(str(config_file))
+
+        assert config.output.include_usage_metrics is False
+
+    def test_include_usage_metrics_direct_construction_default(self):
+        """OutputConfig default → include_usage_metrics == False."""
+        from md_evals.models import OutputConfig
+
+        output = OutputConfig()
+        assert output.include_usage_metrics is False
+
+
+class TestFullUsageMetricsConfig:
+    """T-12: Combined parsing of all usage-metrics-related config fields."""
+
+    def test_full_config_with_all_usage_fields(self, tmp_path):
+        """YAML with cost_map + context_window_overrides + include_usage_metrics."""
+        config_file = tmp_path / "eval.yaml"
+        config_file.write_text("""
+name: Full Usage Config Test
+defaults:
+  model: gpt-4o
+  provider: openai
+treatments:
+  CONTROL:
+    skill_path: null
+tests:
+  - name: test1
+    prompt: "test"
+cost_map:
+  gpt-4o:
+    input_rate_per_million: 2.50
+    output_rate_per_million: 10.00
+context_window_overrides:
+  gpt-4o: 128000
+  my-custom-model: 32000
+output:
+  format: table
+  save_results: true
+  include_usage_metrics: true
+""")
+        config = ConfigLoader.load(str(config_file))
+
+        # All three sections parsed correctly
+        assert config.output.include_usage_metrics is True
+        assert config.cost_map["gpt-4o"]["input_rate_per_million"] == 2.50
+        assert config.context_window_overrides["gpt-4o"] == 128000
+        assert config.context_window_overrides["my-custom-model"] == 32000
+
+        # Existing fields unaffected
+        assert config.name == "Full Usage Config Test"
+        assert config.defaults.model == "gpt-4o"
+        assert config.defaults.provider == "openai"
+
+    def test_config_roundtrip_preserves_usage_fields(self, tmp_path):
+        """Save + load roundtrip preserves cost_map and context_window_overrides."""
+        original = EvalConfig(
+            name="Roundtrip Test",
+            cost_map={
+                "gpt-4o": {"input_rate_per_million": 5.0, "output_rate_per_million": 15.0},
+            },
+            context_window_overrides={"gpt-4o": 128000},
+        )
+        original.output.include_usage_metrics = True
+
+        config_file = tmp_path / "roundtrip.yaml"
+        ConfigLoader.save(original, str(config_file))
+        loaded = ConfigLoader.load(str(config_file))
+
+        assert loaded.cost_map == original.cost_map
+        assert loaded.context_window_overrides == original.context_window_overrides
+        assert loaded.output.include_usage_metrics is True
+

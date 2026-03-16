@@ -10,6 +10,7 @@ from rich.table import Table
 from rich.panel import Panel
 from rich import box
 
+from md_evals.metrics import build_usage_metrics
 from md_evals.models import EvalConfig, ExecutionResult
 
 
@@ -113,10 +114,224 @@ class Reporter:
                         f"[red]▼[/red] {treatment}: {improvement:.0f}% vs CONTROL"
                     )
         
+        # ─── T-15: Conditional usage metrics tables ───
+        if self.config.output.include_usage_metrics:
+            usage = build_usage_metrics(results, self.config)
+            if usage:
+                self._print_cost_metrics_table(usage)
+                self._print_context_metrics_table(usage)
+                self._print_comparison_table(usage)
+
         # Verbose output
         if verbose:
             self._print_verbose(results)
     
+    def _print_cost_metrics_table(self, usage: dict[str, Any]) -> None:
+        """Render Cost Metrics table per treatment.
+
+        Columns: Treatment | Avg Prompt Tokens | Avg Completion Tokens |
+                 Avg Total Tokens | Est. Cost USD
+
+        Args:
+            usage: The usage_metrics dict from build_usage_metrics().
+        """
+        variants = usage.get("variants", {})
+        if not variants:
+            return
+
+        table = Table(
+            title="Cost Metrics",
+            box=box.ROUNDED,
+            show_header=True,
+            header_style="bold cyan",
+        )
+        table.add_column("Treatment", style="cyan")
+        table.add_column("Prompt Tokens", justify="right")
+        table.add_column("Completion Tokens", justify="right")
+        table.add_column("Total Tokens", justify="right")
+        table.add_column("Latency (ms)", justify="right")
+        table.add_column("Est. Cost USD", justify="right")
+
+        for name, variant_data in variants.items():
+            cost = variant_data.get("cost_metrics", {})
+            prompt = cost.get("prompt_tokens", 0)
+            completion = cost.get("completion_tokens", 0)
+            total = cost.get("total_tokens", 0)
+            latency = cost.get("latency_ms", 0)
+            cost_usd = cost.get("estimated_cost_usd")
+
+            cost_str = f"${cost_usd:.4f}" if cost_usd is not None else "N/A"
+
+            table.add_row(
+                name,
+                f"{prompt:,}",
+                f"{completion:,}",
+                f"{total:,}",
+                f"{latency:,}",
+                cost_str,
+            )
+
+        self.console.print()
+        self.console.print(table)
+
+    def _print_context_metrics_table(self, usage: dict[str, Any]) -> None:
+        """Render Context Metrics table per treatment.
+
+        Columns: Treatment | Prompt Used | Context Window | Utilization % |
+                 Headroom | Truncation Risk
+
+        Args:
+            usage: The usage_metrics dict from build_usage_metrics().
+        """
+        variants = usage.get("variants", {})
+        if not variants:
+            return
+
+        table = Table(
+            title="Context Metrics",
+            box=box.ROUNDED,
+            show_header=True,
+            header_style="bold cyan",
+        )
+        table.add_column("Treatment", style="cyan")
+        table.add_column("Prompt Used", justify="right")
+        table.add_column("Context Window", justify="right")
+        table.add_column("Util %", justify="right")
+        table.add_column("Headroom", justify="right")
+        table.add_column("Risk", justify="center")
+
+        for name, variant_data in variants.items():
+            ctx = variant_data.get("context_metrics", {})
+            prompt_used = ctx.get("prompt_tokens_used", 0)
+            window = ctx.get("context_window_max_tokens")
+            util_pct = ctx.get("context_utilization_pct")
+            headroom = ctx.get("headroom_tokens")
+            risk = ctx.get("truncation_risk", "unknown")
+
+            window_str = f"{window:,}" if window is not None else "N/A"
+            util_str = f"{util_pct:.1f}%" if util_pct is not None else "N/A"
+            headroom_str = f"{headroom:,}" if headroom is not None else "N/A"
+
+            # Color risk
+            risk_colors = {"low": "green", "medium": "yellow", "high": "red", "unknown": "dim"}
+            risk_color = risk_colors.get(risk, "dim")
+            risk_str = f"[{risk_color}]{risk}[/{risk_color}]"
+
+            table.add_row(
+                name,
+                f"{prompt_used:,}",
+                window_str,
+                util_str,
+                headroom_str,
+                risk_str,
+            )
+
+        self.console.print()
+        self.console.print(table)
+
+    def _print_comparison_table(self, usage: dict[str, Any]) -> None:
+        """Render Comparison table between treatments.
+
+        Shows deltas for key metrics between the first two treatments.
+
+        Args:
+            usage: The usage_metrics dict from build_usage_metrics().
+        """
+        comparison = usage.get("comparison")
+        if not comparison:
+            return
+
+        variants = usage.get("variants", {})
+        names = list(variants.keys())
+        if len(names) < 2:
+            return
+
+        name_a, name_b = names[0], names[1]
+
+        table = Table(
+            title=f"Comparison ({name_a} vs {name_b})",
+            box=box.ROUNDED,
+            show_header=True,
+            header_style="bold cyan",
+        )
+        table.add_column("Metric", style="cyan")
+        table.add_column(name_b, justify="right")
+        table.add_column(name_a, justify="right")
+        table.add_column("Delta", justify="right")
+        table.add_column("Delta %", justify="right")
+
+        # Select key metrics to show
+        key_metrics = [
+            ("cost_metrics", "total_tokens", "Total Tokens"),
+            ("cost_metrics", "estimated_cost_usd", "Cost USD"),
+            ("cost_metrics", "latency_ms", "Latency (ms)"),
+            ("context_metrics", "context_utilization_pct", "Utilization %"),
+            ("context_metrics", "headroom_tokens", "Headroom"),
+        ]
+
+        for domain, field_name, label in key_metrics:
+            domain_data = comparison.get(domain, {})
+            metric_data = domain_data.get(field_name, {})
+
+            val_a = metric_data.get(name_a)
+            val_b = metric_data.get(name_b)
+            delta_abs = metric_data.get("delta_abs")
+            delta_pct = metric_data.get("delta_pct")
+            reason = metric_data.get("delta_pct_reason")
+
+            # Format values
+            def _fmt_val(v: Any, is_cost: bool = False, is_pct: bool = False) -> str:
+                if v is None:
+                    return "N/A"
+                if is_cost:
+                    return f"${v:.4f}"
+                if is_pct:
+                    return f"{v:.1f}%"
+                if isinstance(v, float):
+                    return f"{v:.2f}"
+                return f"{v:,}"
+
+            is_cost = field_name == "estimated_cost_usd"
+            is_pct = field_name == "context_utilization_pct"
+
+            val_b_str = _fmt_val(val_b, is_cost=is_cost, is_pct=is_pct)
+            val_a_str = _fmt_val(val_a, is_cost=is_cost, is_pct=is_pct)
+
+            # Format delta with color
+            if delta_abs is not None:
+                sign = "+" if delta_abs > 0 else ""
+                if is_cost:
+                    delta_str = f"{sign}${delta_abs:.4f}"
+                elif is_pct:
+                    delta_str = f"{sign}{delta_abs:.1f}%"
+                elif isinstance(delta_abs, float):
+                    delta_str = f"{sign}{delta_abs:.2f}"
+                else:
+                    delta_str = f"{sign}{delta_abs:,}"
+
+                # Color: green for improvements (negative cost/tokens), red for degradation
+                if delta_abs > 0:
+                    delta_str = f"[red]{delta_str}[/red]"
+                elif delta_abs < 0:
+                    delta_str = f"[green]{delta_str}[/green]"
+            else:
+                delta_str = reason or "N/A"
+
+            if delta_pct is not None:
+                sign = "+" if delta_pct > 0 else ""
+                pct_str = f"{sign}{delta_pct:.2f}%"
+                if delta_pct > 0:
+                    pct_str = f"[red]{pct_str}[/red]"
+                elif delta_pct < 0:
+                    pct_str = f"[green]{pct_str}[/green]"
+            else:
+                pct_str = reason or "N/A"
+
+            table.add_row(label, val_b_str, val_a_str, delta_str, pct_str)
+
+        self.console.print()
+        self.console.print(table)
+
     def _print_verbose(self, results: list[ExecutionResult]) -> None:
         """Print verbose results."""
         for result in results:
@@ -190,7 +405,7 @@ class Reporter:
                 "pass_rate": passed / total if total > 0 else 0
             }
         
-        return {
+        output: dict[str, Any] = {
             "experiment_id": f"eval_{datetime.now(timezone.utc).strftime('%Y%m%d_%H%M%S')}",
             "timestamp": datetime.now(timezone.utc).isoformat(),
             "config": {
@@ -221,6 +436,15 @@ class Reporter:
             ],
             "summary": summary
         }
+
+        # ─── T-14: Conditional inclusion of usage_metrics ───
+        usage_metrics = build_usage_metrics(results, self.config)
+        if usage_metrics is not None:
+            output["report_schema_version"] = "2.0"
+            output["feature_flags"] = {"include_usage_metrics": True}
+            output["usage_metrics"] = usage_metrics
+
+        return output
     
     def _build_markdown(self, results: list[ExecutionResult]) -> str:
         """Build Markdown report."""

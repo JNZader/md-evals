@@ -1676,3 +1676,431 @@ class TestLargeBatchProcessing:
         assert passed_count > 0
         assert failed_count > 0
         assert passed_count + failed_count == 150
+
+
+# ============================================================================
+# T-19: E2E Test — Full workflow with usage metrics flag on/off
+# ============================================================================
+
+
+class TestE2EUsageMetricsWorkflow:
+    """T-19: End-to-end test simulating a complete run with flag on/off.
+
+    Verifies the full pipeline: config → engine → reporter → JSON output.
+    Uses mocked LLM calls that return realistic usage data.
+
+    AC Coverage Checklist:
+    - AC-01: cost_metrics and context_metrics as separate objects ✓
+    - AC-02: flag off = legacy-identical JSON ✓
+    - AC-03: estimated_cost_usd correct with rates, null without ✓
+    - AC-04: context_utilization_pct formula ✓
+    - AC-05: headroom_tokens formula ✓
+    - AC-06: safe_headroom_tokens formula ✓
+    - AC-07: overflow = true iff used > max ✓
+    - AC-08: overflow_tokens formula ✓
+    - AC-09: truncation_risk thresholds ✓
+    - AC-10: stage_breakdown in variant ✓
+    - AC-11: sum(stage_breakdown.total_tokens) = variant.total_tokens ✓
+    - AC-12: attribution_quality in each stage ✓
+    - AC-13: comparison deltas for both domains ✓
+    - AC-14: (covered by test with single treatment)
+    - AC-15: div-by-zero protection ✓
+    - AC-16: CLI flag precedence (covered in test_cli_flags.py) ✓
+    - AC-17: legacy fields invariant ✓
+    - AC-18: data_quality in both domains ✓
+    - AC-19: cost_map absent → null ✓
+    - AC-20: context_window unknown → null/default ✓
+    """
+
+    @pytest.fixture
+    def e2e_config_with_metrics(self) -> EvalConfig:
+        """Config with cost_map, context_window_overrides, and flag on."""
+        return EvalConfig(
+            name="E2E Usage Metrics Test",
+            version="1.0",
+            defaults=Defaults(model="gpt-4o", provider="openai", max_tokens=2048),
+            treatments={
+                "CONTROL": Treatment(skill_path=None),
+                "WITH_SKILL": Treatment(skill_path=None, description="Skill test"),
+            },
+            tests=[
+                Task(
+                    name="test_coding",
+                    prompt="Write a function",
+                    variables={},
+                    evaluators=[
+                        RegexEvaluator(
+                            name="has_def",
+                            pattern=r"def ",
+                            pass_on_match=True,
+                        )
+                    ],
+                ),
+                Task(
+                    name="test_explanation",
+                    prompt="Explain X",
+                    variables={},
+                    evaluators=[],
+                ),
+            ],
+            execution=ExecutionConfig(parallel_workers=1, repetitions=1),
+            output=OutputConfig(include_usage_metrics=True),
+            cost_map={
+                "gpt-4o": {
+                    "input_rate_per_million": 2.50,
+                    "output_rate_per_million": 10.00,
+                }
+            },
+            context_window_overrides={"gpt-4o": 128000},
+        )
+
+    @pytest.fixture
+    def e2e_config_flag_off(self) -> EvalConfig:
+        """Config with flag off for backward compat test."""
+        return EvalConfig(
+            name="E2E Legacy Test",
+            version="1.0",
+            defaults=Defaults(model="gpt-4o", provider="openai", max_tokens=2048),
+            treatments={
+                "CONTROL": Treatment(skill_path=None),
+                "WITH_SKILL": Treatment(skill_path=None),
+            },
+            tests=[
+                Task(name="test_1", prompt="Hello", variables={}, evaluators=[]),
+            ],
+            execution=ExecutionConfig(parallel_workers=1, repetitions=1),
+            output=OutputConfig(include_usage_metrics=False),
+        )
+
+    @pytest.fixture
+    def mock_adapter_with_usage(self) -> MagicMock:
+        """Mock LLM adapter that returns realistic usage data."""
+        adapter = MagicMock(spec=LLMAdapter)
+        call_counter = {"n": 0}
+
+        async def mock_complete(**kwargs):
+            call_counter["n"] += 1
+            n = call_counter["n"]
+            prompt_tokens = 5000 + (n * 500)
+            completion_tokens = 1500 + (n * 100)
+            return LLMResponse(
+                content="def hello():\n    return 'world'",
+                model="gpt-4o",
+                provider="openai",
+                tokens=completion_tokens,
+                duration_ms=1000 + (n * 200),
+                prompt_tokens=prompt_tokens,
+                completion_tokens_detail=completion_tokens,
+                total_tokens=prompt_tokens + completion_tokens,
+                stage_type="single_pass",
+            )
+
+        adapter.complete = AsyncMock(side_effect=mock_complete)
+        return adapter
+
+    @pytest.mark.asyncio
+    async def test_e2e_flag_on_full_structure(
+        self,
+        e2e_config_with_metrics: EvalConfig,
+        mock_adapter_with_usage: MagicMock,
+        tmp_path,
+    ):
+        """E2E: Flag on → JSON has complete usage_metrics structure.
+
+        Verifies AC-01, AC-03, AC-04, AC-05, AC-06, AC-07, AC-08, AC-09,
+        AC-10, AC-11, AC-12, AC-13, AC-17, AC-18.
+        """
+        from md_evals.reporter import Reporter
+        import json
+
+        evaluator = EvaluatorEngine()
+        engine = ExecutionEngine(
+            config=e2e_config_with_metrics,
+            llm_adapter=mock_adapter_with_usage,
+            evaluator_engine=evaluator,
+        )
+
+        # Run evaluation
+        results = await engine.run_all(["CONTROL", "WITH_SKILL"])
+        assert len(results) == 4  # 2 treatments × 2 tests
+
+        # Generate JSON report
+        reporter = Reporter(e2e_config_with_metrics)
+        output_path = str(tmp_path / "e2e_results.json")
+        reporter.report_json(results, output_path)
+
+        with open(output_path) as f:
+            data = json.load(f)
+
+        # ── AC-17: Legacy fields present ──
+        for r in data["results"]:
+            assert "tokens" in r
+            assert "duration_ms" in r
+            assert r["tokens"] > 0
+            assert r["duration_ms"] > 0
+
+        # ── AC-01: Top-level structure ──
+        assert "report_schema_version" in data
+        assert data["report_schema_version"] == "2.0"
+        assert "feature_flags" in data
+        assert data["feature_flags"]["include_usage_metrics"] is True
+        assert "usage_metrics" in data
+
+        um = data["usage_metrics"]
+        assert um["model"] == "gpt-4o"
+        assert um["provider"] == "openai"
+        assert um["context_window_max_tokens"] == 128000
+        assert um["max_tokens_request"] == 2048
+
+        # ── AC-01: Variants have separated domains ──
+        assert "CONTROL" in um["variants"]
+        assert "WITH_SKILL" in um["variants"]
+
+        for name, variant in um["variants"].items():
+            cost = variant["cost_metrics"]
+            ctx = variant["context_metrics"]
+
+            # AC-01: Both domains present
+            assert "prompt_tokens" in cost
+            assert "completion_tokens" in cost
+            assert "total_tokens" in cost
+            assert "estimated_cost_usd" in cost
+            assert "latency_ms" in cost
+
+            assert "prompt_tokens_used" in ctx
+            assert "context_window_max_tokens" in ctx
+            assert "context_utilization_pct" in ctx
+            assert "headroom_tokens" in ctx
+            assert "safe_headroom_tokens" in ctx
+            assert "overflow" in ctx
+            assert "overflow_tokens" in ctx
+            assert "truncation_risk" in ctx
+
+            # AC-03: cost calculated (has rates)
+            assert cost["estimated_cost_usd"] is not None
+            assert cost["estimated_cost_usd"] > 0
+
+            # AC-04: utilization formula
+            assert ctx["context_utilization_pct"] == pytest.approx(
+                (ctx["prompt_tokens_used"] / 128000) * 100,
+                rel=0.01,
+            )
+
+            # AC-05: headroom formula
+            assert ctx["headroom_tokens"] == max(
+                128000 - ctx["prompt_tokens_used"], 0
+            )
+
+            # AC-06: safe_headroom formula
+            assert ctx["safe_headroom_tokens"] == max(
+                128000 - ctx["prompt_tokens_used"] - 2048, 0
+            )
+
+            # AC-07: overflow = false (prompts are small)
+            assert ctx["overflow"] is False
+
+            # AC-08: overflow_tokens = 0
+            assert ctx["overflow_tokens"] == 0
+
+            # AC-09: truncation_risk = low (small utilization)
+            assert ctx["truncation_risk"] == "low"
+
+            # AC-10: stage_breakdown present
+            assert "stage_breakdown" in variant
+            assert len(variant["stage_breakdown"]) >= 1
+
+            # AC-11: stage sum = total
+            stage_total = sum(
+                s["total_tokens"] for s in variant["stage_breakdown"]
+            )
+            assert stage_total == cost["total_tokens"]
+
+            # AC-12: attribution_quality in each stage
+            for stage in variant["stage_breakdown"]:
+                assert "attribution_quality" in stage
+                assert stage["attribution_quality"] in ("high", "medium", "low")
+
+            # AC-18: data_quality in both domains
+            assert cost["data_quality"] in ("measured", "estimated", "unavailable")
+            assert ctx["data_quality"] in ("measured", "estimated", "unavailable")
+
+        # ── AC-13: Comparison block ──
+        comp = um.get("comparison")
+        assert comp is not None
+        assert "cost_metrics" in comp
+        assert "context_metrics" in comp
+
+        # Verify delta has expected structure
+        for domain_name in ("cost_metrics", "context_metrics"):
+            for metric_name, metric_data in comp[domain_name].items():
+                assert "CONTROL" in metric_data
+                assert "WITH_SKILL" in metric_data
+                assert "delta_abs" in metric_data
+                assert "delta_pct" in metric_data
+
+        # ── AC-15: No Infinity or NaN in deltas ──
+        import math
+        for domain_name in ("cost_metrics", "context_metrics"):
+            for metric_name, metric_data in comp[domain_name].items():
+                if metric_data["delta_pct"] is not None:
+                    assert not math.isinf(metric_data["delta_pct"])
+                    assert not math.isnan(metric_data["delta_pct"])
+
+    @pytest.mark.asyncio
+    async def test_e2e_flag_off_backward_compat(
+        self,
+        e2e_config_flag_off: EvalConfig,
+        mock_adapter_with_usage: MagicMock,
+        tmp_path,
+    ):
+        """E2E: Flag off → JSON is legacy-compatible (AC-02).
+
+        Verifies EC-08: no new keys when flag off.
+        """
+        import json
+
+        from md_evals.reporter import Reporter
+
+        engine = ExecutionEngine(
+            config=e2e_config_flag_off,
+            llm_adapter=mock_adapter_with_usage,
+        )
+
+        results = await engine.run_all(["CONTROL", "WITH_SKILL"])
+
+        reporter = Reporter(e2e_config_flag_off)
+        output_path = str(tmp_path / "e2e_legacy.json")
+        reporter.report_json(results, output_path)
+
+        with open(output_path) as f:
+            data = json.load(f)
+
+        # AC-02: No new keys
+        assert "usage_metrics" not in data
+        assert "report_schema_version" not in data
+        assert "feature_flags" not in data
+
+        # AC-17: Legacy keys present
+        legacy_keys = {"experiment_id", "timestamp", "config", "results", "summary"}
+        assert set(data.keys()) == legacy_keys
+
+        for r in data["results"]:
+            assert "tokens" in r
+            assert "duration_ms" in r
+
+    @pytest.mark.asyncio
+    async def test_e2e_flag_on_no_cost_map(
+        self,
+        mock_adapter_with_usage: MagicMock,
+        tmp_path,
+    ):
+        """E2E: Flag on, no cost_map → estimated_cost_usd = null (AC-19)."""
+        import json
+
+        from md_evals.reporter import Reporter
+
+        config = EvalConfig(
+            name="No Cost Map",
+            defaults=Defaults(model="gpt-4o", provider="openai", max_tokens=2048),
+            treatments={"CONTROL": Treatment(skill_path=None)},
+            tests=[Task(name="test_1", prompt="Hello", variables={}, evaluators=[])],
+            execution=ExecutionConfig(parallel_workers=1, repetitions=1),
+            output=OutputConfig(include_usage_metrics=True),
+            # No cost_map
+            context_window_overrides={"gpt-4o": 128000},
+        )
+
+        engine = ExecutionEngine(
+            config=config,
+            llm_adapter=mock_adapter_with_usage,
+        )
+
+        results = await engine.run_all(["CONTROL"])
+
+        reporter = Reporter(config)
+        output_path = str(tmp_path / "no_cost.json")
+        reporter.report_json(results, output_path)
+
+        with open(output_path) as f:
+            data = json.load(f)
+
+        # AC-19: cost_map absent → estimated_cost_usd = null
+        cost = data["usage_metrics"]["variants"]["CONTROL"]["cost_metrics"]
+        assert cost["estimated_cost_usd"] is None
+        # But tokens are still present
+        assert cost["prompt_tokens"] > 0
+
+    @pytest.mark.asyncio
+    async def test_e2e_flag_on_unknown_context_window(
+        self,
+        mock_adapter_with_usage: MagicMock,
+        tmp_path,
+    ):
+        """E2E: Flag on, unknown context window → null/defaults (AC-20)."""
+        import json
+
+        from md_evals.reporter import Reporter
+
+        config = EvalConfig(
+            name="Unknown Window",
+            defaults=Defaults(
+                model="unknown-model-xyz",
+                provider="unknown-provider-xyz",
+                max_tokens=2048,
+            ),
+            treatments={"CONTROL": Treatment(skill_path=None)},
+            tests=[Task(name="test_1", prompt="Hello", variables={}, evaluators=[])],
+            execution=ExecutionConfig(parallel_workers=1, repetitions=1),
+            output=OutputConfig(include_usage_metrics=True),
+        )
+
+        engine = ExecutionEngine(
+            config=config,
+            llm_adapter=mock_adapter_with_usage,
+        )
+
+        results = await engine.run_all(["CONTROL"])
+
+        reporter = Reporter(config)
+        output_path = str(tmp_path / "unknown_window.json")
+        reporter.report_json(results, output_path)
+
+        with open(output_path) as f:
+            data = json.load(f)
+
+        # AC-20: context_window unknown → all derived null/default
+        ctx = data["usage_metrics"]["variants"]["CONTROL"]["context_metrics"]
+        assert ctx["context_window_max_tokens"] is None
+        assert ctx["context_utilization_pct"] is None
+        assert ctx["headroom_tokens"] is None
+        assert ctx["safe_headroom_tokens"] is None
+        assert ctx["overflow"] is False
+        assert ctx["overflow_tokens"] == 0
+        assert ctx["truncation_risk"] == "unknown"
+
+    @pytest.mark.asyncio
+    async def test_e2e_terminal_output_flag_on(
+        self,
+        e2e_config_with_metrics: EvalConfig,
+        mock_adapter_with_usage: MagicMock,
+        capsys,
+    ):
+        """E2E: Terminal output with flag on shows Cost and Context tables."""
+        from md_evals.reporter import Reporter
+
+        evaluator = EvaluatorEngine()
+        engine = ExecutionEngine(
+            config=e2e_config_with_metrics,
+            llm_adapter=mock_adapter_with_usage,
+            evaluator_engine=evaluator,
+        )
+
+        results = await engine.run_all(["CONTROL", "WITH_SKILL"])
+
+        reporter = Reporter(e2e_config_with_metrics)
+        reporter.report_terminal(results, verbose=False)
+
+        captured = capsys.readouterr()
+        assert "Cost Metrics" in captured.out
+        assert "Context Metrics" in captured.out
+        assert "md-evals Results" in captured.out
