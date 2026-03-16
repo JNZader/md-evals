@@ -1,13 +1,15 @@
 # Deploy frontend to GitHub Pages
-# This is a stub — will be completed in Phase 8
+# Triggers on push to main when apps/web/ or docs/ change
 
 name: Deploy to GitHub Pages
 
 on:
+  push:
+    branches: [main]
+    paths:
+      - "apps/web/**"
+      - "docs/**"
   workflow_dispatch:
-  # push:
-  #   branches: [main]
-  #   paths: [apps/web/**]
 
 permissions:
   contents: read
@@ -27,21 +29,58 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 22
+          cache: npm
+          cache-dependency-path: apps/web/package-lock.json
 
       - name: Install dependencies
         run: npm ci
         working-directory: apps/web
 
-      - name: Build
+      - name: Build frontend
         run: npm run build
         working-directory: apps/web
         env:
           VITE_API_URL: ${{ vars.VITE_API_URL }}
 
-      - name: Upload artifact
+      - name: Check no secrets leaked into bundle
+        run: |
+          if grep -r "client_secret" apps/web/dist/ 2>/dev/null; then
+            echo "::error::Found client_secret in frontend bundle!"
+            exit 1
+          fi
+          if grep -r "MASTER_KEY" apps/web/dist/ 2>/dev/null; then
+            echo "::error::Found MASTER_KEY in frontend bundle!"
+            exit 1
+          fi
+          echo "No secrets found in bundle — OK"
+
+      - name: Assemble _site directory
+        run: |
+          mkdir -p _site/app
+          cp -r apps/web/dist/* _site/app/
+          # If docs exist, copy them to the root
+          if [ -d docs ]; then
+            cp -r docs/* _site/ 2>/dev/null || true
+          fi
+          # Create root index.html that redirects to the app
+          cat > _site/index.html << 'HEREDOC'
+          <!DOCTYPE html>
+          <html>
+          <head>
+            <meta charset="utf-8">
+            <meta http-equiv="refresh" content="0; url=app/">
+            <title>md-evals</title>
+          </head>
+          <body>
+            <p>Redirecting to <a href="app/">md-evals app</a>...</p>
+          </body>
+          </html>
+          HEREDOC
+
+      - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: apps/web/dist
+          path: _site
 
   deploy:
     needs: build
