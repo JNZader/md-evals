@@ -46,3 +46,12 @@ Thumbs.db
 
 # uv
 .ruff_cache/
+
+# Node.js
+node_modules/
+
+# Environment
+.env
+
+# Frontend build
+apps/web/dist/
