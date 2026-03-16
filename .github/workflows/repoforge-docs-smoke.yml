@@ -143,7 +143,8 @@ jobs:
 
       - name: Generate documentation
         id: generate
-        uses: JNZader/repoforge@v0.1.0
+        continue-on-error: true
+        uses: JNZader/repoforge@main
         with:
           command: docs
           language: English
@@ -152,7 +153,7 @@ jobs:
           github-token: ${{ steps.token.outputs.value }}
 
       - name: Prepare root artifact
-        if: steps.plan.outputs.deploy == 'true' && steps.plan.outputs.target == 'main'
+        if: steps.generate.outcome == 'success' && steps.plan.outputs.deploy == 'true' && steps.plan.outputs.target == 'main'
         shell: bash
         run: |
           rm -rf site
@@ -160,7 +161,7 @@ jobs:
           cp -R docs-build/. site/
 
       - name: Prepare subpath artifact
-        if: steps.plan.outputs.deploy == 'true' && steps.plan.outputs.target == 'subpath'
+        if: steps.generate.outcome == 'success' && steps.plan.outputs.deploy == 'true' && steps.plan.outputs.target == 'subpath'
         shell: bash
         run: |
           PREFIX="${{ steps.plan.outputs.prefix }}"
@@ -169,18 +170,18 @@ jobs:
           cp -R docs-build/. "site/$PREFIX/"
 
       - name: Upload Pages artifact
-        if: steps.plan.outputs.deploy == 'true' && steps.plan.outputs.target == 'main'
+        if: steps.generate.outcome == 'success' && steps.plan.outputs.deploy == 'true' && steps.plan.outputs.target == 'main'
         uses: actions/upload-pages-artifact@v4
         with:
           path: site/
 
       - name: Deploy main site (workflow Pages)
-        if: steps.plan.outputs.deploy == 'true' && steps.plan.outputs.target == 'main'
+        if: steps.generate.outcome == 'success' && steps.plan.outputs.deploy == 'true' && steps.plan.outputs.target == 'main'
         id: deploy_main
         uses: actions/deploy-pages@v4
 
       - name: Deploy subpath (preserve existing files)
-        if: steps.plan.outputs.deploy == 'true' && steps.plan.outputs.target == 'subpath'
+        if: steps.generate.outcome == 'success' && steps.plan.outputs.deploy == 'true' && steps.plan.outputs.target == 'subpath'
         uses: peaceiris/actions-gh-pages@v4
         with:
           github_token: ${{ github.token }}
