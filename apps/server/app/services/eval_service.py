@@ -20,6 +20,7 @@ from sqlalchemy import select, update
 from app.config import settings
 from app.models import Evaluation, ProviderKey, async_session_factory
 from app.services.crypto import decrypt_key, derive_user_key
+from app.services.session_keys import session_key_store
 
 # md_evals imports (core library — never modified)
 from md_evals.engine import ExecutionEngine
@@ -260,13 +261,24 @@ class EvalService:
     # ---------- Helpers ----------
 
     async def _resolve_api_key(self, user_id: str, provider: str) -> str:
-        """Decrypt the API key for the given provider from DB."""
+        """Resolve the API key for the given provider.
+
+        Priority: session key (in-memory) > persistent key (DB).
+        Session keys take precedence because the user explicitly chose
+        to use a temporary key for this session.
+        """
         if provider == "github-models":
             # For github-models, the user's OAuth token is used.
             # In practice, this would come from the user's stored token.
             # For now, we check env or provider_keys table.
             pass
 
+        # 1. Check session keys first (in-memory, higher priority)
+        session_entry = await session_key_store.get_key(user_id, provider)
+        if session_entry is not None:
+            return session_entry.api_key
+
+        # 2. Fall back to persistent keys in DB
         async with async_session_factory() as session:
             result = await session.execute(
                 select(ProviderKey).where(

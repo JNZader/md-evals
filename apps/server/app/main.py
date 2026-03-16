@@ -1,5 +1,6 @@
 """FastAPI application entry point."""
 
+import asyncio
 import logging
 from contextlib import asynccontextmanager
 from collections.abc import AsyncGenerator
@@ -12,6 +13,7 @@ from app.models.database import Base, engine
 from app.routes.auth import router as auth_router
 from app.routes.eval import router as eval_router
 from app.routes.providers import router as providers_router
+from app.services.session_keys import session_key_cleanup_loop
 
 logger = logging.getLogger(__name__)
 
@@ -25,9 +27,19 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
             await conn.run_sync(Base.metadata.create_all)
         logger.info("Dev mode: database tables created/verified")
 
+    # Start background cleanup task for expired session keys
+    cleanup_task = asyncio.create_task(session_key_cleanup_loop())
+    logger.info("Session key cleanup background task started")
+
     yield
 
-    # Shutdown — dispose engine
+    # Shutdown — cancel cleanup task and dispose engine
+    cleanup_task.cancel()
+    try:
+        await cleanup_task
+    except asyncio.CancelledError:
+        pass
+
     await engine.dispose()
     logger.info("Database engine disposed")
 

@@ -1,6 +1,7 @@
 """Pydantic request/response schemas for the API."""
 
 from datetime import datetime
+from typing import Literal
 
 from pydantic import BaseModel, Field
 
@@ -39,6 +40,7 @@ class ProviderKeyCreate(BaseModel):
 
     provider: str = Field(..., min_length=1, max_length=50)
     key: str = Field(..., min_length=1)
+    storage: Literal["persistent", "session"] = "persistent"
 
 
 class ProviderKeyResponse(BaseModel):
@@ -49,6 +51,7 @@ class ProviderKeyResponse(BaseModel):
     is_validated: bool = False
     validated_at: datetime | None = None
     created_at: datetime
+    storage: Literal["persistent", "session"] = "persistent"
 
 
 class ProviderKeyValidateRequest(BaseModel):

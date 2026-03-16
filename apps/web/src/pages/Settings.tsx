@@ -16,6 +16,7 @@ import {
   useProviders,
   useCreateProvider,
   useDeleteProvider,
+  useDeleteSessionProvider,
   useValidateProvider,
 } from "../lib/api";
 import { cn } from "../lib/cn";
@@ -36,6 +37,7 @@ export default function Settings() {
   const { data: providers, isLoading } = useProviders();
   const createMutation = useCreateProvider();
   const deleteMutation = useDeleteProvider();
+  const deleteSessionMutation = useDeleteSessionProvider();
   const validateMutation = useValidateProvider();
 
   const [showAddForm, setShowAddForm] = useState(false);
@@ -44,17 +46,21 @@ export default function Settings() {
   const [showKey, setShowKey] = useState(false);
   const [addError, setAddError] = useState<string | null>(null);
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
+  const [storageMode, setStorageMode] = useState<"persistent" | "session">(
+    "persistent",
+  );
 
   const handleAdd = () => {
     if (!newKey.trim()) return;
     setAddError(null);
 
     createMutation.mutate(
-      { provider: newProvider, key: newKey.trim() },
+      { provider: newProvider, key: newKey.trim(), storage: storageMode },
       {
         onSuccess: () => {
           setNewKey("");
           setShowAddForm(false);
+          setStorageMode("persistent");
         },
         onError: (err) => {
           setAddError((err as Error).message || "Failed to add provider key.");
@@ -85,9 +91,18 @@ export default function Settings() {
   };
 
   const handleDelete = (provider: string) => {
-    deleteMutation.mutate(provider, {
-      onSuccess: () => setDeleteConfirm(null),
-    });
+    const saved = providers?.find((pk) => pk.provider === provider);
+    const isSession = saved?.storage === "session";
+
+    if (isSession) {
+      deleteSessionMutation.mutate(provider, {
+        onSuccess: () => setDeleteConfirm(null),
+      });
+    } else {
+      deleteMutation.mutate(provider, {
+        onSuccess: () => setDeleteConfirm(null),
+      });
+    }
   };
 
   return (
@@ -131,6 +146,10 @@ export default function Settings() {
             {PROVIDERS.map((p) => {
               const saved = providers?.find((pk) => pk.provider === p.id);
               const isOAuth = "oauth" in p && p.oauth;
+              const isSession = saved?.storage === "session";
+              const isDeleting =
+                deleteMutation.isPending ||
+                deleteSessionMutation.isPending;
 
               return (
                 <div
@@ -157,17 +176,25 @@ export default function Settings() {
                           Uses your OAuth token
                         </p>
                       ) : saved ? (
-                        <p className="text-xs text-gray-500">
-                          {saved.key_hint ?? "****"}{" "}
-                          {saved.validated_at && (
-                            <span className="text-green-600">
-                              &middot; Validated{" "}
-                              {new Date(
-                                saved.validated_at,
-                              ).toLocaleDateString()}
-                            </span>
+                        <div>
+                          <p className="text-xs text-gray-500">
+                            {saved.key_hint ?? "****"}{" "}
+                            {saved.validated_at && (
+                              <span className="text-green-600">
+                                &middot; Validated{" "}
+                                {new Date(
+                                  saved.validated_at,
+                                ).toLocaleDateString()}
+                              </span>
+                            )}
+                          </p>
+                          {isSession && (
+                            <p className="mt-0.5 text-xs text-amber-600 dark:text-amber-400">
+                              <AlertTriangle className="mr-1 inline h-3 w-3" />
+                              This key will be lost when you log out
+                            </p>
                           )}
-                        </p>
+                        </div>
                       ) : (
                         <p className="text-xs text-gray-400">Not configured</p>
                       )}
@@ -183,6 +210,15 @@ export default function Settings() {
                     )}
                     {saved && !isOAuth && (
                       <>
+                        {isSession ? (
+                          <span className="rounded-full bg-amber-50 px-2 py-0.5 text-xs font-medium text-amber-700 dark:bg-amber-950 dark:text-amber-300">
+                            Session
+                          </span>
+                        ) : (
+                          <span className="rounded-full bg-green-50 px-2 py-0.5 text-xs font-medium text-green-700 dark:bg-green-950 dark:text-green-300">
+                            Saved
+                          </span>
+                        )}
                         {deleteConfirm === p.id ? (
                           <div className="flex items-center gap-2">
                             <span className="text-xs text-red-600">
@@ -190,10 +226,10 @@ export default function Settings() {
                             </span>
                             <button
                               onClick={() => handleDelete(p.id)}
-                              disabled={deleteMutation.isPending}
+                              disabled={isDeleting}
                               className="rounded bg-red-600 px-2 py-1 text-xs text-white hover:bg-red-700"
                             >
-                              {deleteMutation.isPending ? "..." : "Yes"}
+                              {isDeleting ? "..." : "Yes"}
                             </button>
                             <button
                               onClick={() => setDeleteConfirm(null)}
@@ -276,6 +312,48 @@ export default function Settings() {
                 </div>
               </div>
 
+              {/* Storage mode toggle */}
+              <div>
+                <label className="mb-1 block text-xs font-medium text-gray-500">
+                  Storage
+                </label>
+                <div className="flex gap-3">
+                  <label className="flex cursor-pointer items-center gap-2">
+                    <input
+                      type="radio"
+                      name="storageMode"
+                      value="persistent"
+                      checked={storageMode === "persistent"}
+                      onChange={() => setStorageMode("persistent")}
+                      className="accent-indigo-600"
+                    />
+                    <span className="text-sm text-gray-700 dark:text-gray-300">
+                      Save permanently
+                    </span>
+                  </label>
+                  <label className="flex cursor-pointer items-center gap-2">
+                    <input
+                      type="radio"
+                      name="storageMode"
+                      value="session"
+                      checked={storageMode === "session"}
+                      onChange={() => setStorageMode("session")}
+                      className="accent-amber-600"
+                    />
+                    <span className="text-sm text-gray-700 dark:text-gray-300">
+                      Use for this session only
+                    </span>
+                  </label>
+                </div>
+                {storageMode === "session" && (
+                  <p className="mt-1 text-xs text-amber-600 dark:text-amber-400">
+                    <AlertTriangle className="mr-1 inline h-3 w-3" />
+                    This key will only be stored in server memory. It will be
+                    lost when you log out or the server restarts.
+                  </p>
+                )}
+              </div>
+
               {addError && (
                 <div className="flex items-center gap-2 text-sm text-red-600">
                   <AlertTriangle className="h-4 w-4 shrink-0" />
@@ -306,18 +384,26 @@ export default function Settings() {
                 <button
                   onClick={handleAdd}
                   disabled={!newKey.trim() || createMutation.isPending}
-                  className="flex items-center gap-1.5 rounded-lg bg-indigo-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-indigo-700 disabled:cursor-not-allowed disabled:opacity-50"
+                  className={cn(
+                    "flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-medium text-white disabled:cursor-not-allowed disabled:opacity-50",
+                    storageMode === "session"
+                      ? "bg-amber-600 hover:bg-amber-700"
+                      : "bg-indigo-600 hover:bg-indigo-700",
+                  )}
                 >
                   {createMutation.isPending && (
                     <Loader2 className="h-3.5 w-3.5 animate-spin" />
                   )}
-                  Save Key
+                  {storageMode === "session"
+                    ? "Use for Session"
+                    : "Save Key"}
                 </button>
                 <button
                   onClick={() => {
                     setShowAddForm(false);
                     setNewKey("");
                     setAddError(null);
+                    setStorageMode("persistent");
                   }}
                   className="rounded-lg border border-gray-300 px-3 py-1.5 text-sm font-medium text-gray-500 hover:bg-gray-50 dark:border-gray-600 dark:text-gray-400 dark:hover:bg-gray-800"
                 >
