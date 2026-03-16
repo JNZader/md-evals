@@ -143,7 +143,6 @@ jobs:
 
       - name: Generate documentation
         id: generate
-        continue-on-error: true
         uses: JNZader/repoforge@v0.1.0
         with:
           command: docs
@@ -151,6 +150,44 @@ jobs:
           output-dir: docs-build
           model: github/gpt-4o-mini
           github-token: ${{ steps.token.outputs.value }}
+
+      - name: Prepare root artifact
+        if: steps.plan.outputs.deploy == 'true' && steps.plan.outputs.target == 'main'
+        shell: bash
+        run: |
+          rm -rf site
+          mkdir -p site
+          cp -R docs-build/. site/
+
+      - name: Prepare subpath artifact
+        if: steps.plan.outputs.deploy == 'true' && steps.plan.outputs.target == 'subpath'
+        shell: bash
+        run: |
+          PREFIX="${{ steps.plan.outputs.prefix }}"
+          rm -rf site
+          mkdir -p "site/$PREFIX"
+          cp -R docs-build/. "site/$PREFIX/"
+
+      - name: Upload Pages artifact
+        if: steps.plan.outputs.deploy == 'true' && steps.plan.outputs.target == 'main'
+        uses: actions/upload-pages-artifact@v4
+        with:
+          path: site/
+
+      - name: Deploy main site (workflow Pages)
+        if: steps.plan.outputs.deploy == 'true' && steps.plan.outputs.target == 'main'
+        id: deploy_main
+        uses: actions/deploy-pages@v4
+
+      - name: Deploy subpath (preserve existing files)
+        if: steps.plan.outputs.deploy == 'true' && steps.plan.outputs.target == 'subpath'
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ github.token }}
+          publish_branch: gh-pages
+          publish_dir: site
+          keep_files: true
+          force_orphan: false
 
       - name: Summary
         shell: bash
