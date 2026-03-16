@@ -1,7 +1,7 @@
 # md-evals
 
 [![GitHub License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
-[![Python 3.9+](https://img.shields.io/badge/python-3.9+-blue.svg)](https://www.python.org/downloads/)
+[![Python 3.12+](https://img.shields.io/badge/python-3.12+-blue.svg)](https://www.python.org/downloads/)
 [![Tests](https://img.shields.io/badge/tests-69%2B-brightgreen.svg)](tests/)
 [![GitHub Models](https://img.shields.io/badge/GitHub%20Models-Free-green.svg)](https://github.com/models)
 
@@ -64,7 +64,7 @@ cd md-evals
 pip install -e .
 ```
 
-**Requirements:** Python 3.9+
+**Requirements:** Python 3.12+
 
 ## Quick Start
 
@@ -97,11 +97,14 @@ md-evals list        # List treatments and tests
 # 1. Create evaluation
 md-evals init
 
-# 2. Run with GitHub Models (free!)
-export GITHUB_TOKEN="github_pat_..."
-md-evals run --provider github-models --model claude-3.5-sonnet
+# 2. Preflight auth (env var first, gh login fallback)
+md-evals smoke --provider github-models
 
-# 3. View results
+# 3. Run with GitHub Models (free!)
+export GITHUB_TOKEN="github_pat_..."
+md-evals run --provider github-models --model claude-3.5-sonnet --config eval.yaml
+
+# 4. View results
 # → Beautiful table with Control vs Treatment comparison
 # → Pass rates and statistics
 ```
@@ -113,24 +116,27 @@ Evaluate your skills **completely free** using GitHub's Models API (public previ
 ### Setup (One-time)
 
 ```bash
-# Create a GitHub personal access token
-# https://github.com/settings/tokens → New token → "repo" scope
-
-# Set your token (save in .env for persistence)
+# Preferred: set GITHUB_TOKEN directly
 export GITHUB_TOKEN="github_pat_..."
+
+# Fallback for users already logged in with GitHub CLI
+gh auth login
+
+# Verify auth preflight before first run
+md-evals smoke --provider github-models --config examples/eval_with_github_models.yaml
 ```
 
 ### Run Evaluation with Free Models
 
 ```bash
 # Use Claude 3.5 Sonnet (200k context, free!)
-md-evals run eval.yaml --provider github-models --model claude-3.5-sonnet
+md-evals run --config eval.yaml --provider github-models --model claude-3.5-sonnet
 
 # Or use GPT-4o
-md-evals run eval.yaml --provider github-models --model gpt-4o
+md-evals run --config eval.yaml --provider github-models --model gpt-4o
 
 # Or use DeepSeek R1 (fastest)
-md-evals run eval.yaml --provider github-models --model deepseek-r1
+md-evals run --config eval.yaml --provider github-models --model deepseek-r1
 ```
 
 ### Available Models
@@ -215,10 +221,11 @@ tests:
 |---------|---------|
 | `md-evals init` | 🚀 Scaffold `eval.yaml` and `SKILL.md` templates |
 | `md-evals run` | ▶️ Run evaluations (Control vs Treatment) |
-| `md-evals run [treatment]` | 🎯 Run specific treatment |
+| `md-evals run --treatment WITH_SKILL` | 🎯 Run specific treatment |
 | `md-evals lint` | ✅ Validate SKILL.md (400-line limit, best practices) |
 | `md-evals list` | 📋 List available treatments and tests |
 | `md-evals list-models` | 🤖 List available models per provider |
+| `md-evals smoke --provider github-models --config eval.yaml` | 🧪 Local preflight (provider, config, auth) |
 
 ### Common Workflows
 

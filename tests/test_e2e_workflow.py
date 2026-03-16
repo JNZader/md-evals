@@ -4,10 +4,9 @@ Tests cover the integration between Engine and Evaluator components,
 including happy path, error handling, and concurrent execution scenarios.
 """
 
-import asyncio
 import pytest
 from pathlib import Path
-from unittest.mock import MagicMock, AsyncMock, patch
+from unittest.mock import MagicMock, AsyncMock
 from datetime import datetime, timezone
 
 from md_evals.engine import ExecutionEngine
@@ -1428,7 +1427,7 @@ class TestReporterFormatConsistency:
         """
         from md_evals.reporter import Reporter
 
-        reporter = Reporter(base_config)
+        Reporter(base_config)
 
         # Test data consistency
         for result in reporter_test_results:

@@ -2,8 +2,9 @@
 
 import os
 import pytest
-from unittest.mock import Mock, AsyncMock, patch, MagicMock
-from datetime import datetime
+from unittest.mock import Mock, AsyncMock, patch
+from hypothesis import given, settings, HealthCheck
+from hypothesis import strategies as st
 
 from md_evals.providers.github_models import (
     GitHubModelsProvider,
@@ -85,8 +86,9 @@ class TestProviderInitialization:
     
     def test_init_without_token_raises_error(self, no_token_env):
         """Test that initialization without token raises AuthenticationError."""
-        with pytest.raises(AuthenticationError) as exc_info:
-            GitHubModelsProvider("claude-3.5-sonnet")
+        with patch.object(GitHubModelsProvider, "_load_token_from_gh_cli", return_value=None):
+            with pytest.raises(AuthenticationError) as exc_info:
+                GitHubModelsProvider("claude-3.5-sonnet")
         
         assert "GITHUB_TOKEN" in str(exc_info.value)
         assert "not set" in str(exc_info.value)
@@ -144,18 +146,46 @@ class TestTokenLoading:
     def test_invalid_token_format_raises_error(self, no_token_env):
         """Test that invalid token format raises error."""
         with pytest.raises(AuthenticationError):
-            provider = GitHubModelsProvider(
+            GitHubModelsProvider(
                 "claude-3.5-sonnet",
                 github_token="short"  # Too short
             )
     
     def test_missing_token_raises_error(self, no_token_env):
         """Test that missing token raises error."""
-        with pytest.raises(AuthenticationError) as exc_info:
-            provider = GitHubModelsProvider("claude-3.5-sonnet")
+        with patch.object(GitHubModelsProvider, "_load_token_from_gh_cli", return_value=None):
+            with pytest.raises(AuthenticationError) as exc_info:
+                GitHubModelsProvider("claude-3.5-sonnet")
         
         error_msg = str(exc_info.value)
         assert "https://github.com/settings/tokens" in error_msg
+
+    def test_load_token_from_gh_cli_fallback(self, no_token_env, mock_azure_client):
+        """Test loading token from gh CLI when env var is missing."""
+        gh_token = "gho_test_fallback_token_1234567890"
+        with patch.object(GitHubModelsProvider, "_load_token_from_gh_cli", return_value=gh_token), \
+             patch.object(GitHubModelsProvider, "_initialize_client", return_value=mock_azure_client):
+            provider = GitHubModelsProvider("claude-3.5-sonnet")
+
+        assert provider.github_token == gh_token
+
+    def test_resolve_token_source_prefers_env_over_gh(self, monkeypatch):
+        """Token source should prioritize GITHUB_TOKEN over gh auth token."""
+        monkeypatch.setenv("GITHUB_TOKEN", "github_pat_env_priority_token")
+        with patch.object(GitHubModelsProvider, "_load_token_from_gh_cli", return_value="gho_other"):
+            token, source = GitHubModelsProvider.resolve_token_source()
+
+        assert token == "github_pat_env_priority_token"
+        assert source == "env"
+
+    def test_resolve_token_source_uses_gh_fallback(self, no_token_env):
+        """Token source should use gh auth token when env token is missing."""
+        gh_token = "gho_cli_fallback_token"
+        with patch.object(GitHubModelsProvider, "_load_token_from_gh_cli", return_value=gh_token):
+            token, source = GitHubModelsProvider.resolve_token_source()
+
+        assert token == gh_token
+        assert source == "gh"
 
 
 # ============== Test Supported Models ==============
@@ -667,12 +697,10 @@ class TestProviderInitializationErrors:
     def test_missing_github_token_error(self):
         """Test error when GITHUB_TOKEN is not set."""
         with patch.dict(os.environ, {}, clear=True):
-            # Make sure GITHUB_TOKEN is not set
-            with pytest.raises(AuthenticationError) as exc_info:
-                provider = GitHubModelsProvider("claude-3.5-sonnet")
-                # This should fail during initialization
-                if os.getenv("GITHUB_TOKEN"):
-                    pytest.skip("GITHUB_TOKEN is set")
+            with patch.object(GitHubModelsProvider, "_load_token_from_gh_cli", return_value=None):
+                # Make sure no token is available from env or gh CLI
+                with pytest.raises(AuthenticationError) as exc_info:
+                    GitHubModelsProvider("claude-3.5-sonnet")
             
             error_msg = str(exc_info.value)
             assert "token" in error_msg.lower() or "github" in error_msg.lower()
@@ -861,9 +889,6 @@ class TestTokenEstimationMutations:
 
 
 # ===== FASE 12-4: Numeric Computation Properties (Property-Based Testing) =====
-
-from hypothesis import given, settings, HealthCheck
-from hypothesis import strategies as st
 
 
 class TestGitHubModelsNumericProperties:

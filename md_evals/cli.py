@@ -1,7 +1,6 @@
 """CLI commands for md-evals."""
 
 import asyncio
-import sys
 import logging
 from pathlib import Path
 
@@ -16,10 +15,10 @@ from md_evals.engine import ExecutionEngine
 from md_evals.evaluator import EvaluatorEngine
 from md_evals.llm import LLMAdapter
 from md_evals.linter import LinterEngine
-from md_evals.models import LinterConfig, Defaults
+from md_evals.models import LinterConfig
+from md_evals.providers.github_models import GitHubModelsProvider
 from md_evals.reporter import Reporter
 from md_evals.provider_registry import ProviderRegistry
-from md_evals.providers import GitHubModelsProvider
 
 logger = logging.getLogger(__name__)
 
@@ -29,6 +28,17 @@ app = typer.Typer(
     add_completion=False
 )
 console = Console()
+
+
+def _print_github_auth_help() -> None:
+    """Print actionable GitHub Models authentication help."""
+    console.print("\n[yellow]GitHub Models auth preflight (priority order):[/yellow]")
+    console.print("1. Preferred: set [bold]GITHUB_TOKEN[/bold] in your shell or .env")
+    console.print("   [dim]export GITHUB_TOKEN=github_pat_...[/dim]")
+    console.print("2. Fallback: use GitHub CLI token from [bold]gh auth login[/bold]")
+    console.print("   [dim]gh auth login && gh auth token[/dim]")
+    console.print("3. Run smoke preflight")
+    console.print("   [dim]md-evals smoke --provider github-models --config examples/eval_with_github_models.yaml[/dim]")
 
 
 @app.command()
@@ -43,17 +53,17 @@ def init(
     force: Annotated[bool, typer.Option("--force", "-f", help="Overwrite existing files")] = False,
 ):
     """Scaffold eval.yaml and SKILL.md template."""
-    directory = Path(directory)
+    directory_path = Path(directory)
     
     # Create directory if it doesn't exist
-    directory.mkdir(parents=True, exist_ok=True)
+    directory_path.mkdir(parents=True, exist_ok=True)
     
     # Check for existing files
-    eval_yaml = directory / "eval.yaml"
-    skill_md = directory / "SKILL.md"
+    eval_yaml = directory_path / "eval.yaml"
+    skill_md = directory_path / "SKILL.md"
     
     if eval_yaml.exists() and not force:
-        console.print(f"[yellow]eval.yaml already exists. Use --force to overwrite.[/yellow]")
+        console.print("[yellow]eval.yaml already exists. Use --force to overwrite.[/yellow]")
         raise typer.Exit(code=1)
     
     # Create eval.yaml
@@ -134,7 +144,7 @@ Describe what this skill does and when it should be applied.
     console.print(f"[green]Created {skill_md}[/green]")
     
     # Create results directory
-    results_dir = directory / "results"
+    results_dir = directory_path / "results"
     results_dir.mkdir(exist_ok=True)
     console.print(f"[green]Created {results_dir}/[/green]")
     
@@ -162,7 +172,7 @@ def run(
             level=logging.DEBUG,
             format="[%(levelname)s] %(name)s: %(message)s"
         )
-        logger.debug(f"Debug logging enabled")
+        logger.debug("Debug logging enabled")
     try:
         # Load config
         config_obj = ConfigLoader.load(config)
@@ -242,16 +252,14 @@ def run(
             provider=config_obj.defaults.provider,
             defaults=config_obj.defaults
         )
-        logger.debug(f"LLM adapter initialized successfully")
+        logger.debug("LLM adapter initialized successfully")
     except Exception as e:
         # Enhanced error message for GitHub Models authentication
         error_msg = str(e).lower()
         if "github" in error_msg and "token" in error_msg:
             console.print(f"[red]Authentication Error: {e}[/red]")
-            console.print("\n[yellow]GitHub Models Troubleshooting:[/yellow]")
-            console.print("1. Set your GitHub token: export GITHUB_TOKEN=github_pat_...")
-            console.print("2. Generate a token at: https://github.com/settings/tokens")
-            console.print("3. Check your .env file for GITHUB_TOKEN")
+            _print_github_auth_help()
+            console.print("[dim]Token generation: https://github.com/settings/tokens[/dim]")
         else:
             console.print(f"[red]Error initializing provider: {e}[/red]")
         raise typer.Exit(code=1)
@@ -281,9 +289,8 @@ def run(
             console.print("- Free tier limit: 15 requests/minute")
             console.print("- Consider: batching requests, caching responses, or waiting")
         elif "github" in error_lower and "token" in error_lower:
-            console.print("\n[yellow]GitHub Token Help:[/yellow]")
-            console.print("- Check: export GITHUB_TOKEN=github_pat_...")
-            console.print("- Generate: https://github.com/settings/tokens")
+            _print_github_auth_help()
+            console.print("[dim]Token generation: https://github.com/settings/tokens[/dim]")
         elif "context" in error_lower or "token limit" in error_lower:
             console.print("\n[yellow]Context Window Help:[/yellow]")
             console.print("- Prompt too long for selected model")
@@ -347,6 +354,55 @@ def lint(
             raise typer.Exit(code=2)
         else:
             raise typer.Exit(code=0)
+
+
+@app.command()
+def smoke(
+    config: Annotated[str, typer.Option("--config", "-c", help="Config file path to validate")] = "eval.yaml",
+    provider: Annotated[str, typer.Option("--provider", "-p", help="Provider to preflight")] = "github-models",
+):
+    """Run local preflight checks without calling provider APIs."""
+    checks_ok = True
+    console.print("[cyan]Running smoke preflight checks...[/cyan]")
+
+    # Check provider registration
+    try:
+        ProviderRegistry.get(provider)
+        console.print(f"[green]PASS[/green] Provider registered: {provider}")
+    except ValueError as e:
+        checks_ok = False
+        console.print(f"[red]FAIL[/red] Provider not available: {e}")
+
+    # Check config parsing
+    config_path = Path(config)
+    if not config_path.exists():
+        checks_ok = False
+        console.print(f"[red]FAIL[/red] Config file not found: {config}")
+    else:
+        try:
+            ConfigLoader.load(str(config_path))
+            console.print(f"[green]PASS[/green] Config valid: {config}")
+        except ConfigLoaderError as e:
+            checks_ok = False
+            console.print(f"[red]FAIL[/red] Invalid config: {e}")
+
+    # Auth preflight for GitHub Models
+    if provider.lower().replace("_", "-") in {"github-models", "github models"}:
+        token, source = GitHubModelsProvider.resolve_token_source()
+        if token:
+            source_label = "GITHUB_TOKEN" if source == "env" else "gh auth token" if source == "gh" else source
+            console.print(f"[green]PASS[/green] GitHub auth token available via: {source_label}")
+        else:
+            checks_ok = False
+            console.print("[red]FAIL[/red] No GitHub auth token found")
+            _print_github_auth_help()
+
+    if checks_ok:
+        console.print("[bold green]Smoke preflight passed.[/bold green]")
+        raise typer.Exit(code=0)
+
+    console.print("[bold red]Smoke preflight failed.[/bold red]")
+    raise typer.Exit(code=1)
 
 
 @app.command("list-models")

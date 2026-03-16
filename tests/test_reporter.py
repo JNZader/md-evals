@@ -4,12 +4,13 @@ import pytest
 import json
 from pathlib import Path
 from unittest.mock import MagicMock, patch
-from io import StringIO
+from hypothesis import given, settings, HealthCheck
+from hypothesis import strategies as st
 
 from md_evals.reporter import Reporter
 from md_evals.models import (
     EvalConfig, ExecutionResult, LLMResponse,
-    EvaluatorResult, Defaults
+    EvaluatorResult
 )
 
 
@@ -1109,38 +1110,6 @@ class TestReportMarkdown:
         
         assert Path(output_path).exists()
     
-    def test_markdown_creates_directory(self, tmp_path):
-        """Test markdown report creates directory if needed."""
-        results_dir = tmp_path / "reports"
-        config = EvalConfig(
-            name="Test",
-            output__results_dir=str(results_dir)
-        )
-        reporter = Reporter(config)
-        
-        results = [
-            ExecutionResult(
-                treatment="CONTROL",
-                test="test1",
-                prompt="Hello",
-                response=LLMResponse(
-                    content="Hi",
-                    model="gpt-4o",
-                    provider="openai",
-                    duration_ms=1000
-                ),
-                passed=True,
-                evaluator_results=[],
-                timestamp="2024-01-01T00:00:00"
-            )
-        ]
-        
-        output_path = str(results_dir / "results.md")
-        reporter.report_markdown(results, output_path)
-        
-        assert Path(output_path).exists()
-
-
 # PHASE 9 REFINEMENTS START HERE
 
 # Refinement 1: Real Console Output Capture
@@ -1937,12 +1906,6 @@ class TestReporterOutputMutations:
 
 
 # ===== FASE 12-3: Output Format Properties (Property-Based Testing) =====
-
-from hypothesis import given, settings, HealthCheck, assume
-from hypothesis import strategies as st
-import json
-from io import StringIO
-from tempfile import TemporaryDirectory
 
 
 class TestReporterOutputFormatProperties:

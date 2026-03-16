@@ -63,35 +63,6 @@ pretty_width = 100
 line-length = 100
 target-version = "py312"
 
-[tool.pytest.ini_options]
-asyncio_mode = "auto"
-testpaths = ["tests"]
-# Coverage settings
-addopts = [
-    "--cov=md_evals",
-    "--cov-report=term-missing:skip-covered",
-    "--cov-report=html:htmlcov",
-    "--cov-report=xml:coverage.xml",
-    "--cov-report=json:coverage.json",
-    "--cov-branch",
-    "--strict-markers",
-    "-v",
-    "--tb=short",
-    "--durations=10",
-]
-
-# Phase 7: Parallel Execution with pytest-xdist
-# Uncomment line below to enable parallel execution by default
-# addopts includes: -n auto
-# Run: pytest tests/ -n 4  (recommended: 4 workers, 73% faster)
-# Or: pytest tests/ -n auto (auto-detect CPU cores)
-# Or: pytest tests/ (serial, for debugging)
-
-# Coverage thresholds
-# Uncomment to enforce minimum coverage in CI
-# [tool.coverage.report]
-# fail_under = 96
-
 [tool.coverage.run]
 source = ["md_evals"]
 branch = true

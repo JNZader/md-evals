@@ -1,11 +1,10 @@
 """Tests for linter."""
 
-import pytest
 from md_evals.linter import (
     LinterEngine, MaxLinesRule, RequiredSectionsRule,
     EmptyFileRule, VeryLongLineRule
 )
-from md_evals.models import LinterConfig, LinterViolation
+from md_evals.models import LinterConfig
 
 
 class TestMaxLinesRule:

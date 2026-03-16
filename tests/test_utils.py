@@ -1,6 +1,5 @@
 """Tests for md_evals utilities."""
 
-import pytest
 from pathlib import Path
 
 from md_evals.utils import read_file, ensure_dir

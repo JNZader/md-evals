@@ -1,8 +1,8 @@
 """Tests for md_evals LLM adapter."""
 
-import asyncio
 import pytest
 from unittest.mock import patch, AsyncMock, MagicMock, Mock
+from hypothesis import given, strategies as st, settings, HealthCheck
 
 from md_evals.llm import LLMAdapter, inject_skill, LLMError
 
@@ -550,9 +550,6 @@ class TestLLMAdapterValidationMutations:
 # ============================================================================
 # Property-based tests for LLM module string/token handling
 
-from hypothesis import given, strategies as st, settings, HealthCheck
-import json
-
 
 class TestLLMStringProcessingProperties:
     """Property-based tests for LLM string processing.
@@ -761,5 +758,4 @@ class TestLLMTokenEstimationProperties:
         # But allow 50% variance due to token boundaries and specifics
         assert token_increase >= 20, f"Token increase too small: {token_increase} (expected ~25)"
         assert token_increase <= 50, f"Token increase too large: {token_increase} (expected ~25)"
-
 

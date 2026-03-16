@@ -1,9 +1,7 @@
 """Tests for md_evals CLI."""
 
-import pytest
-from io import StringIO
 from unittest.mock import patch, MagicMock, AsyncMock
-from pathlib import Path
+from hypothesis import given, strategies as st
 
 from md_evals import __version__
 from md_evals.cli import app
@@ -151,6 +149,63 @@ tests:
         assert "WITH_SKILL" in result.stdout
 
 
+class TestSmokeCommand:
+    """Test smoke preflight command."""
+
+    def test_smoke_passes_with_valid_config_and_token(self, tmp_path, monkeypatch):
+        """Smoke should pass with valid config and auth token."""
+        from typer.testing import CliRunner
+
+        eval_file = tmp_path / "eval.yaml"
+        eval_file.write_text(
+            """
+name: Test
+defaults:
+  provider: "github-models"
+  model: "claude-3.5-sonnet"
+treatments:
+  CONTROL:
+    skill_path: null
+tests:
+  - name: test1
+    prompt: "test"
+""".strip()
+        )
+        monkeypatch.setenv("GITHUB_TOKEN", "github_pat_test_token_1234567890")
+
+        runner = CliRunner()
+        result = runner.invoke(app, ["smoke", "--config", str(eval_file), "--provider", "github-models"])
+
+        assert result.exit_code == 0
+        assert "Smoke preflight passed" in result.stdout
+
+    def test_smoke_fails_without_auth(self, tmp_path, monkeypatch):
+        """Smoke should fail with explicit auth guidance when token is unavailable."""
+        from typer.testing import CliRunner
+
+        eval_file = tmp_path / "eval.yaml"
+        eval_file.write_text(
+            """
+name: Test
+treatments:
+  CONTROL:
+    skill_path: null
+tests:
+  - name: test1
+    prompt: "test"
+""".strip()
+        )
+        monkeypatch.delenv("GITHUB_TOKEN", raising=False)
+
+        with patch("md_evals.providers.github_models.GitHubModelsProvider._load_token_from_gh_cli", return_value=None):
+            runner = CliRunner()
+            result = runner.invoke(app, ["smoke", "--config", str(eval_file), "--provider", "github-models"])
+
+        assert result.exit_code == 1
+        assert "No GitHub auth token found" in result.stdout
+        assert "gh auth login" in result.stdout
+
+
 class TestRunCommand:
     """Test run command."""
     
@@ -201,7 +256,7 @@ tests:
 """)
         
         # Mock the LLM adapter to avoid actual API calls
-        with patch("md_evals.cli.LLMAdapter") as mock_adapter, \
+        with patch("md_evals.cli.LLMAdapter"), \
              patch("md_evals.cli.ExecutionEngine") as mock_engine:
             
             # Setup mock engine
@@ -234,7 +289,7 @@ tests:
     prompt: "test"
 """)
         
-        with patch("md_evals.cli.LLMAdapter") as mock_adapter, \
+        with patch("md_evals.cli.LLMAdapter"), \
              patch("md_evals.cli.ExecutionEngine") as mock_engine:
             
             mock_engine_instance = MagicMock()
@@ -265,7 +320,7 @@ tests:
     prompt: "test"
 """)
         
-        with patch("md_evals.cli.LLMAdapter") as mock_adapter, \
+        with patch("md_evals.cli.LLMAdapter"), \
              patch("md_evals.cli.ExecutionEngine") as mock_engine:
             
             mock_engine_instance = MagicMock()
@@ -440,7 +495,6 @@ tests:
              patch("md_evals.cli.ExecutionEngine") as mock_engine, \
              patch("md_evals.cli.Reporter"):
             
-            from md_evals.models import ExecutionResult, LLMResponse
             
             mock_engine_instance = MagicMock()
             mock_engine_instance.run_all = AsyncMock(return_value=[])
@@ -628,7 +682,7 @@ tests:
     prompt: "test"
 """)
         
-        with patch("md_evals.cli.LLMAdapter") as mock_adapter, \
+        with patch("md_evals.cli.LLMAdapter"), \
              patch("md_evals.cli.ExecutionEngine") as mock_engine, \
              patch("md_evals.cli.Reporter"):
             
@@ -744,7 +798,6 @@ tests:
     def test_rate_limit_error_message(self, tmp_path):
         """Test rate limit error with helpful message."""
         from typer.testing import CliRunner
-        from md_evals.models import ExecutionResult, LLMResponse
         
         eval_file = tmp_path / "eval.yaml"
         eval_file.write_text("""
@@ -819,7 +872,6 @@ class TestVersionCommand:
     def test_version_output_format(self):
         """Test version command outputs correct format."""
         from typer.testing import CliRunner
-        from md_evals import __version__
         
         runner = CliRunner()
         result = runner.invoke(app, ["version"])
@@ -1072,7 +1124,6 @@ class TestOutputFormats:
     def test_run_output_default_table(self, tmp_path):
         """Test default output is table format."""
         from typer.testing import CliRunner
-        from md_evals.models import ExecutionResult, LLMResponse
         
         eval_file = tmp_path / "eval.yaml"
         eval_file.write_text("""
@@ -1087,7 +1138,7 @@ tests:
         
         with patch("md_evals.cli.LLMAdapter"), \
              patch("md_evals.cli.ExecutionEngine") as mock_engine, \
-             patch("md_evals.cli.Reporter") as mock_reporter:
+             patch("md_evals.cli.Reporter"):
             
             mock_engine_instance = MagicMock()
             mock_engine_instance.run_all = AsyncMock(return_value=[])
@@ -1553,9 +1604,6 @@ tests:
 # ============================================================================
 # Property-based tests using hypothesis to verify string processing invariants
 
-from hypothesis import given, strategies as st
-import json
-
 
 class TestCLIStringProcessingProperties:
     """Property-based tests for CLI string processing using hypothesis.
@@ -1753,5 +1801,3 @@ class TestCLIEdgeCases:
         # Should match original
         assert decoded == unicode_text
         assert len(unicode_text) > 0
-
-

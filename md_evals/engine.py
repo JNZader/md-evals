@@ -5,8 +5,7 @@ from datetime import datetime, timezone
 from typing import TYPE_CHECKING
 
 from md_evals.models import (
-    EvalConfig, ExecutionResult, Defaults,
-    Task, Treatment, LLMResponse
+    EvalConfig, ExecutionResult, Task, Treatment, LLMResponse
 )
 from md_evals.llm import LLMAdapter, inject_skill, LLMError
 

@@ -1,9 +1,9 @@
 """Tests for config loader."""
 
 import pytest
-from pathlib import Path
+from hypothesis import given, strategies as st
 from md_evals.config import ConfigLoader, ConfigLoaderError
-from md_evals.models import EvalConfig, Defaults, Treatment, Task, RegexEvaluator
+from md_evals.models import EvalConfig, Defaults, Treatment, Task
 
 
 class TestConfigLoader:
@@ -309,7 +309,7 @@ class TestConfigErrorHandlingMutations:
         - Treatment lookup logic (in → not in)
         - Exception raising on unknown treatment
         """
-        config = EvalConfig(
+        EvalConfig(
             name="Test",
             treatments={"CONTROL": Treatment()}
         )
@@ -547,18 +547,6 @@ class TestConfigLoadingMutations:
 # ============================================================================
 # Property-based tests using hypothesis for config validation invariants
 
-from hypothesis import given, strategies as st, settings, HealthCheck
-import json
-
-
-
-
-# ============================================================================
-# FASE 12-2: Configuration Validation Properties
-# ============================================================================
-# Property-based tests using hypothesis for config validation invariants
-
-from hypothesis import given, strategies as st
 
 
 class TestConfigValidationProperties:
@@ -852,5 +840,4 @@ class TestConfigEdgeCases:
         # but they might be the same string in edge cases, which is OK
         assert isinstance(config.defaults.model, str)
         assert isinstance(config.defaults.provider, str)
-
 

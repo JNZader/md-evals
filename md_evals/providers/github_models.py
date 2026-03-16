@@ -4,7 +4,8 @@ import os
 import time
 import asyncio
 import logging
-from typing import Any, Optional
+import subprocess
+from typing import Optional
 from dataclasses import dataclass
 
 from md_evals.models import LLMResponse
@@ -176,19 +177,24 @@ class GitHubModelsProvider:
         Raises:
             AuthenticationError: Token missing or invalid
         """
-        # Use provided token or load from environment
-        if token:
-            github_token = token
-        else:
-            github_token = os.getenv("GITHUB_TOKEN")
+        github_token, token_source = self.resolve_token_source(token)
+        if token_source == "gh":
+            logger.debug("Using GitHub token from gh auth token fallback")
         
         # Validate token
         if not github_token:
             raise AuthenticationError(
-                "GITHUB_TOKEN environment variable not set or invalid. "
-                "Please set your GitHub PAT token:\n"
-                "  export GITHUB_TOKEN=github_pat_... \n"
-                "Or update your .env file with: GITHUB_TOKEN=github_pat_...\n"
+                "GITHUB_TOKEN environment variable not set or invalid, and gh auth token fallback is unavailable.\n"
+                "Auth lookup order:\n"
+                "  1) GITHUB_TOKEN (recommended)\n"
+                "  2) gh auth token (from gh login)\n"
+                "How to fix:\n"
+                "  export GITHUB_TOKEN=github_pat_...\n"
+                "  # or\n"
+                "  gh auth login\n"
+                "Diagnostics:\n"
+                "  printenv GITHUB_TOKEN\n"
+                "  gh auth token\n"
                 "Generate a token at: https://github.com/settings/tokens"
             )
         
@@ -198,8 +204,44 @@ class GitHubModelsProvider:
                 "GITHUB_TOKEN appears to be invalid or malformed. "
                 "Check your GITHUB_TOKEN in ~/.bash_profile or .env file"
             )
-        
+
         return github_token
+
+    @classmethod
+    def resolve_token_source(cls, token: Optional[str] = None) -> tuple[Optional[str], str]:
+        """Resolve token source using explicit > env > gh auth token priority."""
+        if token:
+            return token, "explicit"
+
+        env_token = os.getenv("GITHUB_TOKEN")
+        if env_token:
+            return env_token, "env"
+
+        gh_token = cls._load_token_from_gh_cli()
+        if gh_token:
+            return gh_token, "gh"
+
+        return None, "missing"
+
+    @staticmethod
+    def _load_token_from_gh_cli() -> Optional[str]:
+        """Try loading token from `gh auth token` when env var is unavailable."""
+        try:
+            result = subprocess.run(
+                ["gh", "auth", "token"],
+                capture_output=True,
+                text=True,
+                check=False,
+                timeout=5,
+            )
+        except (OSError, subprocess.SubprocessError):
+            return None
+
+        if result.returncode != 0:
+            return None
+
+        token = result.stdout.strip()
+        return token if token else None
     
     def _initialize_client(self):
         """
@@ -254,7 +296,6 @@ class GitHubModelsProvider:
             StreamingError: Network disconnect during streaming
             APIError: Generic API error
         """
-        import time
         
         start_time = time.monotonic()
         

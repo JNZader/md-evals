@@ -5,7 +5,9 @@
 #
 # Before running:
 #   1. Set your GitHub token: export GITHUB_TOKEN=github_pat_...
-#   2. Run: md-evals run examples/eval_with_github_models.yaml
+#      (fallback supported if you already did: gh auth login)
+#   2. Preflight: md-evals smoke --provider github-models --config examples/eval_with_github_models.yaml
+#   3. Run: md-evals run --config examples/eval_with_github_models.yaml
 
 name: "GitHub Models Evaluation Example"
 version: "1.0"
@@ -27,7 +29,7 @@ treatments:
   
   WITH_SKILL:
     description: "Response with skill injection"
-    skill_path: "./SKILL.md"
+    skill_path: "./examples/reasoning_skill.md"
 
 tests:
   - name: "test_clear_explanation"
@@ -83,16 +85,16 @@ execution:
 #   md-evals list-models --provider github-models
 #
 # Run with GitHub Models (Claude 3.5 Sonnet):
-#   md-evals run examples/eval_with_github_models.yaml
+#   md-evals run --config examples/eval_with_github_models.yaml
 #
 # Run with a different GitHub Models model (GPT-4o):
-#   md-evals run examples/eval_with_github_models.yaml --model gpt-4o
+#   md-evals run --config examples/eval_with_github_models.yaml --model gpt-4o
 #
 # Run with override provider from command line:
-#   md-evals run examples/eval_with_github_models.yaml --provider github-models
+#   md-evals run --config examples/eval_with_github_models.yaml --provider github-models
 #
 # Run with verbose output:
-#   md-evals run examples/eval_with_github_models.yaml --verbose
+#   md-evals run --config examples/eval_with_github_models.yaml --verbose
 #
 # Run with debug logging:
-#   md-evals run examples/eval_with_github_models.yaml --debug
+#   md-evals run --config examples/eval_with_github_models.yaml --debug

@@ -2,7 +2,7 @@
 
 import asyncio
 import pytest
-from unittest.mock import patch, AsyncMock, MagicMock
+from unittest.mock import AsyncMock, MagicMock
 
 from md_evals.engine import ExecutionEngine
 from md_evals.models import (
@@ -132,7 +132,6 @@ class TestEvalConfigDefaults:
     @pytest.mark.asyncio
     async def test_run_all_with_treatments(self):
         """Test run_all with multiple treatments."""
-        from md_evals.llm import LLMAdapter
         
         config = EvalConfig(
             name="Test",
@@ -166,7 +165,6 @@ class TestEvalConfigDefaults:
     @pytest.mark.asyncio
     async def test_run_all_with_repetitions(self):
         """Test run_all with multiple repetitions."""
-        from md_evals.llm import LLMAdapter
         
         config = EvalConfig(
             name="Test",
@@ -196,7 +194,6 @@ class TestEvalConfigDefaults:
     @pytest.mark.asyncio
     async def test_run_treatment(self):
         """Test run_treatment method."""
-        from md_evals.llm import LLMAdapter
         
         config = EvalConfig(
             name="Test",
@@ -251,7 +248,7 @@ class TestEvalConfigDefaults:
         
         engine = ExecutionEngine(config, mock_adapter)
         
-        result = await engine.run_single(
+        await engine.run_single(
             Treatment(skill_path=None),
             Task(
                 name="test",
@@ -408,7 +405,7 @@ class TestEvalConfigDefaults:
         
         engine = ExecutionEngine(config, mock_adapter)
         
-        result = await engine.run_single(
+        await engine.run_single(
             Treatment(skill_path=None),
             Task(
                 name="test",
@@ -456,7 +453,7 @@ class TestEvalConfigDefaults:
         
         engine = ExecutionEngine(config, mock_adapter)
         
-        result = await engine.run_single(
+        await engine.run_single(
             Treatment(skill_path=None),
             Task(
                 name="test",
@@ -499,7 +496,7 @@ class TestEvalConfigDefaults:
         
         engine = ExecutionEngine(config, mock_adapter)
         
-        result = await engine.run_single(
+        await engine.run_single(
             Treatment(skill_path=None),
             Task(
                 name="test",
@@ -544,7 +541,7 @@ class TestEvalConfigDefaults:
         
         engine = ExecutionEngine(config, mock_adapter)
         
-        result = await engine.run_single(
+        await engine.run_single(
             Treatment(skill_path=None),
             Task(
                 name="test",
@@ -838,7 +835,7 @@ class TestEvalConfigDefaults:
         
         engine = ExecutionEngine(config, mock_adapter)
         
-        result = await engine.run_single(
+        await engine.run_single(
             Treatment(skill_path=None),
             Task(name="test", prompt="Hello", evaluators=[]),
             "CONTROL"

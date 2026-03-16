@@ -5,8 +5,7 @@ import pytest
 from unittest.mock import MagicMock, AsyncMock
 from md_evals.evaluator import EvaluatorEngine, create_evaluator
 from md_evals.models import (
-    RegexEvaluator, ExactMatchEvaluator, LLMJudgeEvaluator,
-    EvaluatorResult
+    RegexEvaluator, ExactMatchEvaluator, LLMJudgeEvaluator
 )
 
 

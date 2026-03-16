@@ -1,6 +1,5 @@
 """LLM adapter using litellm."""
 
-import asyncio
 from typing import Any
 import litellm
 from tenacity import retry, stop_after_attempt, wait_exponential
@@ -120,13 +119,13 @@ class LLMAdapter:
         """Complete with retry logic."""
         try:
             return await litellm.acompletion(**kwargs)
-        except litellm.exceptions.RateLimitError as e:
+        except litellm.exceptions.RateLimitError:
             # Rate limited, let tenacity handle retry
             raise
-        except litellm.exceptions.TimeoutError as e:
+        except litellm.exceptions.TimeoutError:
             # Timeout, let tenacity handle retry
             raise
-        except Exception as e:
+        except Exception:
             # Other errors, maybe retry helps
             raise
     

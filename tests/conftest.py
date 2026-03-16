@@ -11,11 +11,10 @@ This module provides:
 import pytest
 import tempfile
 import os
-import json
 import time
 from pathlib import Path
 from typing import Dict, Any, Generator
-from unittest.mock import MagicMock, AsyncMock, patch
+from unittest.mock import MagicMock, AsyncMock
 from datetime import datetime
 
 from md_evals.models import (
@@ -271,7 +270,6 @@ def track_test_duration(request):
     Adds performance metadata to test reports.
     """
     start_time = time.time()
-    test_name = request.node.name
     
     yield
     

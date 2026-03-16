@@ -68,12 +68,32 @@ md-evals automatically loads `.env` files using `python-dotenv`.
 
 ```bash
 export GITHUB_TOKEN="github_pat_..."
-md-evals run eval.yaml --provider github-models
+md-evals run --config eval.yaml --provider github-models
 ```
 
 > ⚠️ **Security Warning**: Never commit your token to git! Add `.env` to `.gitignore`.
 
-## Step 3: Verify Your Token
+## Step 3: Preflight Authentication
+
+md-evals checks authentication in this order:
+
+1. `GITHUB_TOKEN` (recommended)
+2. `gh auth token` (fallback for users with `gh auth login`)
+
+Run smoke preflight before a full evaluation:
+
+```bash
+md-evals smoke --provider github-models --config eval.yaml
+```
+
+If preflight fails:
+
+```bash
+printenv GITHUB_TOKEN
+gh auth token
+```
+
+## Step 4: Verify Your Token Format (Optional)
 
 Test your token without running a full evaluation:
 
@@ -92,7 +112,7 @@ else:
 EOF
 ```
 
-## Step 4: List Available Models
+## Step 5: List Available Models
 
 See all supported models and their capabilities:
 
@@ -113,7 +133,7 @@ grok-3              128,000    0.0–2.0       15 req/min
 ────────────────────────────────────────────────────────
 ```
 
-## Step 5: Run Your First Evaluation
+## Step 6: Run Your First Evaluation
 
 Create an `eval.yaml` file:
 
@@ -147,7 +167,7 @@ tests:
 Run the evaluation:
 
 ```bash
-md-evals run eval.yaml
+md-evals run --config eval.yaml
 ```
 
 Success! 🎉 You're now using GitHub Models with md-evals.
@@ -188,7 +208,7 @@ Success! 🎉 You're now using GitHub Models with md-evals.
 Example:
 ```bash
 # Run with 1 worker instead of default 5
-md-evals run eval.yaml --provider github-models -n 1
+md-evals run --config eval.yaml --provider github-models -n 1
 ```
 
 ### "Model not supported"

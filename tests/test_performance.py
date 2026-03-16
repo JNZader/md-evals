@@ -13,16 +13,12 @@ Benchmarks covered:
 - LLM response parsing
 """
 
-import asyncio
 import json
 import re
-from pathlib import Path
-from unittest.mock import AsyncMock, MagicMock
+from unittest.mock import MagicMock
 
-import pytest
 
 from md_evals.evaluator import EvaluatorEngine
-from md_evals.engine import ExecutionEngine
 from md_evals.config import ConfigLoader
 from md_evals.reporter import Reporter
 from md_evals.models import (
@@ -737,7 +733,7 @@ class TestEvaluatorEngineAsyncPerformance:
         mock_adapter = MagicMock()
         
         engine = EvaluatorEngine(llm_adapter=mock_adapter)
-        evaluator = LLMJudgeEvaluator(
+        LLMJudgeEvaluator(
             name="judge",
             judge_model="test-model",
             criteria="Evaluate quality",

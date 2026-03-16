@@ -1,7 +1,7 @@
 """Unit tests for provider registry."""
 
 import pytest
-from unittest.mock import Mock
+from unittest.mock import Mock, patch
 
 from md_evals.provider_registry import ProviderRegistry
 from md_evals.providers.github_models import GitHubModelsProvider
@@ -84,10 +84,11 @@ class TestProviderRegistry:
     
     def test_instantiate_provider(self):
         """Test instantiating a provider from registry."""
-        # This would normally require a valid token, so we mock it
-        with pytest.raises(Exception):
-            # Will fail due to no token, but tests the registry instantiation path
-            ProviderRegistry.instantiate("github-models", "claude-3.5-sonnet")
+        # Ensure no credentials are available from env or gh CLI fallback
+        with patch.dict("os.environ", {}, clear=True), \
+             patch.object(GitHubModelsProvider, "_load_token_from_gh_cli", return_value=None):
+            with pytest.raises(Exception):
+                ProviderRegistry.instantiate("github-models", "claude-3.5-sonnet")
     
     def test_clear_registry(self):
         """Test clearing the registry."""
