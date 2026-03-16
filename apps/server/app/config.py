@@ -20,6 +20,10 @@ class Settings(BaseSettings):
     # --- GitHub OAuth ---
     GITHUB_CLIENT_ID: str = ""
     GITHUB_CLIENT_SECRET: str = ""
+    STATE_SECRET: str = "change-me-state-secret"
+
+    # --- Frontend ---
+    FRONTEND_URL: str = "http://localhost:5173"
 
     # --- Encryption ---
     ENCRYPTION_KEY: str = ""  # 32-byte hex master key for AES-256-GCM
