@@ -1,0 +1,103 @@
+/** Core TypeScript types matching the API contracts. */
+
+export interface User {
+  github_user_id: number;
+  login: string;
+  avatar_url: string;
+}
+
+export interface EvalRunRequest {
+  name: string;
+  skill_content: string;
+  eval_yaml: string;
+  model: string;
+  provider: string;
+}
+
+export interface EvalRunResponse {
+  eval_id: string;
+  status: string;
+  created_at: string;
+}
+
+export interface EvalResult {
+  id: string;
+  treatment: string;
+  test: string;
+  model: string;
+  passed: boolean;
+  score: number;
+  response_text: string | null;
+  cost_metrics: Record<string, unknown> | null;
+  context_metrics: Record<string, unknown> | null;
+  evaluator_results: EvaluatorResult[] | null;
+  duration_ms: number;
+}
+
+export interface EvaluatorResult {
+  evaluator_name: string;
+  passed: boolean;
+  score: number;
+  reason: string | null;
+}
+
+export interface TreatmentSummary {
+  passed: number;
+  total: number;
+  pass_rate: number;
+}
+
+export interface EvalSummary {
+  total_tests: number;
+  total_passed: number;
+  pass_rate: number;
+  duration_ms: number;
+  treatments: Record<string, TreatmentSummary>;
+}
+
+export interface Evaluation {
+  eval_id: string;
+  name: string;
+  status: "pending" | "running" | "completed" | "failed" | "timeout";
+  config: Record<string, unknown> | null;
+  created_at: string;
+  completed_at: string | null;
+  summary: EvalSummary | null;
+  results: EvalResult[];
+  usage_metrics: Record<string, unknown> | null;
+}
+
+export interface ProviderKey {
+  provider: string;
+  key_hint: string | null;
+  validated_at: string | null;
+  status?: string;
+  note?: string;
+  storage?: "persistent" | "session";
+}
+
+export interface HistoryItem {
+  eval_id: string;
+  name: string;
+  status: string;
+  model: string;
+  pass_rate: number;
+  total_tests: number;
+  total_passed: number;
+  duration_ms: number;
+  created_at: string;
+  config_hash: string;
+}
+
+export interface PaginatedResponse<T> {
+  items: T[];
+  total: number;
+  page: number;
+  per_page: number;
+  pages: number;
+}
+
+export interface SSEEvent {
+  type: string;
+  [key: string]: unknown;
+}
