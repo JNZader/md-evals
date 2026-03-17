@@ -42,6 +42,8 @@ from md_evals.pipeline.config import (
     JudgeConfig,
 )
 from md_evals.pipeline.skill_parser import ParsedSkill, SkillParser
+from md_evals.pipeline.citations import Citation, CitationValidator, citation_penalty
+from md_evals.pipeline.gherkin import GherkinScenario, GherkinProbe, parse_gherkin_scenarios
 from md_evals.pipeline.runner import PipelineRunner
 from md_evals.pipeline.plugins import (
     discover_probes,
@@ -72,6 +74,14 @@ __all__ = [
     # Skill Parsing
     "ParsedSkill",
     "SkillParser",
+    # Citations (Phase 3)
+    "Citation",
+    "CitationValidator",
+    "citation_penalty",
+    # Gherkin (Phase 3)
+    "GherkinScenario",
+    "GherkinProbe",
+    "parse_gherkin_scenarios",
     # Plugins
     "discover_probes",
     "discover_detectors",

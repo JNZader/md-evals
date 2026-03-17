@@ -107,8 +107,8 @@ def test_clear_cache_forces_rediscovery():
 
 def test_builtin_probes_registry():
     """BUILTIN_PROBES contains expected entries."""
-    assert len(BUILTIN_PROBES) == 3
-    assert set(BUILTIN_PROBES.keys()) == {"dimension", "edge-case", "compliance"}
+    assert len(BUILTIN_PROBES) == 4
+    assert set(BUILTIN_PROBES.keys()) == {"dimension", "edge-case", "compliance", "gherkin"}
 
 
 def test_builtin_detectors_registry():

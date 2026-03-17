@@ -40,6 +40,7 @@ import logging
 import re
 from typing import TYPE_CHECKING, Any
 
+from md_evals.pipeline.citations import Citation, CitationValidator, citation_penalty
 from md_evals.scoring import DimensionScore, score_to_grade
 
 if TYPE_CHECKING:
@@ -284,6 +285,26 @@ class LLMJudgeDetector:
         if rationale:
             evidence_items.append(rationale)
 
+        # Phase 3: Parse and validate citations
+        raw_citations = result.get("citations", [])
+        if isinstance(raw_citations, list) and raw_citations:
+            citations = _parse_citations(raw_citations)
+            if citations:
+                validator = CitationValidator()
+                validated = validator.validate(citations, skill.raw_content)
+
+                # Apply penalty for hallucinated citations
+                penalty = citation_penalty(validated)
+                clamped = max(0.0, clamped - penalty)
+
+                # Populate evidence with verified citation strings
+                for c in validated:
+                    status = "verified" if c.verified else "UNVERIFIED"
+                    evidence_items.append(
+                        f"[{status}] L{c.line}: \"{c.text}\" "
+                        f"(supports: {c.supports})"
+                    )
+
         return DimensionScore(
             dimension=dim_from_judge if dim_from_judge else effective_dim,
             score=clamped,
@@ -354,13 +375,25 @@ class LLMJudgeDetector:
             except AttributeError:
                 pass
 
+        # Include numbered skill content for citation references
+        if skill.raw_content:
+            parts.append("\n## Skill Content (numbered lines for citation)")
+            for i, line in enumerate(skill.raw_content.splitlines()[:50], 1):
+                parts.append(f"  {i}: {line}")
+
         parts.extend([
             "",
             "## Instructions",
             "Evaluate the response and return a JSON object with exactly "
             "these fields:",
             '{"score": <float 0.0-1.0>, "rationale": "<explanation>", '
-            '"dimension": "<dimension name>"}',
+            '"dimension": "<dimension name>", '
+            '"citations": [{"line": <int>, "text": "<quoted text from that line>", '
+            '"supports": "<dimension>"}]}',
+            "",
+            "IMPORTANT: You MUST cite specific lines from the Skill Content above "
+            "to support your score. Each citation must reference an actual line "
+            "number and quote the relevant text from that line.",
             "",
             "Score 1.0 = perfect, 0.0 = completely wrong. Be precise.",
             "Return ONLY the JSON object, no other text.",
@@ -740,3 +773,32 @@ def _extract_detector_name(ds: DimensionScore) -> str:
         if item.startswith("detector:"):
             return item.split(":", 1)[1].strip()
     return "unknown"
+
+
+def _parse_citations(raw_citations: list[Any]) -> list[Citation]:
+    """Parse raw citation dicts from LLM JSON into Citation objects.
+
+    Gracefully handles malformed entries — skips any citation that
+    doesn't have the required ``line``, ``text``, and ``supports`` fields.
+
+    Args:
+        raw_citations: List of dicts from the LLM's JSON response.
+
+    Returns:
+        List of :class:`Citation` objects (unverified).
+    """
+    citations: list[Citation] = []
+    for item in raw_citations:
+        if not isinstance(item, dict):
+            continue
+        try:
+            line = int(item.get("line", 0))
+            text = str(item.get("text", ""))
+            supports = str(item.get("supports", ""))
+            if line > 0 and text:
+                citations.append(
+                    Citation(line=line, text=text, supports=supports)
+                )
+        except (ValueError, TypeError):
+            continue
+    return citations

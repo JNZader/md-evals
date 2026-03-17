@@ -16,6 +16,7 @@ from importlib.metadata import entry_points
 from typing import Any
 
 from md_evals.pipeline.probes import DimensionProbe, EdgeCaseProbe, ComplianceProbe
+from md_evals.pipeline.gherkin import GherkinProbe
 from md_evals.pipeline.detectors import LLMJudgeDetector, FormatDetector, SecurityDetector
 
 logger = logging.getLogger(__name__)
@@ -27,6 +28,7 @@ BUILTIN_PROBES: dict[str, type] = {
     "dimension": DimensionProbe,
     "edge-case": EdgeCaseProbe,
     "compliance": ComplianceProbe,
+    "gherkin": GherkinProbe,
 }
 
 BUILTIN_DETECTORS: dict[str, type] = {
