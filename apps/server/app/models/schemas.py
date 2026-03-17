@@ -103,6 +103,7 @@ class EvalDetailResponse(BaseModel):
     error_message: str | None = None
     created_at: datetime
     completed_at: datetime | None = None
+    scoring: "ScoringResponse | None" = None  # populated when ?expand=scoring
 
 
 class EvalHistoryItem(BaseModel):
@@ -144,3 +145,47 @@ class ErrorResponse(BaseModel):
 
     error: str
     message: str
+
+
+# --- Scoring Engine ---
+
+
+class DimensionScoreResponse(BaseModel):
+    """Dimension score in API response."""
+
+    dimension: str
+    score: float
+    weight: float
+    grade: str
+    evidence: list[str] = Field(default_factory=list)
+
+
+class PreCheckFindingResponse(BaseModel):
+    """Pre-check finding in API response."""
+
+    check: str
+    message: str
+    severity: str
+    line: int | None = None
+
+
+class PreCheckResultResponse(BaseModel):
+    """Pre-check result in API response."""
+
+    passed: bool
+    findings: list[PreCheckFindingResponse]
+    checks_run: int
+    duration_ms: int
+
+
+class ScoringResponse(BaseModel):
+    """Scoring data returned when expand=scoring."""
+
+    overall_grade: str
+    overall_score: float
+    dimensions: list[DimensionScoreResponse]
+    pre_check: PreCheckResultResponse | None = None
+
+
+# Rebuild forward references now that ScoringResponse is defined
+EvalDetailResponse.model_rebuild()

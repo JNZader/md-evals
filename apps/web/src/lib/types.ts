@@ -65,6 +65,7 @@ export interface Evaluation {
   summary: EvalSummary | null;
   results: EvalResult[];
   usage_metrics: Record<string, unknown> | null;
+  scoring?: EvalResultScoring | null;
 }
 
 export interface ProviderKey {
@@ -100,4 +101,35 @@ export interface PaginatedResponse<T> {
 export interface SSEEvent {
   type: string;
   [key: string]: unknown;
+}
+
+// --- Scoring Engine Types ---
+
+export interface DimensionScoreDTO {
+  dimension: string;
+  score: number;
+  weight: number;
+  grade: string;
+  evidence: string[];
+}
+
+export interface PreCheckFindingDTO {
+  check: string;
+  message: string;
+  severity: "error" | "warning" | "info";
+  line: number | null;
+}
+
+export interface PreCheckResultDTO {
+  passed: boolean;
+  findings: PreCheckFindingDTO[];
+  checks_run: number;
+  duration_ms: number;
+}
+
+export interface EvalResultScoring {
+  overall_grade: string;
+  overall_score: number;
+  dimensions: DimensionScoreDTO[];
+  pre_check: PreCheckResultDTO | null;
 }

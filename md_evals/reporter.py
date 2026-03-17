@@ -12,6 +12,7 @@ from rich import box
 
 from md_evals.metrics import build_usage_metrics
 from md_evals.models import EvalConfig, ExecutionResult
+from md_evals.scoring import EvalResult, eval_result_to_dict
 
 
 class Reporter:
@@ -20,6 +21,18 @@ class Reporter:
     def __init__(self, config: EvalConfig):
         self.config = config
         self.console = Console()
+        self._eval_result: EvalResult | None = None
+
+    def set_eval_result(self, eval_result: EvalResult) -> None:
+        """Set scoring result for inclusion in output.
+
+        When set, the eval_result is serialized into the JSON output
+        and a grade summary is printed in terminal reports.
+
+        Args:
+            eval_result: Scoring engine result for the evaluation.
+        """
+        self._eval_result = eval_result
     
     def report_terminal(
         self,
@@ -114,6 +127,10 @@ class Reporter:
                         f"[red]▼[/red] {treatment}: {improvement:.0f}% vs CONTROL"
                     )
         
+        # ─── T-28: Grade summary from scoring engine ───
+        if self._eval_result is not None:
+            self._print_grade_summary(self._eval_result)
+
         # ─── T-15: Conditional usage metrics tables ───
         if self.config.output.include_usage_metrics:
             usage = build_usage_metrics(results, self.config)
@@ -126,6 +143,48 @@ class Reporter:
         if verbose:
             self._print_verbose(results)
     
+    def _print_grade_summary(self, eval_result: EvalResult) -> None:
+        """Print grade summary with colored grades.
+
+        Renders the overall grade prominently followed by a table of
+        per-dimension scores, grades, and weights.
+
+        Args:
+            eval_result: Scoring engine result to display.
+        """
+        grade_colors = {
+            "S": "yellow",
+            "A": "green",
+            "B": "blue",
+            "C": "yellow",
+            "D": "bright_red",
+            "F": "red",
+        }
+        color = grade_colors.get(eval_result.overall_grade, "white")
+        self.console.print(
+            f"\n[bold]Overall Grade: [{color}]{eval_result.overall_grade}"
+            f"[/{color}] ({eval_result.overall_score:.2f})[/bold]"
+        )
+
+        # Per-dimension table
+        table = Table(title="Dimension Scores", box=box.ROUNDED)
+        table.add_column("Dimension", style="cyan")
+        table.add_column("Score", style="white")
+        table.add_column("Grade", style="bold")
+        table.add_column("Weight", style="dim")
+
+        for d in eval_result.dimensions:
+            d_color = grade_colors.get(d.grade, "white")
+            table.add_row(
+                d.dimension.capitalize(),
+                f"{d.score:.2f}",
+                f"[{d_color}]{d.grade}[/{d_color}]",
+                f"{d.weight:.0%}",
+            )
+
+        self.console.print(table)
+        self.console.print()
+
     def _print_cost_metrics_table(self, usage: dict[str, Any]) -> None:
         """Render Cost Metrics table per treatment.
 
@@ -443,6 +502,10 @@ class Reporter:
             output["report_schema_version"] = "2.0"
             output["feature_flags"] = {"include_usage_metrics": True}
             output["usage_metrics"] = usage_metrics
+
+        # ─── T-27: Conditional inclusion of scoring eval_result ───
+        if self._eval_result is not None:
+            output["eval_result"] = eval_result_to_dict(self._eval_result)
 
         return output
     

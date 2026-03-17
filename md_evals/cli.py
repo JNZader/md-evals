@@ -16,8 +16,10 @@ from md_evals.evaluator import EvaluatorEngine
 from md_evals.llm import LLMAdapter
 from md_evals.linter import LinterEngine
 from md_evals.models import LinterConfig
+from md_evals.precheck import PreCheckEngine
 from md_evals.providers.github_models import GitHubModelsProvider
 from md_evals.reporter import Reporter
+from md_evals.rubric import RubricLoader, RubricNotFoundError, RubricValidationError
 from md_evals.provider_registry import ProviderRegistry
 
 logger = logging.getLogger(__name__)
@@ -45,6 +47,46 @@ def _print_github_auth_help() -> None:
 def version():
     """Show version."""
     console.print(f"md-evals {__version__}")
+
+
+@app.command()
+def check(
+    skill_path: Annotated[str, typer.Argument(help="Path to SKILL.md file to check")] = "SKILL.md",
+    rubric: Annotated[Optional[str], typer.Option("--rubric", "-r", help="Path to rubric.yaml")] = None,
+    verbose: Annotated[bool, typer.Option("--verbose", "-v", help="Show detailed check results")] = False,
+):
+    """Run deterministic pre-check on a SKILL.md file (no LLM, no cost)."""
+    # Load rubric via resolution chain
+    try:
+        rubric_config = RubricLoader.resolve(rubric)
+    except RubricNotFoundError as e:
+        console.print(f"[red]Error: {e}[/red]")
+        raise typer.Exit(code=1)
+    except RubricValidationError as e:
+        console.print(f"[red]Invalid rubric: {e}[/red]")
+        raise typer.Exit(code=1)
+
+    # Run pre-check
+    engine = PreCheckEngine(rubric_config)
+    result = engine.run(skill_path)
+
+    # Print results
+    if result.passed:
+        console.print(f"[green]✓ {skill_path} — Pre-check PASSED ({result.checks_run} checks, {len(result.findings)} findings, {result.duration_ms}ms)[/green]")
+    else:
+        error_count = sum(1 for f in result.findings if f.severity == "error")
+        warn_count = sum(1 for f in result.findings if f.severity == "warning")
+        console.print(f"[red]✗ {skill_path} — Pre-check FAILED ({result.checks_run} checks, {len(result.findings)} findings, {result.duration_ms}ms)[/red]")
+
+    # Show findings
+    if result.findings:
+        for finding in result.findings:
+            severity_color = {"error": "red", "warning": "yellow", "info": "blue"}.get(finding.severity, "white")
+            line_info = f" (line {finding.line})" if finding.line else ""
+            console.print(f"  [{severity_color}][{finding.severity.upper()}][/{severity_color}] {finding.message}{line_info}")
+
+    # Exit code
+    raise typer.Exit(code=0 if result.passed else 2)
 
 
 @app.command()
@@ -143,6 +185,17 @@ Describe what this skill does and when it should be applied.
     skill_md.write_text(skill_content)
     console.print(f"[green]Created {skill_md}[/green]")
     
+    # Create rubric.yaml
+    rubric_yaml = directory_path / "rubric.yaml"
+    if rubric_yaml.exists() and not force:
+        console.print("[yellow]rubric.yaml already exists. Use --force to overwrite.[/yellow]")
+    else:
+        # Copy default rubric with comments
+        default_rubric_path = RubricLoader.BUILTIN_PATH
+        rubric_content = default_rubric_path.read_text(encoding="utf-8")
+        rubric_yaml.write_text(rubric_content)
+        console.print(f"[green]Created {rubric_yaml}[/green]")
+    
     # Create results directory
     results_dir = directory_path / "results"
     results_dir.mkdir(exist_ok=True)
@@ -158,10 +211,13 @@ def run(
     treatment: Annotated[Optional[str], typer.Option("--treatment", "-t", help="Treatment(s) to run (comma-separated or wildcard)")] = None,
     model: Annotated[Optional[str], typer.Option("--model", "-m", help="Override model")] = None,
     provider: Annotated[Optional[str], typer.Option("--provider", "-p", help="Override provider (e.g., github-models, openai, anthropic)")] = None,
+    rubric: Annotated[Optional[str], typer.Option("--rubric", "-r", help="Path to rubric.yaml")] = None,
     count: Annotated[int, typer.Option("--count", help="Number of repetitions")] = 1,
     workers: Annotated[int, typer.Option("-n", help="Number of parallel workers")] = 1,
     output: Annotated[str, typer.Option("--output", "-o", help="Output format")] = "table",
     no_lint: Annotated[bool, typer.Option("--no-lint", help="Skip linting")] = False,
+    no_pre_check: Annotated[bool, typer.Option("--no-pre-check", help="Skip pre-check phase")] = False,
+    force: Annotated[bool, typer.Option("--force", help="Run LLM eval even on pre-check errors")] = False,
     verbose: Annotated[bool, typer.Option("--verbose", "-v", help="Verbose output")] = False,
     debug: Annotated[bool, typer.Option("--debug", help="Enable debug logging for provider initialization")] = False,
     collect_usage_metrics: Annotated[Optional[bool], typer.Option("--collect-usage-metrics/--no-collect-usage-metrics", help="Collect extended usage metrics (cost + context)")] = None,
@@ -208,6 +264,42 @@ def run(
         config_obj.output.include_usage_metrics = collect_usage_metrics
     # else: keep YAML value (or default False)
     
+    # Pre-check phase (before LLM eval)
+    if not no_pre_check:
+        try:
+            rubric_config = RubricLoader.resolve(rubric)
+        except (RubricNotFoundError, RubricValidationError) as e:
+            console.print(f"[red]Rubric error: {e}[/red]")
+            raise typer.Exit(code=1)
+
+        pc_engine = PreCheckEngine(rubric_config)
+        # Run pre-check on all skill files
+        skill_files = set()
+        for treatment_cfg in config_obj.treatments.values():
+            if treatment_cfg.skill_path:
+                skill_files.add(treatment_cfg.skill_path)
+
+        pre_check_failed = False
+        for skill_file in skill_files:
+            pc_result = pc_engine.run(skill_file)
+            if not pc_result.passed:
+                console.print(f"[yellow]Pre-check findings for {skill_file}:[/yellow]")
+                for finding in pc_result.findings:
+                    sev_color = {"error": "red", "warning": "yellow", "info": "blue"}.get(finding.severity, "white")
+                    console.print(f"  [{sev_color}][{finding.severity.upper()}][/{sev_color}] {finding.message}")
+                pre_check_failed = True
+            elif pc_result.findings:  # passed but has warnings
+                console.print(f"[yellow]Pre-check warnings for {skill_file}:[/yellow]")
+                for finding in pc_result.findings:
+                    if finding.severity == "warning":
+                        console.print(f"  [yellow][WARNING][/yellow] {finding.message}")
+
+        if pre_check_failed and not force:
+            console.print("[red]Pre-check failed. Use --force to run LLM eval anyway, or --no-pre-check to skip.[/red]")
+            raise typer.Exit(code=2)
+        elif pre_check_failed and force:
+            console.print("[yellow]Pre-check failed but --force specified. Continuing with LLM eval...[/yellow]")
+
     # Run linter first (optional)
     if not no_lint:
         lint_config = LinterConfig(

@@ -14,17 +14,77 @@ from sse_starlette.sse import EventSourceResponse
 from app.middleware.auth import CurrentUser
 from app.models import Evaluation, get_db
 from app.models.schemas import (
+    DimensionScoreResponse,
     EvalDetailResponse,
     EvalHistoryItem,
     EvalHistoryResponse,
     EvalRunRequest,
     EvalRunResponse,
+    PreCheckFindingResponse,
+    PreCheckResultResponse,
+    ScoringResponse,
 )
 from app.services.eval_service import eval_service
 
 logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/api/eval", tags=["eval"])
+
+
+# ---------- Helpers ----------
+
+
+def _extract_scoring(results: dict) -> ScoringResponse | None:
+    """Extract scoring data from results JSONB into a ScoringResponse.
+
+    The results dict may contain an ``eval_result`` key (written by the
+    scoring engine via ``eval_result_to_dict``).  If absent or malformed,
+    returns ``None`` so the endpoint degrades gracefully.
+    """
+    eval_result = results.get("eval_result")
+    if not eval_result or not isinstance(eval_result, dict):
+        return None
+
+    try:
+        dimensions = [
+            DimensionScoreResponse(
+                dimension=d["dimension"],
+                score=d["score"],
+                weight=d["weight"],
+                grade=d["grade"],
+                evidence=d.get("evidence", []),
+            )
+            for d in eval_result.get("dimensions", [])
+        ]
+
+        pre_check_data = eval_result.get("pre_check")
+        pre_check: PreCheckResultResponse | None = None
+        if pre_check_data and isinstance(pre_check_data, dict):
+            findings = [
+                PreCheckFindingResponse(
+                    check=f["check"],
+                    message=f["message"],
+                    severity=f["severity"],
+                    line=f.get("line"),
+                )
+                for f in pre_check_data.get("findings", [])
+            ]
+            pre_check = PreCheckResultResponse(
+                passed=pre_check_data["passed"],
+                findings=findings,
+                checks_run=pre_check_data.get("checks_run", 0),
+                duration_ms=pre_check_data.get("duration_ms", 0),
+            )
+
+        return ScoringResponse(
+            overall_grade=eval_result["overall_grade"],
+            overall_score=eval_result["overall_score"],
+            dimensions=dimensions,
+            pre_check=pre_check,
+        )
+    except (KeyError, TypeError, ValueError):
+        logger.warning("Failed to parse scoring data from results JSONB", exc_info=True)
+        return None
 
 
 # ---------- POST /api/eval/run ----------
@@ -105,8 +165,13 @@ async def get_eval(
     eval_id: str,
     current_user: CurrentUser,
     db: AsyncSession = Depends(get_db),
+    expand: str | None = Query(default=None, description="Comma-separated expansions (e.g. 'scoring')"),
 ) -> EvalDetailResponse:
-    """Get full results for a completed evaluation."""
+    """Get full results for a completed evaluation.
+
+    Supports ``?expand=scoring`` to include scoring data extracted from
+    the results JSONB column.  Unknown expand values are silently ignored.
+    """
     user_id = current_user["sub"]
     result = await db.execute(
         select(Evaluation).where(
@@ -121,6 +186,16 @@ async def get_eval(
             detail={"error": "not_found", "message": "Evaluation not found."},
         )
 
+    # Parse comma-separated expand values (unknown values silently ignored)
+    expand_set: set[str] = set()
+    if expand:
+        expand_set = {v.strip().lower() for v in expand.split(",") if v.strip()}
+
+    # Build scoring expansion if requested
+    scoring: ScoringResponse | None = None
+    if "scoring" in expand_set and evaluation.results:
+        scoring = _extract_scoring(evaluation.results)
+
     return EvalDetailResponse(
         eval_id=str(evaluation.id),
         title=evaluation.title,
@@ -133,6 +208,7 @@ async def get_eval(
         error_message=evaluation.error_message,
         created_at=evaluation.created_at,
         completed_at=evaluation.completed_at,
+        scoring=scoring,
     )
 
 
