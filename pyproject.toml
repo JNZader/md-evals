@@ -6,7 +6,7 @@ readme = "README.md"
 requires-python = ">=3.12"
 license = { text = "MIT" }
 authors = [
-    { name = "Javier Zader", email = "javier@example.com" }
+    { name = "Javier Zader", email = "jnzader@gmail.com" }
 ]
 keywords = ["ai", "llm", "evaluation", "skills", "cli"]
 classifiers = [
