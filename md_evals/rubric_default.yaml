@@ -1,0 +1,68 @@
+# md-evals default rubric configuration
+# Override by placing rubric.yaml in your project root
+# or use: md-evals run --rubric custom-rubric.yaml
+
+version: "1.0"
+
+# ============== Scoring Dimensions ==============
+# Weights must sum to 1.0 across all dimensions.
+# Each dimension produces a 0.0–1.0 score; the final score
+# is the weighted average used to assign a letter grade.
+
+dimensions:
+  correctness:
+    weight: 0.25
+    description: "Technical accuracy of instructions and examples"
+  completeness:
+    weight: 0.20
+    description: "Coverage of edge cases, error handling, constraints"
+  format:
+    weight: 0.15
+    description: "Markdown structure, readability, consistent style"
+  adherence:
+    weight: 0.15
+    description: "Follows the SKILL.md spec and conventions"
+  safety:
+    weight: 0.10
+    description: "No dangerous patterns, injection risks, or secrets"
+  efficiency:
+    weight: 0.10
+    description: "Concise, no redundancy, within line limits"
+  robustness:
+    weight: 0.05
+    description: "Handles ambiguous inputs, edge cases, failure modes"
+
+# ============== Grade Thresholds ==============
+# Minimum weighted score to achieve each grade.
+# Must be strictly decreasing: S > A > B > C > D.
+# S is optional; A, B, C, D are required.
+
+grade_thresholds:
+  S: 0.95
+  A: 0.85
+  B: 0.70
+  C: 0.50
+  D: 0.30
+
+# ============== Pre-Check Configuration ==============
+# Lightweight structural checks run before LLM scoring.
+
+pre_check:
+  required_sections:
+    - "Description"
+    - "Rules"
+    - "Examples"
+  max_lines: 400
+
+  # Security patterns are scanned against file content.
+  # Matches raise warnings or errors depending on severity.
+  security_patterns:
+    - pattern: "\\b(api[_-]?key|secret|password)\\s*[:=]\\s*['\"][^'\"]+['\"]"
+      message: "Hardcoded secret detected"
+      severity: "error"
+    - pattern: "os\\.system\\(|subprocess\\.call\\(|eval\\(|exec\\("
+      message: "Potentially dangerous shell/eval pattern"
+      severity: "warning"
+    - pattern: "chmod\\s+777|chmod\\s+0?777"
+      message: "Overly permissive file permissions"
+      severity: "warning"
