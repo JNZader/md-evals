@@ -124,6 +124,72 @@ async def run_eval(
     )
 
 
+# ---------- GET /api/eval/history ----------
+
+
+@router.get("/history", response_model=EvalHistoryResponse)
+async def list_history(
+    current_user: CurrentUser,
+    db: AsyncSession = Depends(get_db),
+    page: int = Query(default=1, ge=1),
+    per_page: int = Query(default=20, ge=1, le=100),
+    status_filter: str | None = Query(default=None, alias="status"),
+    model: str | None = Query(default=None),
+    date_from: datetime | None = Query(default=None),
+    date_to: datetime | None = Query(default=None),
+) -> EvalHistoryResponse:
+    """List past evaluations with pagination and filters."""
+    user_id = current_user["sub"]
+
+    # Build base query
+    base = select(Evaluation).where(Evaluation.user_id == user_id)
+
+    if status_filter:
+        base = base.where(Evaluation.status == status_filter)
+    if date_from:
+        base = base.where(Evaluation.created_at >= date_from)
+    if date_to:
+        base = base.where(Evaluation.created_at <= date_to)
+    if model:
+        base = base.where(
+            Evaluation.eval_config["defaults"]["model"].as_string() == model
+        )
+
+    # Count total
+    count_q = select(func.count()).select_from(base.subquery())
+    total_result = await db.execute(count_q)
+    total = total_result.scalar() or 0
+
+    # Paginate
+    offset = (page - 1) * per_page
+    query = (
+        base.order_by(Evaluation.created_at.desc())
+        .offset(offset)
+        .limit(per_page)
+    )
+    result = await db.execute(query)
+    rows = result.scalars().all()
+
+    items = [
+        EvalHistoryItem(
+            eval_id=str(row.id),
+            title=row.title,
+            status=row.status,
+            created_at=row.created_at,
+            completed_at=row.completed_at,
+        )
+        for row in rows
+    ]
+
+    return EvalHistoryResponse(
+        items=items,
+        total=total,
+        page=page,
+        per_page=per_page,
+        pages=max(1, math.ceil(total / per_page)),
+    )
+
+
 # ---------- GET /api/eval/{eval_id}/stream ----------
 
 
@@ -212,71 +278,4 @@ async def get_eval(
     )
 
 
-# ---------- GET /api/eval/history ----------
 
-
-@router.get("/history", response_model=EvalHistoryResponse)
-async def list_history(
-    current_user: CurrentUser,
-    db: AsyncSession = Depends(get_db),
-    page: int = Query(default=1, ge=1),
-    per_page: int = Query(default=20, ge=1, le=100),
-    status_filter: str | None = Query(default=None, alias="status"),
-    model: str | None = Query(default=None),
-    date_from: datetime | None = Query(default=None),
-    date_to: datetime | None = Query(default=None),
-) -> EvalHistoryResponse:
-    """List past evaluations with pagination and filters."""
-    user_id = current_user["sub"]
-
-    # Build base query
-    base = select(Evaluation).where(Evaluation.user_id == user_id)
-
-    if status_filter:
-        base = base.where(Evaluation.status == status_filter)
-    if date_from:
-        base = base.where(Evaluation.created_at >= date_from)
-    if date_to:
-        base = base.where(Evaluation.created_at <= date_to)
-    # Note: model filtering would require storing model in Evaluation or
-    # querying inside eval_config JSONB. For now we filter in-memory if
-    # the model column is not present — the Evaluation model stores config
-    # as JSONB so we use a JSONB path query.
-    if model:
-        base = base.where(
-            Evaluation.eval_config["defaults"]["model"].as_string() == model
-        )
-
-    # Count total
-    count_q = select(func.count()).select_from(base.subquery())
-    total_result = await db.execute(count_q)
-    total = total_result.scalar() or 0
-
-    # Paginate
-    offset = (page - 1) * per_page
-    query = (
-        base.order_by(Evaluation.created_at.desc())
-        .offset(offset)
-        .limit(per_page)
-    )
-    result = await db.execute(query)
-    rows = result.scalars().all()
-
-    items = [
-        EvalHistoryItem(
-            eval_id=str(row.id),
-            title=row.title,
-            status=row.status,
-            created_at=row.created_at,
-            completed_at=row.completed_at,
-        )
-        for row in rows
-    ]
-
-    return EvalHistoryResponse(
-        items=items,
-        total=total,
-        page=page,
-        per_page=per_page,
-        pages=max(1, math.ceil(total / per_page)),
-    )
