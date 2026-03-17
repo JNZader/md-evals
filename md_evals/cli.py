@@ -221,6 +221,8 @@ def run(
     verbose: Annotated[bool, typer.Option("--verbose", "-v", help="Verbose output")] = False,
     debug: Annotated[bool, typer.Option("--debug", help="Enable debug logging for provider initialization")] = False,
     collect_usage_metrics: Annotated[Optional[bool], typer.Option("--collect-usage-metrics/--no-collect-usage-metrics", help="Collect extended usage metrics (cost + context)")] = None,
+    pipeline: Annotated[Optional[bool], typer.Option("--pipeline/--no-pipeline", help="Force pipeline mode on/off")] = None,
+    probe: Annotated[Optional[str], typer.Option("--probe", help="Comma-separated probe names (e.g., dimension,edge-case)")] = None,
 ):
     """Run evaluations with support for GitHub Models and other providers."""
     # Configure logging if debug is enabled
@@ -263,7 +265,63 @@ def run(
         # CLI flag was explicitly passed — takes precedence
         config_obj.output.include_usage_metrics = collect_usage_metrics
     # else: keep YAML value (or default False)
-    
+
+    # ── Pipeline mode detection ──
+    use_pipeline = False
+    if pipeline is True:
+        use_pipeline = True
+    elif pipeline is False:
+        use_pipeline = False
+    elif config_obj.pipeline and isinstance(config_obj.pipeline, dict) and config_obj.pipeline.get("enabled", False):
+        use_pipeline = True
+
+    if use_pipeline:
+        from md_evals.pipeline.runner import PipelineRunner
+        from md_evals.pipeline.config import PipelineConfig
+
+        # Load rubric
+        try:
+            rubric_config = RubricLoader.resolve(rubric)
+        except (RubricNotFoundError, RubricValidationError) as e:
+            console.print(f"[red]Rubric error: {e}[/red]")
+            raise typer.Exit(code=1)
+
+        # Build pipeline config from YAML dict or defaults
+        pipeline_dict = config_obj.pipeline if isinstance(config_obj.pipeline, dict) else {}
+        if probe:
+            pipeline_dict["probes"] = [p.strip() for p in probe.split(",")]
+        pipeline_config = PipelineConfig(**{k: v for k, v in pipeline_dict.items() if k != "enabled"})
+
+        # Find skill path from treatments
+        skill_path = None
+        for treatment_cfg in config_obj.treatments.values():
+            if treatment_cfg.skill_path:
+                skill_path = treatment_cfg.skill_path
+                break
+
+        if not skill_path:
+            console.print("[red]No skill_path found in treatments for pipeline mode.[/red]")
+            raise typer.Exit(code=1)
+
+        console.print("[cyan]Running in pipeline mode...[/cyan]")
+        runner = PipelineRunner(config=config_obj, rubric=rubric_config, pipeline_config=pipeline_config)
+
+        try:
+            result = runner.run_sync(skill_path)
+        except Exception as e:
+            console.print(f"[red]Pipeline error: {e}[/red]")
+            raise typer.Exit(code=3)
+
+        # Print pipeline results
+        console.print(f"\n[bold]Pipeline Result: {result.skill_path}[/bold]")
+        console.print(f"  Overall Grade: [bold]{result.overall_grade}[/bold]  Score: {result.overall_score:.2f}")
+        if result.dimensions:
+            for dim in result.dimensions:
+                console.print(f"  {dim.dimension}: {dim.score:.2f} ({dim.grade}) weight={dim.weight:.2f}")
+
+        exit_code = 0 if result.overall_grade in ("S", "A", "B") else 4
+        raise typer.Exit(code=exit_code)
+
     # Pre-check phase (before LLM eval)
     if not no_pre_check:
         try:
@@ -626,6 +684,45 @@ def list(
             console.print(f"  - {task.name}: {task.description or ''}")
             for eval in task.evaluators:
                 console.print(f"      - {eval.type}: {eval.name}")
+
+
+# ── Plugins subcommand ──
+
+plugins_app = typer.Typer(name="plugins", help="Manage probes and detectors")
+app.add_typer(plugins_app)
+
+
+@plugins_app.command("list")
+def plugins_list():
+    """List available probes and detectors."""
+    from md_evals.pipeline.plugins import discover_probes, discover_detectors
+
+    probes = discover_probes()
+    detectors = discover_detectors()
+
+    table = Table(title="Available Probes", show_header=True, header_style="bold")
+    table.add_column("Name", style="cyan")
+    table.add_column("Type", style="magenta")
+    table.add_column("Source", style="green")
+
+    from md_evals.pipeline.plugins import BUILTIN_PROBES
+    for name in probes:
+        source = "built-in" if name in BUILTIN_PROBES else "plugin"
+        table.add_row(name, "probe", source)
+
+    console.print(table)
+
+    table2 = Table(title="Available Detectors", show_header=True, header_style="bold")
+    table2.add_column("Name", style="cyan")
+    table2.add_column("Type", style="magenta")
+    table2.add_column("Source", style="green")
+
+    from md_evals.pipeline.plugins import BUILTIN_DETECTORS
+    for name in detectors:
+        source = "built-in" if name in BUILTIN_DETECTORS else "plugin"
+        table2.add_row(name, "detector", source)
+
+    console.print(table2)
 
 
 if __name__ == "__main__":

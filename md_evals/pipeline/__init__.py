@@ -42,6 +42,14 @@ from md_evals.pipeline.config import (
     JudgeConfig,
 )
 from md_evals.pipeline.skill_parser import ParsedSkill, SkillParser
+from md_evals.pipeline.runner import PipelineRunner
+from md_evals.pipeline.plugins import (
+    discover_probes,
+    discover_detectors,
+    clear_cache,
+    BUILTIN_PROBES,
+    BUILTIN_DETECTORS,
+)
 
 __all__ = [
     # Protocols
@@ -55,6 +63,7 @@ __all__ = [
     "StageError",
     # Orchestration
     "Pipeline",
+    "PipelineRunner",
     # Configuration
     "PipelineConfig",
     "AuditorConfig",
@@ -63,4 +72,10 @@ __all__ = [
     # Skill Parsing
     "ParsedSkill",
     "SkillParser",
+    # Plugins
+    "discover_probes",
+    "discover_detectors",
+    "clear_cache",
+    "BUILTIN_PROBES",
+    "BUILTIN_DETECTORS",
 ]

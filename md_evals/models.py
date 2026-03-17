@@ -139,6 +139,7 @@ class EvalConfig(BaseModel):
     tests: list[Task] = Field(default_factory=list)
     output: OutputConfig = Field(default_factory=OutputConfig)
     execution: ExecutionConfig = Field(default_factory=ExecutionConfig)
+    pipeline: Any = None  # PipelineConfig dict, optional
     cost_map: dict[str, dict[str, float]] = Field(default_factory=dict)
     context_window_overrides: dict[str, int] = Field(default_factory=dict)
 
