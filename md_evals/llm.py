@@ -55,6 +55,7 @@ class LLMAdapter:
         temperature: float | None = None,
         max_tokens: int | None = None,
         stage_type: str = "single_pass",
+        **extra_kwargs,
     ) -> LLMResponse:
         """Complete a prompt.
         
@@ -64,6 +65,7 @@ class LLMAdapter:
             temperature: Override temperature
             max_tokens: Override max tokens
             stage_type: Stage label for orchestrator support
+            **extra_kwargs: Additional kwargs forwarded to litellm (e.g. response_format)
             
         Returns:
             LLMResponse instance
@@ -74,7 +76,8 @@ class LLMAdapter:
         
         kwargs = self._build_kwargs(
             temperature=temperature,
-            max_tokens=max_tokens
+            max_tokens=max_tokens,
+            **extra_kwargs
         )
         
         if system_prompt:

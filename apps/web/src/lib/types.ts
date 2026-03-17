@@ -21,15 +21,15 @@ export interface EvalRunResponse {
 }
 
 export interface EvalResult {
-  id: string;
+  id?: string;
   treatment: string;
   test: string;
-  model: string;
+  model?: string;
   passed: boolean;
-  score: number;
+  score?: number;
   response_text: string | null;
   cost_metrics: Record<string, unknown> | null;
-  context_metrics: Record<string, unknown> | null;
+  context_metrics?: Record<string, unknown> | null;
   evaluator_results: EvaluatorResult[] | null;
   duration_ms: number;
 }

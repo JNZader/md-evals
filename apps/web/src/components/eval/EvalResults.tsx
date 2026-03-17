@@ -63,49 +63,58 @@ export default function EvalResults({ summary, results }: Props) {
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-100 dark:divide-gray-800">
-            {results.map((r) => (
-              <tr
-                key={r.id}
-                className="hover:bg-gray-50 dark:hover:bg-gray-800/30"
-              >
-                <td className="px-4 py-3">
-                  {r.passed ? (
-                    <CheckCircle className="h-5 w-5 text-green-500" />
-                  ) : (
-                    <XCircle className="h-5 w-5 text-red-500" />
-                  )}
-                </td>
-                <td className="px-4 py-3 font-medium text-gray-900 dark:text-gray-100">
-                  {r.test}
-                </td>
-                <td className="px-4 py-3">
-                  <span
-                    className={cn(
-                      "inline-flex rounded-full px-2 py-0.5 text-xs font-medium",
-                      r.treatment === "CONTROL"
-                        ? "bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400"
-                        : "bg-indigo-50 text-indigo-600 dark:bg-indigo-950 dark:text-indigo-300",
+            {results.map((r, idx) => {
+              const score =
+                r.score ??
+                (r.evaluator_results?.length
+                  ? r.evaluator_results[0]?.score
+                  : 0) ??
+                0;
+
+              return (
+                <tr
+                  key={r.id ?? idx}
+                  className="hover:bg-gray-50 dark:hover:bg-gray-800/30"
+                >
+                  <td className="px-4 py-3">
+                    {r.passed ? (
+                      <CheckCircle className="h-5 w-5 text-green-500" />
+                    ) : (
+                      <XCircle className="h-5 w-5 text-red-500" />
                     )}
-                  >
-                    {r.treatment}
-                  </span>
-                </td>
-                <td className="px-4 py-3 text-gray-700 dark:text-gray-300">
-                  {r.score.toFixed(2)}
-                </td>
-                <td className="px-4 py-3 text-gray-500">
-                  {r.cost_metrics
-                    ? String(
-                        (r.cost_metrics as { total_tokens?: number })
-                          .total_tokens ?? "—",
-                      )
-                    : "—"}
-                </td>
-                <td className="px-4 py-3 text-gray-500">
-                  {(r.duration_ms / 1000).toFixed(1)}s
-                </td>
-              </tr>
-            ))}
+                  </td>
+                  <td className="px-4 py-3 font-medium text-gray-900 dark:text-gray-100">
+                    {r.test}
+                  </td>
+                  <td className="px-4 py-3">
+                    <span
+                      className={cn(
+                        "inline-flex rounded-full px-2 py-0.5 text-xs font-medium",
+                        r.treatment === "CONTROL"
+                          ? "bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400"
+                          : "bg-indigo-50 text-indigo-600 dark:bg-indigo-950 dark:text-indigo-300",
+                      )}
+                    >
+                      {r.treatment}
+                    </span>
+                  </td>
+                  <td className="px-4 py-3 text-gray-700 dark:text-gray-300">
+                    {score.toFixed(2)}
+                  </td>
+                  <td className="px-4 py-3 text-gray-500">
+                    {r.cost_metrics
+                      ? String(
+                          (r.cost_metrics as { total_tokens?: number })
+                            .total_tokens ?? "—",
+                        )
+                      : "—"}
+                  </td>
+                  <td className="px-4 py-3 text-gray-500">
+                    {(r.duration_ms / 1000).toFixed(1)}s
+                  </td>
+                </tr>
+              );
+            })}
           </tbody>
         </table>
       </div>
