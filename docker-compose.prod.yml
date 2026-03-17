@@ -39,18 +39,23 @@ services:
       # HTTP → HTTPS redirect
       - "traefik.http.routers.md-evals-http.entryPoints=http"
       - "traefik.http.routers.md-evals-http.rule=Host(`md-evals-api.javierzader.com`)"
-      - "traefik.http.routers.md-evals-http.middlewares=redirect-to-https"
+      - "traefik.http.routers.md-evals-http.middlewares=md-evals-redirect"
       # HTTPS with Let's Encrypt
       - "traefik.http.routers.md-evals-https.entryPoints=https"
       - "traefik.http.routers.md-evals-https.rule=Host(`md-evals-api.javierzader.com`)"
       - "traefik.http.routers.md-evals-https.tls=true"
       - "traefik.http.routers.md-evals-https.tls.certresolver=letsencrypt"
-      - "traefik.http.routers.md-evals-https.middlewares=gzip"
+      - "traefik.http.routers.md-evals-https.middlewares=md-evals-gzip,md-evals-cors"
       # Service port
-      - "traefik.http.services.md-evals.loadbalancer.server.port=8000"
-      # Middlewares
-      - "traefik.http.middlewares.redirect-to-https.redirectscheme.scheme=https"
-      - "traefik.http.middlewares.gzip.compress=true"
+      - "traefik.http.services.md-evals-svc.loadbalancer.server.port=8000"
+      # Middlewares (unique names to avoid conflicts with other apps)
+      - "traefik.http.middlewares.md-evals-redirect.redirectscheme.scheme=https"
+      - "traefik.http.middlewares.md-evals-gzip.compress=true"
+      # CORS middleware for cross-origin requests from GH Pages
+      - "traefik.http.middlewares.md-evals-cors.headers.accessControlAllowOriginList=https://jnzader.github.io"
+      - "traefik.http.middlewares.md-evals-cors.headers.accessControlAllowMethods=GET,POST,PUT,DELETE,OPTIONS"
+      - "traefik.http.middlewares.md-evals-cors.headers.accessControlAllowHeaders=Authorization,Content-Type"
+      - "traefik.http.middlewares.md-evals-cors.headers.accessControlAllowCredentials=true"
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
       interval: 30s

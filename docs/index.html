@@ -2,177 +2,1270 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>md-evals | Evaluate AI skills with ease</title>
-  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
-  <meta name="description" content="Lightweight CLI tool for evaluating AI skills (SKILL.md) with Control vs Treatment testing using LiteLLM" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0" />
-  
-  <!-- Theme: Docsify default theme with modern tweaks -->
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/docsify-themeable@0/dist/css/theme-simple.css">
-  
-  <!-- Dark/Light theme toggle -->
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/docsify-darklight-theme@latest/dist/style.min.css" />
-
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>md-evals — Evaluate AI Agent Skills with Confidence</title>
+  <meta name="description" content="Multi-dimensional scoring, pipeline evaluation, and analytics for SKILL.md files. Open source CLI + Web.">
+  <meta name="theme-color" content="#030712">
+  <meta property="og:title" content="md-evals — Evaluate AI Agent Skills">
+  <meta property="og:description" content="Multi-dimensional scoring, pipeline evaluation, and analytics for SKILL.md files.">
+  <meta property="og:type" content="website">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
   <style>
-    /* Custom Theme Overrides */
-    :root {
-      --theme-color: #6366f1; /* Indigo 500 */
-      --theme-hue: 243;
-      --theme-saturation: 75%;
-      --theme-lightness: 67%;
-      
-      --base-font-size: 16px;
-      --base-font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
-      --heading-font-family: var(--base-font-family);
-      
-      --sidebar-width: 18rem;
-      --sidebar-nav-link-color--active: var(--theme-color);
-      --sidebar-nav-link-font-weight--active: 600;
-      
-      --content-max-width: 45rem;
-      
-      /* Code blocks */
-      --code-font-family: 'JetBrains Mono', 'Fira Code', Consolas, Monaco, monospace;
-      --code-font-size: 0.85em;
-      --code-theme-background: #f8fafc;
-      --code-inline-background: #f1f5f9;
-      --code-inline-color: #0f172a;
-    }
-    
-    /* Elegant badges */
-    .badge {
-      display: inline-block;
-      padding: 0.25em 0.6em;
-      font-size: 0.75em;
-      font-weight: 600;
-      border-radius: 9999px;
-      margin-right: 0.5em;
-      margin-bottom: 1em;
-    }
-    
-    .badge-primary {
-      background-color: #e0e7ff;
-      color: #4f46e5;
-      border: 1px solid #c7d2fe;
-    }
-    
-    .badge-success {
-      background-color: #dcfce7;
-      color: #0d9488;
-      border: 1px solid #ccfbf1;
+    /* ============================================================
+       md-evals Landing Page — Self-contained CSS
+       ============================================================ */
+
+    *, *::before, *::after {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
     }
 
-    /* Terminal output styling */
-    pre[data-lang="log"], pre[data-lang="text"] {
-      background-color: #1e293b !important;
-      color: #f8fafc !important;
-      border-radius: 8px;
+    :root {
+      --bg-950: #030712;
+      --bg-900: #111827;
+      --bg-800: #1f2937;
+      --bg-700: #374151;
+      --text-100: #F3F4F6;
+      --text-300: #D1D5DB;
+      --text-400: #9CA3AF;
+      --text-500: #6B7280;
+      --purple-500: #8B5CF6;
+      --purple-600: #7C3AED;
+      --purple-700: #6D28D9;
+      --purple-400: #A78BFA;
+      --purple-300: #C4B5FD;
+      --indigo-500: #6366F1;
+      --indigo-600: #4F46E5;
+      --grade-s: #FFD700;
+      --grade-a: #22C55E;
+      --grade-b: #3B82F6;
+      --grade-c: #EAB308;
+      --grade-d: #F97316;
+      --grade-f: #EF4444;
+      --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      --font-mono: 'JetBrains Mono', 'Fira Code', Consolas, Monaco, monospace;
     }
-    
-    .markdown-section h1 { margin-top: 1rem; }
-    .markdown-section h2 { border-bottom: 1px solid #e2e8f0; padding-bottom: 0.5rem; }
+
+    html {
+      scroll-behavior: smooth;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+
+    body {
+      font-family: var(--font-sans);
+      background-color: var(--bg-950);
+      color: var(--text-100);
+      line-height: 1.6;
+      overflow-x: hidden;
+    }
+
+    a { text-decoration: none; color: inherit; }
+    img { max-width: 100%; display: block; }
+
+    /* ---- Utility ---- */
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 1.5rem;
+    }
+
+    .sr-only {
+      position: absolute;
+      width: 1px; height: 1px;
+      padding: 0; margin: -1px;
+      overflow: hidden;
+      clip: rect(0,0,0,0);
+      border: 0;
+    }
+
+    /* ---- Buttons ---- */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.75rem 1.5rem;
+      border-radius: 0.75rem;
+      font-weight: 600;
+      font-size: 0.95rem;
+      cursor: pointer;
+      border: none;
+      transition: all 0.25s cubic-bezier(.4,0,.2,1);
+      font-family: var(--font-sans);
+      white-space: nowrap;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, var(--purple-600), var(--indigo-600));
+      color: #fff;
+      box-shadow: 0 0 20px rgba(139,92,246,0.3), 0 4px 12px rgba(0,0,0,0.3);
+    }
+    .btn-primary:hover {
+      background: linear-gradient(135deg, var(--purple-500), var(--indigo-500));
+      box-shadow: 0 0 30px rgba(139,92,246,0.5), 0 6px 20px rgba(0,0,0,0.4);
+      transform: translateY(-1px);
+    }
+
+    .btn-outline {
+      background: transparent;
+      color: var(--text-300);
+      border: 1px solid var(--bg-700);
+    }
+    .btn-outline:hover {
+      border-color: var(--purple-500);
+      color: var(--purple-400);
+      background: rgba(139,92,246,0.06);
+    }
+
+    .btn-ghost {
+      background: rgba(255,255,255,0.05);
+      color: var(--text-300);
+      border: 1px solid transparent;
+    }
+    .btn-ghost:hover {
+      background: rgba(255,255,255,0.1);
+      color: #fff;
+    }
+
+    /* ---- Section ---- */
+    .section {
+      padding: 5rem 0;
+    }
+
+    .section-label {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.35rem 1rem;
+      border-radius: 9999px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      background: rgba(139,92,246,0.12);
+      color: var(--purple-400);
+      border: 1px solid rgba(139,92,246,0.2);
+      margin-bottom: 1rem;
+    }
+
+    .section-title {
+      font-size: clamp(1.75rem, 4vw, 2.5rem);
+      font-weight: 800;
+      line-height: 1.2;
+      margin-bottom: 1rem;
+      color: var(--text-100);
+    }
+
+    .section-subtitle {
+      font-size: 1.1rem;
+      color: var(--text-400);
+      max-width: 640px;
+      line-height: 1.7;
+    }
+
+    /* ============================================================
+       NAVBAR
+       ============================================================ */
+    .navbar {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 100;
+      padding: 0.75rem 0;
+      backdrop-filter: blur(16px) saturate(180%);
+      -webkit-backdrop-filter: blur(16px) saturate(180%);
+      background: rgba(3,7,18,0.8);
+      border-bottom: 1px solid rgba(255,255,255,0.06);
+      transition: all 0.3s;
+    }
+    .navbar.scrolled {
+      box-shadow: 0 4px 30px rgba(0,0,0,0.5);
+    }
+
+    .navbar .container {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .nav-logo {
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+      font-size: 1.25rem;
+      font-weight: 800;
+      color: #fff;
+      letter-spacing: -0.02em;
+    }
+
+    .nav-logo-icon {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 2.25rem;
+      height: 2.25rem;
+      border-radius: 0.6rem;
+      background: linear-gradient(135deg, var(--purple-600), var(--indigo-600));
+      font-size: 1rem;
+    }
+
+    .nav-links {
+      display: flex;
+      align-items: center;
+      gap: 0.25rem;
+      list-style: none;
+    }
+
+    .nav-links a {
+      padding: 0.5rem 0.85rem;
+      font-size: 0.9rem;
+      font-weight: 500;
+      color: var(--text-400);
+      border-radius: 0.5rem;
+      transition: color 0.2s, background 0.2s;
+    }
+    .nav-links a:hover {
+      color: var(--text-100);
+      background: rgba(255,255,255,0.05);
+    }
+
+    .nav-actions {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .mobile-toggle {
+      display: none;
+      background: none;
+      border: none;
+      color: var(--text-300);
+      cursor: pointer;
+      padding: 0.5rem;
+    }
+    .mobile-toggle svg {
+      width: 1.5rem;
+      height: 1.5rem;
+    }
+
+    /* ============================================================
+       HERO
+       ============================================================ */
+    .hero {
+      position: relative;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 8rem 0 5rem;
+      overflow: hidden;
+    }
+
+    /* Animated gradient background */
+    .hero-bg {
+      position: absolute;
+      inset: 0;
+      overflow: hidden;
+      z-index: 0;
+    }
+
+    .hero-bg::before {
+      content: '';
+      position: absolute;
+      top: -40%;
+      left: -20%;
+      width: 80%;
+      height: 80%;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(139,92,246,0.15) 0%, transparent 70%);
+      animation: float-slow 20s ease-in-out infinite;
+    }
+
+    .hero-bg::after {
+      content: '';
+      position: absolute;
+      bottom: -30%;
+      right: -15%;
+      width: 70%;
+      height: 70%;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(99,102,241,0.12) 0%, transparent 70%);
+      animation: float-slow 25s ease-in-out infinite reverse;
+    }
+
+    /* Grid pattern overlay */
+    .hero-grid {
+      position: absolute;
+      inset: 0;
+      background-image:
+        linear-gradient(rgba(255,255,255,0.02) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,0.02) 1px, transparent 1px);
+      background-size: 64px 64px;
+      mask-image: radial-gradient(ellipse 80% 60% at 50% 40%, black 40%, transparent 100%);
+      -webkit-mask-image: radial-gradient(ellipse 80% 60% at 50% 40%, black 40%, transparent 100%);
+    }
+
+    /* Floating orbs */
+    .orb {
+      position: absolute;
+      border-radius: 50%;
+      filter: blur(80px);
+      opacity: 0.4;
+    }
+    .orb-1 {
+      width: 400px; height: 400px;
+      background: var(--purple-700);
+      top: 10%;
+      left: 15%;
+      animation: float-slow 18s ease-in-out infinite;
+    }
+    .orb-2 {
+      width: 300px; height: 300px;
+      background: var(--indigo-600);
+      bottom: 20%;
+      right: 10%;
+      animation: float-slow 22s ease-in-out infinite reverse;
+    }
+    .orb-3 {
+      width: 200px; height: 200px;
+      background: rgba(236,72,153,0.3);
+      top: 60%;
+      left: 50%;
+      animation: float-slow 15s ease-in-out infinite 3s;
+    }
+
+    @keyframes float-slow {
+      0%, 100% { transform: translate(0, 0) scale(1); }
+      33% { transform: translate(30px, -30px) scale(1.05); }
+      66% { transform: translate(-20px, 20px) scale(0.95); }
+    }
+
+    .hero-content {
+      position: relative;
+      z-index: 1;
+      text-align: center;
+      max-width: 860px;
+      margin: 0 auto;
+    }
+
+    .hero-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.4rem 1rem 0.4rem 0.5rem;
+      border-radius: 9999px;
+      font-size: 0.85rem;
+      font-weight: 500;
+      background: rgba(139,92,246,0.1);
+      border: 1px solid rgba(139,92,246,0.25);
+      color: var(--purple-300);
+      margin-bottom: 2rem;
+      animation: fadeInUp 0.6s ease-out;
+    }
+
+    .hero-badge-dot {
+      width: 0.5rem;
+      height: 0.5rem;
+      border-radius: 50%;
+      background: var(--grade-a);
+      animation: pulse-dot 2s ease-in-out infinite;
+    }
+
+    @keyframes pulse-dot {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.5; transform: scale(0.8); }
+    }
+
+    .hero h1 {
+      font-size: clamp(2.5rem, 6vw, 4.25rem);
+      font-weight: 900;
+      line-height: 1.08;
+      letter-spacing: -0.03em;
+      margin-bottom: 1.5rem;
+      animation: fadeInUp 0.6s ease-out 0.1s both;
+    }
+
+    .hero h1 .gradient-text {
+      background: linear-gradient(135deg, var(--purple-400), #818CF8, var(--purple-300));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .hero-subtitle {
+      font-size: clamp(1.05rem, 2vw, 1.25rem);
+      color: var(--text-400);
+      max-width: 640px;
+      margin: 0 auto 2.5rem;
+      line-height: 1.7;
+      animation: fadeInUp 0.6s ease-out 0.2s both;
+    }
+
+    .hero-actions {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 1rem;
+      flex-wrap: wrap;
+      animation: fadeInUp 0.6s ease-out 0.3s both;
+    }
+
+    .hero-actions .btn { padding: 0.85rem 1.75rem; font-size: 1rem; }
+
+    /* Grade pills animation */
+    .hero-grades {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+      margin-top: 3rem;
+      animation: fadeInUp 0.6s ease-out 0.45s both;
+    }
+
+    .grade-pill {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 2.5rem;
+      height: 2.5rem;
+      border-radius: 0.75rem;
+      font-weight: 800;
+      font-size: 1rem;
+      animation: grade-glow 3s ease-in-out infinite;
+    }
+    .grade-pill:nth-child(2) { animation-delay: 0.5s; }
+    .grade-pill:nth-child(3) { animation-delay: 1s; }
+    .grade-pill:nth-child(4) { animation-delay: 1.5s; }
+    .grade-pill:nth-child(5) { animation-delay: 2s; }
+    .grade-pill:nth-child(6) { animation-delay: 2.5s; }
+
+    @keyframes grade-glow {
+      0%, 100% { transform: scale(1); filter: brightness(1); }
+      50% { transform: scale(1.08); filter: brightness(1.2); }
+    }
+
+    .grade-s  { background: rgba(255,215,0,0.15); color: var(--grade-s); border: 1px solid rgba(255,215,0,0.25); }
+    .grade-a  { background: rgba(34,197,94,0.15); color: var(--grade-a); border: 1px solid rgba(34,197,94,0.25); }
+    .grade-b  { background: rgba(59,130,246,0.15); color: var(--grade-b); border: 1px solid rgba(59,130,246,0.25); }
+    .grade-c  { background: rgba(234,179,8,0.15); color: var(--grade-c); border: 1px solid rgba(234,179,8,0.25); }
+    .grade-d  { background: rgba(249,115,22,0.15); color: var(--grade-d); border: 1px solid rgba(249,115,22,0.25); }
+    .grade-f  { background: rgba(239,68,68,0.15); color: var(--grade-f); border: 1px solid rgba(239,68,68,0.25); }
+
+    @keyframes fadeInUp {
+      from { opacity: 0; transform: translateY(20px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ============================================================
+       FEATURES GRID
+       ============================================================ */
+    .features {
+      background: var(--bg-950);
+      position: relative;
+    }
+
+    .features-header {
+      text-align: center;
+      margin-bottom: 3.5rem;
+    }
+
+    .features-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1.25rem;
+    }
+
+    .feature-card {
+      position: relative;
+      padding: 1.75rem;
+      border-radius: 1rem;
+      background: var(--bg-900);
+      border: 1px solid var(--bg-800);
+      transition: all 0.35s cubic-bezier(.4,0,.2,1);
+      overflow: hidden;
+    }
+
+    .feature-card::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      border-radius: 1rem;
+      padding: 1px;
+      background: linear-gradient(135deg, rgba(139,92,246,0), rgba(139,92,246,0));
+      -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+      -webkit-mask-composite: xor;
+      mask-composite: exclude;
+      transition: background 0.35s;
+      pointer-events: none;
+    }
+
+    .feature-card:hover {
+      transform: translateY(-4px);
+      border-color: rgba(139,92,246,0.3);
+      box-shadow: 0 8px 40px rgba(139,92,246,0.1), 0 0 0 1px rgba(139,92,246,0.15);
+    }
+    .feature-card:hover::before {
+      background: linear-gradient(135deg, rgba(139,92,246,0.4), rgba(99,102,241,0.2));
+    }
+
+    .feature-icon {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 3rem;
+      height: 3rem;
+      border-radius: 0.75rem;
+      font-size: 1.5rem;
+      margin-bottom: 1rem;
+      background: rgba(139,92,246,0.1);
+      border: 1px solid rgba(139,92,246,0.15);
+    }
+
+    .feature-card h3 {
+      font-size: 1.15rem;
+      font-weight: 700;
+      margin-bottom: 0.75rem;
+      color: var(--text-100);
+    }
+
+    .feature-card p {
+      font-size: 0.9rem;
+      color: var(--text-400);
+      line-height: 1.65;
+    }
+
+    .feature-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.35rem;
+      margin-top: 1rem;
+    }
+
+    .feature-tag {
+      padding: 0.2rem 0.6rem;
+      border-radius: 0.375rem;
+      font-size: 0.75rem;
+      font-weight: 500;
+      font-family: var(--font-mono);
+      background: rgba(139,92,246,0.08);
+      color: var(--purple-400);
+      border: 1px solid rgba(139,92,246,0.12);
+    }
+
+    /* ============================================================
+       CLI SECTION
+       ============================================================ */
+    .cli-section {
+      background: var(--bg-950);
+      position: relative;
+    }
+
+    .cli-wrapper {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 3rem;
+      align-items: center;
+    }
+
+    .cli-info {
+      display: flex;
+      flex-direction: column;
+      gap: 1.25rem;
+    }
+
+    .terminal {
+      background: var(--bg-900);
+      border: 1px solid var(--bg-800);
+      border-radius: 1rem;
+      overflow: hidden;
+      box-shadow: 0 25px 60px rgba(0,0,0,0.5), 0 0 0 1px rgba(255,255,255,0.03);
+    }
+
+    .terminal-header {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.85rem 1.25rem;
+      background: rgba(255,255,255,0.03);
+      border-bottom: 1px solid var(--bg-800);
+    }
+
+    .terminal-dot {
+      width: 0.75rem;
+      height: 0.75rem;
+      border-radius: 50%;
+    }
+    .terminal-dot.red    { background: #EF4444; }
+    .terminal-dot.yellow { background: #EAB308; }
+    .terminal-dot.green  { background: #22C55E; }
+
+    .terminal-title {
+      flex: 1;
+      text-align: center;
+      font-size: 0.8rem;
+      font-weight: 500;
+      color: var(--text-500);
+      font-family: var(--font-mono);
+    }
+
+    .terminal-body {
+      padding: 1.5rem;
+      font-family: var(--font-mono);
+      font-size: 0.85rem;
+      line-height: 1.8;
+      overflow-x: auto;
+    }
+
+    .terminal-body .cmd {
+      color: var(--text-300);
+    }
+
+    .terminal-body .prompt {
+      color: var(--grade-a);
+      font-weight: 600;
+      user-select: none;
+    }
+
+    .terminal-body .output {
+      color: var(--text-500);
+    }
+
+    .terminal-body .success {
+      color: var(--grade-a);
+    }
+
+    .terminal-body .highlight {
+      color: var(--purple-400);
+    }
+
+    .terminal-body .grade-output {
+      color: var(--grade-a);
+      font-weight: 600;
+    }
+
+    .terminal-body .line {
+      display: block;
+      padding: 0.1rem 0;
+    }
+
+    .terminal-body .blank {
+      display: block;
+      height: 0.75rem;
+    }
+
+    /* ============================================================
+       QUICK START
+       ============================================================ */
+    .quickstart {
+      background: linear-gradient(180deg, var(--bg-950) 0%, rgba(139,92,246,0.03) 50%, var(--bg-950) 100%);
+      position: relative;
+    }
+
+    .quickstart-content {
+      text-align: center;
+      max-width: 700px;
+      margin: 0 auto;
+    }
+
+    .quickstart-terminal {
+      margin-top: 2.5rem;
+      text-align: left;
+    }
+
+    .quickstart-steps {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 1.25rem;
+      margin-top: 2.5rem;
+    }
+
+    .step-card {
+      text-align: center;
+      padding: 1.25rem 1rem;
+      border-radius: 0.75rem;
+      background: rgba(255,255,255,0.02);
+      border: 1px solid var(--bg-800);
+      transition: all 0.3s;
+    }
+    .step-card:hover {
+      border-color: rgba(139,92,246,0.3);
+      background: rgba(139,92,246,0.04);
+    }
+
+    .step-number {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 2rem;
+      height: 2rem;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--purple-600), var(--indigo-600));
+      color: #fff;
+      font-weight: 700;
+      font-size: 0.85rem;
+      margin-bottom: 0.75rem;
+    }
+
+    .step-card h4 {
+      font-size: 0.9rem;
+      font-weight: 600;
+      color: var(--text-100);
+      margin-bottom: 0.35rem;
+    }
+
+    .step-card p {
+      font-size: 0.8rem;
+      color: var(--text-500);
+    }
+
+    .step-code {
+      font-family: var(--font-mono);
+      font-size: 0.78rem;
+      color: var(--purple-400);
+      background: rgba(139,92,246,0.08);
+      padding: 0.2rem 0.6rem;
+      border-radius: 0.375rem;
+      display: inline-block;
+      margin-top: 0.5rem;
+    }
+
+    /* ============================================================
+       FOOTER
+       ============================================================ */
+    .footer {
+      padding: 3rem 0;
+      border-top: 1px solid var(--bg-800);
+      background: var(--bg-950);
+    }
+
+    .footer-inner {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 1rem;
+    }
+
+    .footer-brand {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-weight: 600;
+      color: var(--text-400);
+      font-size: 0.9rem;
+    }
+
+    .footer-links {
+      display: flex;
+      align-items: center;
+      gap: 1.5rem;
+      list-style: none;
+    }
+
+    .footer-links a {
+      font-size: 0.85rem;
+      color: var(--text-500);
+      transition: color 0.2s;
+    }
+    .footer-links a:hover {
+      color: var(--purple-400);
+    }
+
+    .footer-copy {
+      font-size: 0.8rem;
+      color: var(--text-500);
+    }
+
+    /* ============================================================
+       RESPONSIVE
+       ============================================================ */
+    @media (max-width: 1024px) {
+      .features-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+      .cli-wrapper {
+        grid-template-columns: 1fr;
+      }
+      .quickstart-steps {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+
+    @media (max-width: 768px) {
+      .nav-links,
+      .nav-actions .btn-outline,
+      .nav-actions .btn-primary.desktop-only {
+        display: none;
+      }
+      .mobile-toggle { display: block; }
+
+      .nav-links.open {
+        display: flex;
+        flex-direction: column;
+        position: absolute;
+        top: 100%;
+        left: 0;
+        right: 0;
+        background: rgba(3,7,18,0.97);
+        backdrop-filter: blur(16px);
+        padding: 1rem;
+        border-bottom: 1px solid var(--bg-800);
+      }
+      .nav-links.open a {
+        padding: 0.75rem 1rem;
+      }
+
+      .features-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .hero h1 {
+        font-size: 2.25rem;
+      }
+
+      .hero-actions {
+        flex-direction: column;
+        width: 100%;
+      }
+      .hero-actions .btn {
+        width: 100%;
+        justify-content: center;
+      }
+
+      .quickstart-steps {
+        grid-template-columns: 1fr;
+      }
+
+      .footer-inner {
+        flex-direction: column;
+        text-align: center;
+      }
+
+      .section {
+        padding: 3.5rem 0;
+      }
+    }
+
+    /* ============================================================
+       SCROLL ANIMATIONS (intersection observer)
+       ============================================================ */
+    .reveal {
+      opacity: 0;
+      transform: translateY(30px);
+      transition: opacity 0.7s cubic-bezier(.4,0,.2,1), transform 0.7s cubic-bezier(.4,0,.2,1);
+    }
+    .reveal.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    .reveal-delay-1 { transition-delay: 0.1s; }
+    .reveal-delay-2 { transition-delay: 0.2s; }
+    .reveal-delay-3 { transition-delay: 0.3s; }
+    .reveal-delay-4 { transition-delay: 0.4s; }
+    .reveal-delay-5 { transition-delay: 0.5s; }
+
+    /* ============================================================
+       DIMENSIONS ROW (inside features)
+       ============================================================ */
+    .dimensions-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.35rem;
+      margin-top: 0.75rem;
+    }
+
+    .dim-badge {
+      font-size: 0.7rem;
+      font-weight: 600;
+      padding: 0.15rem 0.5rem;
+      border-radius: 9999px;
+      letter-spacing: 0.02em;
+    }
+
+    .dim-badge.correctness   { background: rgba(34,197,94,0.12); color: #4ADE80; }
+    .dim-badge.completeness  { background: rgba(59,130,246,0.12); color: #60A5FA; }
+    .dim-badge.format        { background: rgba(139,92,246,0.12); color: #A78BFA; }
+    .dim-badge.adherence     { background: rgba(234,179,8,0.12);  color: #FACC15; }
+    .dim-badge.safety        { background: rgba(239,68,68,0.12);  color: #F87171; }
+    .dim-badge.efficiency    { background: rgba(249,115,22,0.12); color: #FB923C; }
+    .dim-badge.robustness    { background: rgba(6,182,212,0.12);  color: #22D3EE; }
   </style>
 </head>
 <body>
-  <div id="app">Loading md-evals documentation...</div>
-  
+
+  <!-- ============================================================
+       NAVBAR
+       ============================================================ -->
+  <nav class="navbar" id="navbar">
+    <div class="container">
+      <a href="#" class="nav-logo">
+        <span class="nav-logo-icon" aria-hidden="true">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5H2v7l6.29 6.29c.94.94 2.48.94 3.42 0l3.58-3.58c.94-.94.94-2.48 0-3.42L9 5Z"/><path d="M6 9.01V9"/><path d="m15 5 6.3 6.3a2.4 2.4 0 0 1 0 3.4L17 19"/></svg>
+        </span>
+        md-evals
+      </a>
+
+      <ul class="nav-links" id="navLinks">
+        <li><a href="#features">Features</a></li>
+        <li><a href="#cli">CLI</a></li>
+        <li><a href="#quickstart">Get Started</a></li>
+      </ul>
+
+      <div class="nav-actions">
+        <a href="docs/" class="btn btn-outline" style="padding:0.5rem 1rem;font-size:0.85rem;">Documentation</a>
+        <a href="app/" class="btn btn-primary desktop-only" style="padding:0.5rem 1rem;font-size:0.85rem;">
+          Launch App
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+        </a>
+        <button class="mobile-toggle" id="mobileToggle" aria-label="Toggle menu">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+        </button>
+      </div>
+    </div>
+  </nav>
+
+  <!-- ============================================================
+       HERO
+       ============================================================ -->
+  <section class="hero" id="hero">
+    <div class="hero-bg">
+      <div class="orb orb-1"></div>
+      <div class="orb orb-2"></div>
+      <div class="orb orb-3"></div>
+      <div class="hero-grid"></div>
+    </div>
+
+    <div class="container hero-content">
+      <div class="hero-badge">
+        <span class="hero-badge-dot"></span>
+        Open Source &mdash; CLI + Web Dashboard
+      </div>
+
+      <h1>
+        Evaluate AI Agent Skills<br>
+        <span class="gradient-text">with Confidence</span>
+      </h1>
+
+      <p class="hero-subtitle">
+        Multi-dimensional scoring, pipeline evaluation, and analytics for
+        <strong style="color:var(--text-100)">SKILL.md</strong> files.
+        Open&nbsp;source CLI&nbsp;+&nbsp;Web.
+      </p>
+
+      <div class="hero-actions">
+        <a href="app/" class="btn btn-primary">
+          Launch App
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+        </a>
+        <a href="https://github.com/JNZader/md-evals" class="btn btn-outline" target="_blank" rel="noopener noreferrer">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0 0 24 12c0-6.63-5.37-12-12-12Z"/></svg>
+          View on GitHub
+        </a>
+      </div>
+
+      <div class="hero-grades">
+        <div class="grade-pill grade-s">S</div>
+        <div class="grade-pill grade-a">A</div>
+        <div class="grade-pill grade-b">B</div>
+        <div class="grade-pill grade-c">C</div>
+        <div class="grade-pill grade-d">D</div>
+        <div class="grade-pill grade-f">F</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================
+       FEATURES
+       ============================================================ -->
+  <section class="section features" id="features">
+    <div class="container">
+      <div class="features-header reveal">
+        <div class="section-label">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+          Features
+        </div>
+        <h2 class="section-title">Everything you need to evaluate AI skills</h2>
+        <p class="section-subtitle" style="margin:0 auto;">
+          From multi-dimensional rubrics to full CI pipelines &mdash; md-evals gives you the tools to measure, track, and improve AI agent performance.
+        </p>
+      </div>
+
+      <div class="features-grid">
+        <!-- Card 1: Multi-Dimensional Scoring -->
+        <div class="feature-card reveal reveal-delay-1">
+          <div class="feature-icon" aria-hidden="true">&#x1F4CA;</div>
+          <h3>Multi-Dimensional Scoring</h3>
+          <p>Evaluate skills across 7 quality dimensions with configurable YAML rubrics. Letter grades from S to F give instant clarity.</p>
+          <div class="dimensions-row">
+            <span class="dim-badge correctness">Correctness</span>
+            <span class="dim-badge completeness">Completeness</span>
+            <span class="dim-badge format">Format</span>
+            <span class="dim-badge adherence">Adherence</span>
+            <span class="dim-badge safety">Safety</span>
+            <span class="dim-badge efficiency">Efficiency</span>
+            <span class="dim-badge robustness">Robustness</span>
+          </div>
+        </div>
+
+        <!-- Card 2: Triple-Model Pipeline -->
+        <div class="feature-card reveal reveal-delay-2">
+          <div class="feature-icon" aria-hidden="true">&#x1F517;</div>
+          <h3>Triple-Model Pipeline</h3>
+          <p>Three-stage evaluation: Auditor analyzes, Target executes, Judge scores. Use different models per stage for unbiased results.</p>
+          <div class="feature-tags">
+            <span class="feature-tag">Auditor</span>
+            <span class="feature-tag">Target</span>
+            <span class="feature-tag">Judge</span>
+          </div>
+        </div>
+
+        <!-- Card 3: Probe & Detector Plugins -->
+        <div class="feature-card reveal reveal-delay-3">
+          <div class="feature-icon" aria-hidden="true">&#x1F50C;</div>
+          <h3>Probe &amp; Detector Plugins</h3>
+          <p>Built-in probes for dimensions, edge cases, compliance, and Gherkin scenarios. Extend with your own via Python entry_points.</p>
+          <div class="feature-tags">
+            <span class="feature-tag">DimensionProbe</span>
+            <span class="feature-tag">EdgeCaseProbe</span>
+            <span class="feature-tag">ComplianceProbe</span>
+            <span class="feature-tag">GherkinProbe</span>
+          </div>
+        </div>
+
+        <!-- Card 4: Trust & Verification -->
+        <div class="feature-card reveal reveal-delay-1">
+          <div class="feature-icon" aria-hidden="true">&#x2705;</div>
+          <h3>Trust &amp; Verification</h3>
+          <p>Citation validation ensures the LLM references specific lines. Gherkin-like eval scenarios define precise Given/When/Then checks.</p>
+          <div class="feature-tags">
+            <span class="feature-tag">Citations</span>
+            <span class="feature-tag">Given/When/Then</span>
+            <span class="feature-tag">Line refs</span>
+          </div>
+        </div>
+
+        <!-- Card 5: Ship & Scale -->
+        <div class="feature-card reveal reveal-delay-2">
+          <div class="feature-icon" aria-hidden="true">&#x1F680;</div>
+          <h3>Ship &amp; Scale</h3>
+          <p>Run eval suites in CI with proper exit codes. Generate static HTML reports. Evaluate entire plugin directories at once.</p>
+          <div class="feature-tags">
+            <span class="feature-tag">CI exit codes</span>
+            <span class="feature-tag">HTML reports</span>
+            <span class="feature-tag">Plugin dirs</span>
+          </div>
+        </div>
+
+        <!-- Card 6: Analytics Dashboard -->
+        <div class="feature-card reveal reveal-delay-3">
+          <div class="feature-icon" aria-hidden="true">&#x1F4C8;</div>
+          <h3>Analytics Dashboard</h3>
+          <p>Track score trends over time, monitor cost per model, and explore skills &times; dimensions with interactive heatmaps.</p>
+          <div class="feature-tags">
+            <span class="feature-tag">Trends</span>
+            <span class="feature-tag">Cost tracking</span>
+            <span class="feature-tag">Heatmap</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================
+       CLI SECTION
+       ============================================================ -->
+  <section class="section cli-section" id="cli">
+    <div class="container">
+      <div class="cli-wrapper">
+        <div class="cli-info reveal">
+          <div class="section-label">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="4 17 10 11 4 5"/><line x1="12" y1="19" x2="20" y2="19"/></svg>
+            Command Line Interface
+          </div>
+          <h2 class="section-title">Powerful CLI, simple&nbsp;commands</h2>
+          <p class="section-subtitle">
+            Pre-check skills, run full pipeline evaluations, execute test suites, and track analytics &mdash; all from your terminal. Perfect for CI/CD integration.
+          </p>
+          <div style="display:flex;gap:0.75rem;flex-wrap:wrap;margin-top:0.5rem;">
+            <a href="#quickstart" class="btn btn-primary" style="padding:0.65rem 1.25rem;font-size:0.9rem;">
+              Get Started
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+            </a>
+            <a href="https://github.com/JNZader/md-evals" class="btn btn-ghost" style="padding:0.65rem 1.25rem;font-size:0.9rem;" target="_blank" rel="noopener noreferrer">
+              View Source
+            </a>
+          </div>
+        </div>
+
+        <div class="terminal reveal reveal-delay-2">
+          <div class="terminal-header">
+            <span class="terminal-dot red"></span>
+            <span class="terminal-dot yellow"></span>
+            <span class="terminal-dot green"></span>
+            <span class="terminal-title">md-evals &mdash; terminal</span>
+          </div>
+          <div class="terminal-body">
+            <span class="line"><span class="prompt">$ </span><span class="cmd">md-evals check SKILL.md</span></span>
+            <span class="line"><span class="success">&#10003; SKILL.md &mdash; Pre-check PASSED (12 checks, 0 findings)</span></span>
+            <span class="blank"></span>
+            <span class="line"><span class="prompt">$ </span><span class="cmd">md-evals run --pipeline --probe edge-case,gherkin</span></span>
+            <span class="line"><span class="output">Pipeline: PreCheck &#8594; Auditor &#8594; Target &#8594; Judge</span></span>
+            <span class="line"><span class="output">Overall Grade: </span><span class="grade-output">A</span><span class="output"> (0.87)</span></span>
+            <span class="blank"></span>
+            <span class="line"><span class="prompt">$ </span><span class="cmd">md-evals suite run --config suite.yaml</span></span>
+            <span class="line"><span class="success">backend-skills: 5/5 passed &#10003;</span></span>
+            <span class="blank"></span>
+            <span class="line"><span class="prompt">$ </span><span class="cmd">md-evals analytics trends --skill react-19</span></span>
+            <span class="line"><span class="output">Trend: </span><span class="highlight">improving &#8593;</span><span class="output"> (0.72 &#8594; 0.87 over 30 days)</span></span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================
+       QUICK START
+       ============================================================ -->
+  <section class="section quickstart" id="quickstart">
+    <div class="container">
+      <div class="quickstart-content reveal">
+        <div class="section-label">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2 3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+          Quick Start
+        </div>
+        <h2 class="section-title">Up and running in 60 seconds</h2>
+        <p class="section-subtitle" style="margin:0 auto;">
+          Install, initialize, check, and evaluate &mdash; four commands to your first AI skill evaluation.
+        </p>
+      </div>
+
+      <div class="quickstart-steps reveal reveal-delay-1">
+        <div class="step-card">
+          <div class="step-number">1</div>
+          <h4>Install</h4>
+          <p>Install from PyPI</p>
+          <code class="step-code">pip install md-evals</code>
+        </div>
+        <div class="step-card">
+          <div class="step-number">2</div>
+          <h4>Initialize</h4>
+          <p>Create config files</p>
+          <code class="step-code">md-evals init</code>
+        </div>
+        <div class="step-card">
+          <div class="step-number">3</div>
+          <h4>Pre-check</h4>
+          <p>Validate your skill file</p>
+          <code class="step-code">md-evals check SKILL.md</code>
+        </div>
+        <div class="step-card">
+          <div class="step-number">4</div>
+          <h4>Evaluate</h4>
+          <p>Run the full pipeline</p>
+          <code class="step-code">md-evals run --pipeline</code>
+        </div>
+      </div>
+
+      <div class="quickstart-terminal reveal reveal-delay-2" style="max-width:700px;margin:2.5rem auto 0;">
+        <div class="terminal">
+          <div class="terminal-header">
+            <span class="terminal-dot red"></span>
+            <span class="terminal-dot yellow"></span>
+            <span class="terminal-dot green"></span>
+            <span class="terminal-title">quick-start</span>
+          </div>
+          <div class="terminal-body">
+            <span class="line"><span class="prompt">$ </span><span class="cmd">pip install md-evals</span></span>
+            <span class="line"><span class="output">Successfully installed md-evals-0.1.0</span></span>
+            <span class="blank"></span>
+            <span class="line"><span class="prompt">$ </span><span class="cmd">md-evals init</span></span>
+            <span class="line"><span class="success">&#10003; Created eval.yaml</span></span>
+            <span class="line"><span class="success">&#10003; Created rubric.yaml</span></span>
+            <span class="blank"></span>
+            <span class="line"><span class="prompt">$ </span><span class="cmd">md-evals check SKILL.md</span></span>
+            <span class="line"><span class="success">&#10003; SKILL.md &mdash; Pre-check PASSED</span></span>
+            <span class="blank"></span>
+            <span class="line"><span class="prompt">$ </span><span class="cmd">md-evals run --config eval.yaml --pipeline</span></span>
+            <span class="line"><span class="output">Pipeline: PreCheck &#8594; Auditor &#8594; Target &#8594; Judge</span></span>
+            <span class="line"><span class="output">&#9608;&#9608;&#9608;&#9608;&#9608;&#9608;&#9608;&#9608;&#9608;&#9608;&#9608;&#9608;&#9608;&#9608;&#9608;&#9608;&#9608;&#9608;&#9608;&#9608; 100%</span></span>
+            <span class="line"><span class="output">Overall Grade: </span><span class="grade-output">A</span><span class="output"> (0.87) &mdash; </span><span class="success">PASSED</span></span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================
+       FOOTER
+       ============================================================ -->
+  <footer class="footer">
+    <div class="container footer-inner">
+      <div class="footer-brand">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color:var(--purple-500);"><path d="M9 5H2v7l6.29 6.29c.94.94 2.48.94 3.42 0l3.58-3.58c.94-.94.94-2.48 0-3.42L9 5Z"/><path d="M6 9.01V9"/><path d="m15 5 6.3 6.3a2.4 2.4 0 0 1 0 3.4L17 19"/></svg>
+        Made by <a href="https://github.com/JNZader" target="_blank" rel="noopener noreferrer" style="color:var(--text-300);margin-left:0.25rem;">Javier Zader</a>
+      </div>
+
+      <ul class="footer-links">
+        <li><a href="https://github.com/JNZader/md-evals" target="_blank" rel="noopener noreferrer">GitHub</a></li>
+        <li><a href="docs/">Documentation</a></li>
+        <li><a href="app/">App</a></li>
+      </ul>
+
+      <span class="footer-copy">MIT License &middot; &copy; 2025 md-evals</span>
+    </div>
+  </footer>
+
+  <!-- ============================================================
+       SCRIPTS
+       ============================================================ -->
   <script>
-    window.$docsify = {
-      name: 'md-evals',
-      repo: 'JNZader/md-evals',
-      
-      loadSidebar: true,
-      subMaxLevel: 3,
-      auto2top: true,
-      
-      // Theme
-      themeColor: '#6366f1',
-      
-      // Plugins
-      search: {
-        maxAge: 86400000, // Expiration time, the default one day
-        paths: 'auto',
-        placeholder: 'Search documentation...',
-        noData: 'No Results!',
-        depth: 3,
-        hideOtherSidebarContent: false,
-      },
-      
-      copyCode: {
-        buttonText: 'Copy',
-        errorText: 'Error',
-        successText: 'Copied'
-      },
+    // Navbar scroll effect
+    const navbar = document.getElementById('navbar');
+    window.addEventListener('scroll', () => {
+      navbar.classList.toggle('scrolled', window.scrollY > 20);
+    }, { passive: true });
 
-      pagination: {
-        previousText: 'PREVIOUS',
-        nextText: 'NEXT',
-        crossChapter: true,
-        crossChapterText: true,
-      },
+    // Mobile toggle
+    const toggle = document.getElementById('mobileToggle');
+    const links = document.getElementById('navLinks');
+    toggle.addEventListener('click', () => {
+      links.classList.toggle('open');
+    });
 
-      darklightTheme: {
-        siteFont : 'pt-sans',
-        defaultTheme : 'light',
-        codeFontFamily : 'Roboto Mono, Monaco, courier, monospace',
-        bodyFontSize : '17px',
-        dark: {
-          accent: '#818cf8',
-          toogleBackground : '#ffffff',
-          background: '#0f172a',
-          textColor: '#cbd5e1',
-          codeTextColor : '#ffffff',
-          codeBackgroundColor : '#1e293b',
-          borderColor : '#0d2538',
-          blockQuoteColor : '#858585',
-          highlightColor : '#d22778',
-          sidebarSublink : '#b4b4b4',
-          codeTypeColor : '#ffffff',
-          coverBackground : 'linear-gradient(to left bottom, hsl(118, 100%, 85%) 0%,hsl(181, 100%, 85%) 100%)',
-          toogleImage : 'url(https://cdn.jsdelivr.net/npm/docsify-darklight-theme@latest/icons/sun.svg)'
-        },
-        light: {
-          accent: '#6366f1',
-          toogleBackground : '#091a28',
-          background: '#ffffff',
-          textColor: '#34495e',
-          codeTextColor : '#525252',
-          codeBackgroundColor : '#f8fafc',
-          borderColor : '#rgba(0, 0, 0, 0.07)',
-          blockQuoteColor : '#858585',
-          highlightColor : '#d22778',
-          sidebarSublink : '#505d6b',
-          codeTypeColor : '#091a28',
-          coverBackground : 'linear-gradient(to left bottom, hsl(118, 100%, 85%) 0%,hsl(181, 100%, 85%) 100%)',
-          toogleImage : 'url(https://cdn.jsdelivr.net/npm/docsify-darklight-theme@latest/icons/moon.svg)'
+    // Close mobile menu on link click
+    links.querySelectorAll('a').forEach(a => {
+      a.addEventListener('click', () => links.classList.remove('open'));
+    });
+
+    // Intersection Observer for reveal animations
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach(entry => {
+          if (entry.isIntersecting) {
+            entry.target.classList.add('visible');
+          }
+        });
+      },
+      { threshold: 0.1, rootMargin: '0px 0px -40px 0px' }
+    );
+
+    document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+
+    // Smooth scroll for nav links (fallback)
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+      anchor.addEventListener('click', function(e) {
+        const target = document.querySelector(this.getAttribute('href'));
+        if (target) {
+          e.preventDefault();
+          target.scrollIntoView({ behavior: 'smooth', block: 'start' });
         }
-      }
-    }
+      });
+    });
   </script>
-  
-  <!-- Core Docsify -->
-  <script src="https://cdn.jsdelivr.net/npm/docsify@4"></script>
-  
-  <!-- Plugins -->
-  <script src="https://cdn.jsdelivr.net/npm/docsify-themeable@0/dist/js/docsify-themeable.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/docsify-darklight-theme@latest/dist/index.min.js" type="text/javascript"></script>
-  <script src="https://cdn.jsdelivr.net/npm/docsify-search@4/dist/docsify-search.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/docsify-copy-code/dist/docsify-copy-code.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/docsify-pagination/dist/docsify-pagination.min.js"></script>
-  
-  <!-- Syntax Highlighting -->
-  <script src="https://cdn.jsdelivr.net/npm/prismjs@1/components/prism-bash.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/prismjs@1/components/prism-python.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/prismjs@1/components/prism-yaml.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/prismjs@1/components/prism-json.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/prismjs@1/components/prism-markdown.min.js"></script>
-
-  <!-- Mermaid for diagrams -->
-  <script type="module">
-    import mermaid from "https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs";
-    mermaid.initialize({ startOnLoad: true });
-    window.mermaid = mermaid;
-  </script>
-  <script src="//unpkg.com/docsify-mermaid@2.0.1/dist/docsify-mermaid.js"></script>
 </body>
 </html>

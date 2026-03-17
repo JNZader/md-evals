@@ -56,26 +56,26 @@ jobs:
 
       - name: Assemble _site directory
         run: |
-          mkdir -p _site/app
+          mkdir -p _site/app _site/docs
+
+          # 1. React app → _site/app/
           cp -r apps/web/dist/* _site/app/
-          # If docs exist, copy them to the root
-          if [ -d docs ]; then
-            cp -r docs/* _site/ 2>/dev/null || true
+
+          # 2. Landing page (docs/index.html) → _site/ root
+          if [ -f docs/index.html ]; then
+            cp docs/index.html _site/index.html
           fi
-          # Create root index.html that redirects to the app
-          cat > _site/index.html << 'HEREDOC'
-          <!DOCTYPE html>
-          <html>
-          <head>
-            <meta charset="utf-8">
-            <meta http-equiv="refresh" content="0; url=app/">
-            <title>md-evals</title>
-          </head>
-          <body>
-            <p>Redirecting to <a href="app/">md-evals app</a>...</p>
-          </body>
-          </html>
-          HEREDOC
+
+          # 3. Remaining docs content → _site/docs/
+          #    (Docsify docs, guides, references, etc.)
+          if [ -d docs ]; then
+            # Copy everything except the landing page index.html
+            rsync -a --exclude='index.html' docs/ _site/docs/
+            # Use docsify.html as the docs portal index
+            if [ -f docs/docsify.html ]; then
+              cp docs/docsify.html _site/docs/index.html
+            fi
+          fi
 
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3
