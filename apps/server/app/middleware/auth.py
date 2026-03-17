@@ -9,22 +9,28 @@ from app.config import settings
 
 
 def _extract_token(request: Request) -> str:
-    """Extract Bearer token from the Authorization header."""
+    """Extract Bearer token from Authorization header or ?token= query param.
+
+    Query param fallback is needed for SSE endpoints where EventSource
+    does not support custom headers.
+    """
+    # 1. Try Authorization header first
     auth_header = request.headers.get("Authorization")
-    if not auth_header:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail={"error": "missing_token", "message": "Authorization header is required."},
-            headers={"WWW-Authenticate": "Bearer"},
-        )
-    scheme, _, token = auth_header.partition(" ")
-    if scheme.lower() != "bearer" or not token:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail={"error": "invalid_token", "message": "Invalid authorization scheme."},
-            headers={"WWW-Authenticate": "Bearer"},
-        )
-    return token
+    if auth_header:
+        scheme, _, token = auth_header.partition(" ")
+        if scheme.lower() == "bearer" and token:
+            return token
+
+    # 2. Fall back to ?token= query param (for SSE / EventSource)
+    token = request.query_params.get("token")
+    if token:
+        return token
+
+    raise HTTPException(
+        status_code=status.HTTP_401_UNAUTHORIZED,
+        detail={"error": "missing_token", "message": "Authorization header is required."},
+        headers={"WWW-Authenticate": "Bearer"},
+    )
 
 
 def get_current_user(request: Request) -> dict:
