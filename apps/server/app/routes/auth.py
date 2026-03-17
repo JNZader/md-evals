@@ -19,6 +19,7 @@ from app.services.github_oauth import (
     get_github_user,
     validate_state,
 )
+from app.services.session_keys import session_key_store
 
 logger = logging.getLogger(__name__)
 
@@ -134,6 +135,12 @@ async def callback(
 
         # Generate JWT
         token = _build_jwt(user)
+
+    # Auto-register GitHub OAuth token as session key for github-models
+    # so users don't need to manually add a provider key
+    user_id = str(user.id)
+    await session_key_store.set_key(user_id, "github-models", access_token)
+    logger.info("Auto-registered github-models session key for user %s", user.github_login)
 
     return RedirectResponse(
         url=f"{frontend_base}/#/auth/callback?token={token}",
