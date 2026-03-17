@@ -138,15 +138,16 @@ class EvalService:
 
             # Build adapters — GitHub Models needs special handling
             if config.defaults.provider == "github-models":
-                # GitHub Models uses Azure OpenAI-compatible endpoint via litellm
+                # GitHub Models exposes an OpenAI-compatible endpoint.
+                # litellm requires: model="openai/<name>", api_base=<url>,
+                # and OPENAI_API_KEY set to the GitHub token.
+                os.environ["OPENAI_API_KEY"] = api_key
                 adapter = LLMAdapter(
-                    model=f"azure/{config.defaults.model}",
-                    provider="openai",  # litellm uses openai-compat
+                    model=f"openai/{config.defaults.model}",
+                    provider="openai",
                     api_base="https://models.inference.ai.azure.com",
                     defaults=config.defaults,
                 )
-                # litellm needs OPENAI_API_KEY for azure-compat calls
-                os.environ["OPENAI_API_KEY"] = api_key
             else:
                 adapter = LLMAdapter(
                     model=config.defaults.model,
