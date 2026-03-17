@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { NavLink, Outlet, Navigate } from "react-router-dom";
 import {
+  BarChart3,
   LayoutDashboard,
   PlayCircle,
   Clock,
@@ -18,6 +19,7 @@ import { cn } from "../../lib/cn";
 const NAV_ITEMS = [
   { to: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
   { to: "/eval/new", label: "New Eval", icon: PlayCircle },
+  { to: "/analytics", label: "Analytics", icon: BarChart3 },
   { to: "/history", label: "History", icon: Clock },
   { to: "/settings", label: "Settings", icon: Settings },
 ] as const;

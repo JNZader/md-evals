@@ -2,13 +2,18 @@
 
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import type {
+  CostSummary,
   Evaluation,
   EvalRunRequest,
   EvalRunResponse,
+  HeatmapCell,
   HistoryItem,
+  ModelComparison,
   PaginatedResponse,
   ProviderKey,
+  SkillTrend,
   SSEEvent,
+  SummaryStats,
 } from "./types";
 
 const API_BASE_URL = import.meta.env.VITE_API_URL ?? "";
@@ -188,6 +193,39 @@ export async function deleteProvider(provider: string): Promise<void> {
   return fetchApi<void>(`/api/providers/${provider}`, { method: "DELETE" });
 }
 
+// Analytics
+export async function fetchAnalyticsTrends(
+  skill: string,
+  days = 30,
+): Promise<SkillTrend> {
+  return fetchApi<SkillTrend>(
+    `/api/analytics/trends?skill=${encodeURIComponent(skill)}&days=${days}`,
+  );
+}
+
+export async function fetchAnalyticsCost(days = 30): Promise<CostSummary> {
+  return fetchApi<CostSummary>(`/api/analytics/cost?days=${days}`);
+}
+
+export async function fetchAnalyticsHeatmap(
+  suite?: string,
+): Promise<HeatmapCell[]> {
+  const qs = suite ? `?suite=${encodeURIComponent(suite)}` : "";
+  return fetchApi<HeatmapCell[]>(`/api/analytics/heatmap${qs}`);
+}
+
+export async function fetchAnalyticsComparison(
+  skill: string,
+): Promise<ModelComparison> {
+  return fetchApi<ModelComparison>(
+    `/api/analytics/comparison?skill=${encodeURIComponent(skill)}`,
+  );
+}
+
+export async function fetchAnalyticsSummary(): Promise<SummaryStats> {
+  return fetchApi<SummaryStats>("/api/analytics/summary");
+}
+
 // Health
 export async function checkHealth(): Promise<{
   status: string;
@@ -274,5 +312,44 @@ export function useDeleteSessionProvider() {
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: ["providers"] });
     },
+  });
+}
+
+// Analytics hooks
+
+export function useAnalyticsTrends(skill: string | undefined, days = 30) {
+  return useQuery({
+    queryKey: ["analytics", "trends", skill, days],
+    queryFn: () => fetchAnalyticsTrends(skill!, days),
+    enabled: !!skill,
+  });
+}
+
+export function useAnalyticsCost(days = 30) {
+  return useQuery({
+    queryKey: ["analytics", "cost", days],
+    queryFn: () => fetchAnalyticsCost(days),
+  });
+}
+
+export function useAnalyticsHeatmap(suite?: string) {
+  return useQuery({
+    queryKey: ["analytics", "heatmap", suite],
+    queryFn: () => fetchAnalyticsHeatmap(suite),
+  });
+}
+
+export function useAnalyticsComparison(skill: string | undefined) {
+  return useQuery({
+    queryKey: ["analytics", "comparison", skill],
+    queryFn: () => fetchAnalyticsComparison(skill!),
+    enabled: !!skill,
+  });
+}
+
+export function useAnalyticsSummary() {
+  return useQuery({
+    queryKey: ["analytics", "summary"],
+    queryFn: fetchAnalyticsSummary,
   });
 }

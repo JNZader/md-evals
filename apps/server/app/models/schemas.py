@@ -189,3 +189,57 @@ class ScoringResponse(BaseModel):
 
 # Rebuild forward references now that ScoringResponse is defined
 EvalDetailResponse.model_rebuild()
+
+
+# --- Analytics ---
+
+
+class TrendPointResponse(BaseModel):
+    """A single point in a skill score trend."""
+
+    timestamp: str
+    score: float
+    grade: str
+
+
+class SkillTrendResponse(BaseModel):
+    """Score trend for a skill over time."""
+
+    skill_path: str
+    points: list[TrendPointResponse]
+    latest_grade: str
+    trend_direction: str  # "improving", "declining", "stable"
+
+
+class CostSummaryResponse(BaseModel):
+    """Cost analytics summary."""
+
+    total_cost_usd: float
+    total_tokens: int
+    avg_cost_per_eval: float
+    cost_by_model: dict[str, float]
+
+
+class HeatmapCellResponse(BaseModel):
+    """A cell in the skills × dimensions heatmap."""
+
+    skill: str
+    dimension: str
+    score: float
+    grade: str
+
+
+class ModelComparisonResponse(BaseModel):
+    """Model comparison data for a skill."""
+
+    skill_path: str
+    models: dict[str, list[dict]]  # model_name → list of record summaries
+
+
+class SummaryStatsResponse(BaseModel):
+    """High-level analytics summary."""
+
+    total_evals: int
+    unique_skills: int
+    avg_score: float
+    grade_distribution: dict[str, int]

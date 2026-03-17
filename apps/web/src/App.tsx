@@ -3,6 +3,7 @@
 import { HashRouter, Routes, Route, Navigate } from "react-router-dom";
 import Login from "./pages/Login";
 import AuthCallback from "./pages/AuthCallback";
+import Analytics from "./pages/Analytics";
 import Dashboard from "./pages/Dashboard";
 import EvalRun from "./pages/EvalRun";
 import History from "./pages/History";
@@ -22,6 +23,7 @@ function App() {
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/eval/new" element={<EvalRun />} />
           <Route path="/eval/:id" element={<Dashboard />} />
+          <Route path="/analytics" element={<Analytics />} />
           <Route path="/history" element={<History />} />
           <Route path="/settings" element={<Settings />} />
         </Route>

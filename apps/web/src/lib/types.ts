@@ -133,3 +133,54 @@ export interface EvalResultScoring {
   dimensions: DimensionScoreDTO[];
   pre_check: PreCheckResultDTO | null;
 }
+
+// --- Analytics Types ---
+
+export interface TrendPoint {
+  timestamp: string;
+  score: number;
+  grade: string;
+}
+
+export interface SkillTrend {
+  skill_path: string;
+  points: TrendPoint[];
+  latest_grade: string;
+  trend_direction: "improving" | "declining" | "stable";
+}
+
+export interface CostSummary {
+  total_cost_usd: number;
+  total_tokens: number;
+  avg_cost_per_eval: number;
+  cost_by_model: Record<string, number>;
+}
+
+export interface HeatmapCell {
+  skill: string;
+  dimension: string;
+  score: number;
+  grade: string;
+}
+
+export interface ModelComparisonRecord {
+  id: string;
+  timestamp: string;
+  overall_grade: string;
+  overall_score: number;
+  dimensions: Record<string, number>;
+  cost_usd: number | null;
+  duration_ms: number;
+}
+
+export interface ModelComparison {
+  skill_path: string;
+  models: Record<string, ModelComparisonRecord[]>;
+}
+
+export interface SummaryStats {
+  total_evals: number;
+  unique_skills: number;
+  avg_score: number;
+  grade_distribution: Record<string, number>;
+}

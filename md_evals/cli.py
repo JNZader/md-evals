@@ -956,5 +956,139 @@ def eval_plugin_cmd(
         raise typer.Exit(code=2)
 
 
+# ── Analytics subcommand ──
+
+analytics_app = typer.Typer(name="analytics", help="View eval analytics and trends")
+app.add_typer(analytics_app)
+
+
+@analytics_app.command("trends")
+def analytics_trends(
+    skill: Annotated[str, typer.Option("--skill", "-s", help="Skill path to query")] = "",
+    days: Annotated[int, typer.Option("--days", "-d", help="Lookback period in days")] = 30,
+    store_path: Annotated[str, typer.Option("--store", help="Analytics store path")] = "data/analytics.jsonl",
+):
+    """Show score trends for a skill over time."""
+    from md_evals.analytics import AnalyticsEngine, AnalyticsStore
+
+    engine = AnalyticsEngine(AnalyticsStore(store_path))
+
+    if not skill:
+        # Show summary stats instead
+        stats = engine.get_summary_stats()
+        console.print(f"[bold]Analytics Summary[/bold]")
+        console.print(f"  Total evals: {stats['total_evals']}")
+        console.print(f"  Unique skills: {stats['unique_skills']}")
+        console.print(f"  Avg score: {stats['avg_score']:.2f}")
+        if stats['grade_distribution']:
+            dist = ", ".join(f"{g}={c}" for g, c in sorted(stats['grade_distribution'].items()))
+            console.print(f"  Grade distribution: {dist}")
+        raise typer.Exit(code=0)
+
+    trend = engine.get_skill_trends(skill, days=days)
+
+    if not trend.points:
+        console.print(f"[yellow]No data for skill '{skill}' in the last {days} days.[/yellow]")
+        raise typer.Exit(code=0)
+
+    table = Table(title=f"Score Trend: {skill} ({days}d)", show_header=True, header_style="bold")
+    table.add_column("Timestamp", style="dim")
+    table.add_column("Score", justify="right")
+    table.add_column("Grade", justify="center")
+
+    grade_colors = {"S": "yellow", "A": "green", "B": "blue", "C": "yellow", "D": "bright_red", "F": "red"}
+
+    for point in trend.points:
+        color = grade_colors.get(point.grade, "white")
+        table.add_row(
+            point.timestamp[:19],
+            f"{point.score:.2f}",
+            f"[{color}]{point.grade}[/{color}]",
+        )
+
+    console.print(table)
+
+    direction_icon = {"improving": "[green]▲[/green]", "declining": "[red]▼[/red]", "stable": "[dim]→[/dim]"}
+    icon = direction_icon.get(trend.trend_direction, "→")
+    console.print(f"\n  Latest: [{grade_colors.get(trend.latest_grade, 'white')}]{trend.latest_grade}[/{grade_colors.get(trend.latest_grade, 'white')}]  Trend: {icon} {trend.trend_direction}")
+
+
+@analytics_app.command("cost")
+def analytics_cost(
+    days: Annotated[int, typer.Option("--days", "-d", help="Lookback period in days")] = 7,
+    store_path: Annotated[str, typer.Option("--store", help="Analytics store path")] = "data/analytics.jsonl",
+):
+    """Show cost analytics summary."""
+    from md_evals.analytics import AnalyticsEngine, AnalyticsStore
+
+    engine = AnalyticsEngine(AnalyticsStore(store_path))
+    cost = engine.get_cost_summary(days=days)
+
+    console.print(f"[bold]Cost Summary ({days}d)[/bold]")
+    console.print(f"  Total cost: ${cost.total_cost_usd:.4f}")
+    console.print(f"  Total tokens: {cost.total_tokens:,}")
+    console.print(f"  Avg cost/eval: ${cost.avg_cost_per_eval:.4f}")
+
+    if cost.cost_by_model:
+        table = Table(title="Cost by Model", show_header=True, header_style="bold")
+        table.add_column("Model", style="cyan")
+        table.add_column("Cost USD", justify="right")
+
+        for model, model_cost in sorted(cost.cost_by_model.items(), key=lambda x: -x[1]):
+            table.add_row(model, f"${model_cost:.4f}")
+
+        console.print()
+        console.print(table)
+
+
+@analytics_app.command("heatmap")
+def analytics_heatmap(
+    suite: Annotated[Optional[str], typer.Option("--suite", "-s", help="Suite filter")] = None,
+    store_path: Annotated[str, typer.Option("--store", help="Analytics store path")] = "data/analytics.jsonl",
+):
+    """Show skills × dimensions heatmap."""
+    from md_evals.analytics import AnalyticsEngine, AnalyticsStore
+
+    engine = AnalyticsEngine(AnalyticsStore(store_path))
+    cells = engine.get_heatmap(suite=suite)
+
+    if not cells:
+        console.print("[yellow]No heatmap data available.[/yellow]")
+        raise typer.Exit(code=0)
+
+    # Collect unique skills and dimensions
+    skills = sorted({c.skill for c in cells})
+    dimensions = sorted({c.dimension for c in cells})
+
+    # Build lookup
+    lookup: dict[tuple[str, str], tuple[float, str]] = {}
+    for c in cells:
+        lookup[(c.skill, c.dimension)] = (c.score, c.grade)
+
+    # Build table
+    title = "Skills × Dimensions Heatmap"
+    if suite:
+        title += f" (suite: {suite})"
+    table = Table(title=title, show_header=True, header_style="bold")
+    table.add_column("Skill", style="cyan")
+    for dim in dimensions:
+        table.add_column(dim.capitalize(), justify="center")
+
+    grade_colors = {"S": "yellow", "A": "green", "B": "blue", "C": "yellow", "D": "bright_red", "F": "red"}
+
+    for skill in skills:
+        row = [skill]
+        for dim in dimensions:
+            if (skill, dim) in lookup:
+                score, grade = lookup[(skill, dim)]
+                color = grade_colors.get(grade, "white")
+                row.append(f"[{color}]{score:.2f} ({grade})[/{color}]")
+            else:
+                row.append("[dim]—[/dim]")
+        table.add_row(*row)
+
+    console.print(table)
+
+
 if __name__ == "__main__":
     app()
