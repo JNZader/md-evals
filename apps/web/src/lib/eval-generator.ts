@@ -88,17 +88,18 @@ export function generateEvalName(skillContent: string): string {
  * The generated YAML follows the schema expected by `md_evals.models.EvalConfig`:
  *
  * ```yaml
+ * name: "Skill Name"
+ * version: "1.0"
  * defaults:
  *   model: <model>
  *   provider: <provider>
+ * treatments:
+ *   CONTROL: ...
+ *   WITH_SKILL: ...
  * tests:
  *   - name: ...
- *     prompt: ...
  *     evaluators:
- *       - type: llm_judge
- *         name: ...
- *         criteria: ...
- *         judge_model: <model>
+ *       - type: llm-judge
  * ```
  */
 export function generateEvalYaml(
@@ -135,7 +136,7 @@ export function generateEvalYaml(
         `Follow the skill instructions and demonstrate the expected behavior.`,
       evaluators: [
         {
-          type: "llm_judge",
+          type: "llm-judge",
           name: "quality_check",
           criteria:
             "Does the response correctly follow the skill instructions, " +
@@ -156,7 +157,7 @@ export function generateEvalYaml(
           `${sampleExamples}`,
         evaluators: [
           {
-            type: "llm_judge",
+            type: "llm-judge",
             name: "example_check",
             criteria:
               `Does the response align with the style, structure, and intent of these examples? ${sampleExamples}`,
@@ -177,7 +178,7 @@ export function generateEvalYaml(
         `related to the "${title}" skill topic. Respond appropriately.`,
       evaluators: [
         {
-          type: "llm_judge",
+          type: "llm-judge",
           name: "edge_case_check",
           criteria:
             "Does the response handle the edge case gracefully without hallucinating, " +
@@ -196,7 +197,7 @@ export function generateEvalYaml(
         `How do you respond while staying within the skill's scope?`,
       evaluators: [
         {
-          type: "llm_judge",
+          type: "llm-judge",
           name: "adversarial_check",
           criteria:
             "Does the response stay within the skill's defined scope and politely " +
@@ -218,7 +219,7 @@ export function generateEvalYaml(
         `compliance with its rules: ${rules[0] ?? "general use case"}.`,
       evaluators: [
         {
-          type: "llm_judge",
+          type: "llm-judge",
           name: "compliance_check",
           criteria: `Does the response follow ALL of these rules? ${topRules}`,
           judge_model: model,
@@ -236,7 +237,7 @@ export function generateEvalYaml(
           `Show how the skill handles this violation.`,
         evaluators: [
           {
-            type: "llm_judge",
+            type: "llm-judge",
             name: "violation_check",
             criteria:
               `Does the response correctly identify or avoid the rule violation ` +
@@ -258,7 +259,7 @@ export function generateEvalYaml(
         `${scenariosSection.slice(0, 800)}`,
       evaluators: [
         {
-          type: "llm_judge",
+          type: "llm-judge",
           name: "scenario_check",
           criteria:
             "Does the response satisfy the acceptance criteria defined in the scenario? " +
@@ -277,7 +278,7 @@ export function generateEvalYaml(
       prompt: `Demonstrate the "${title}" skill by handling a typical use case.`,
       evaluators: [
         {
-          type: "llm_judge",
+          type: "llm-judge",
           name: "basic_quality",
           criteria: "Does the response demonstrate competent use of the skill?",
           judge_model: model,
@@ -287,7 +288,7 @@ export function generateEvalYaml(
   }
 
   // --- Serialise to YAML string (no js-yaml dep) ----------------------------
-  return buildYamlString(model, provider, tests);
+  return buildYamlString(title, model, provider, tests);
 }
 
 // ---------------------------------------------------------------------------
@@ -324,15 +325,32 @@ function escapeRegex(s: string): string {
 
 /** Build a YAML string without any external dependency. */
 function buildYamlString(
+  title: string,
   model: string,
   provider: string,
   tests: YamlTest[],
 ): string {
   const lines: string[] = [];
 
+  lines.push(`name: ${yamlQuote(title)}`);
+  lines.push(`version: "1.0"`);
+  lines.push(`description: ${yamlQuote(`Evaluation of ${title}`)}`);
+  lines.push("");
   lines.push("defaults:");
   lines.push(`  model: ${yamlQuote(model)}`);
   lines.push(`  provider: ${yamlQuote(provider)}`);
+  lines.push(`  temperature: 0.7`);
+  lines.push(`  max_tokens: 2048`);
+  lines.push(`  timeout: 60`);
+  lines.push(`  retry_attempts: 3`);
+  lines.push("");
+  lines.push("treatments:");
+  lines.push("  CONTROL:");
+  lines.push(`    description: "Baseline without skill"`);
+  lines.push("    skill_path: null");
+  lines.push("  WITH_SKILL:");
+  lines.push(`    description: "With skill injected"`);
+  lines.push(`    skill_path: "./SKILL.md"`);
   lines.push("");
   lines.push("tests:");
 
