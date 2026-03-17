@@ -14,6 +14,7 @@ import TokenUsageChart from "../components/charts/TokenUsageChart";
 import ContextGauge from "../components/charts/ContextGauge";
 import EvalResults from "../components/eval/EvalResults";
 import { cn } from "../lib/cn";
+import type { EvalResult, EvalSummary } from "../lib/types";
 
 export default function Dashboard() {
   const { id } = useParams<{ id: string }>();
@@ -44,9 +45,18 @@ function DashboardHome() {
   const items = evalsResponse?.items ?? [];
   const hasEvals = items.length > 0;
 
+  // The backend stores results as { summary: {...}, results: [...] }
+  // We need to extract the nested array
+  const rawLatest = latestEval?.results as unknown as Record<string, unknown> | null;
+  const latestEvalResults: EvalResult[] = Array.isArray(rawLatest?.results)
+    ? (rawLatest.results as EvalResult[])
+    : Array.isArray(latestEval?.results)
+      ? (latestEval.results as unknown as EvalResult[])
+      : [];
+
   // Build token data for chart from latest eval
   const tokenData =
-    latestEval?.results.map((r) => ({
+    latestEvalResults.map((r) => ({
       label: `${r.treatment}/${r.test}`,
       prompt_tokens: (r.cost_metrics as { prompt_tokens?: number } | null)
         ?.prompt_tokens ?? 0,
@@ -58,7 +68,7 @@ function DashboardHome() {
     })) ?? [];
 
   // Average context utilization
-  const contextUtils = (latestEval?.results ?? [])
+  const contextUtils = latestEvalResults
     .map(
       (r) =>
         (r.context_metrics as { context_utilization_pct?: number } | null)
@@ -228,8 +238,17 @@ function EvalDetail({ evalId }: { evalId: string }) {
     );
   }
 
+  // Backend stores results as { summary: {...}, results: [...] }
+  const rawResults = evaluation.results as unknown as Record<string, unknown> | null;
+  const evalResultsArray: EvalResult[] = Array.isArray(rawResults?.results)
+    ? (rawResults?.results as EvalResult[])
+    : Array.isArray(evaluation.results)
+      ? (evaluation.results as unknown as EvalResult[])
+      : [];
+  const evalSummary = (rawResults?.summary as EvalSummary | null) ?? evaluation.summary;
+
   // Build token data
-  const tokenData = evaluation.results.map((r) => ({
+  const tokenData = evalResultsArray.map((r) => ({
     label: `${r.treatment}/${r.test}`,
     prompt_tokens: (r.cost_metrics as { prompt_tokens?: number } | null)
       ?.prompt_tokens ?? 0,
@@ -240,7 +259,7 @@ function EvalDetail({ evalId }: { evalId: string }) {
       ?.total_tokens ?? 0,
   }));
 
-  const contextUtils = evaluation.results
+  const contextUtils = evalResultsArray
     .map(
       (r) =>
         (r.context_metrics as { context_utilization_pct?: number } | null)
@@ -262,7 +281,7 @@ function EvalDetail({ evalId }: { evalId: string }) {
           &larr; Back to Dashboard
         </Link>
         <h1 className="mt-2 text-2xl font-bold text-gray-900 dark:text-gray-100">
-          {evaluation.name}
+          {(evaluation as unknown as Record<string, unknown>).title as string ?? evaluation.name}
         </h1>
         <p className="text-sm text-gray-500">
           {new Date(evaluation.created_at).toLocaleString()} &middot;{" "}
@@ -270,7 +289,7 @@ function EvalDetail({ evalId }: { evalId: string }) {
         </p>
       </div>
 
-      {evaluation.summary && (
+      {evalSummary && (
         <>
           {/* Charts */}
           <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
@@ -278,7 +297,7 @@ function EvalDetail({ evalId }: { evalId: string }) {
               <h3 className="mb-3 text-sm font-medium text-gray-700 dark:text-gray-300">
                 Pass Rate by Treatment
               </h3>
-              <PassRateChart treatments={evaluation.summary.treatments} />
+              <PassRateChart treatments={evalSummary.treatments} />
             </div>
             <div className="rounded-xl border border-gray-200 bg-white p-4 dark:border-gray-700 dark:bg-gray-900">
               <h3 className="mb-3 text-sm font-medium text-gray-700 dark:text-gray-300">
@@ -296,8 +315,8 @@ function EvalDetail({ evalId }: { evalId: string }) {
 
           {/* Results table */}
           <EvalResults
-            summary={evaluation.summary}
-            results={evaluation.results}
+            summary={evalSummary}
+            results={evalResultsArray}
           />
         </>
       )}
