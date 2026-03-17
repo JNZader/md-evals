@@ -136,12 +136,23 @@ class EvalService:
             # Set API key for litellm (provider-agnostic env approach)
             self._set_provider_env(config.defaults.provider, api_key)
 
-            # Build adapters
-            adapter = LLMAdapter(
-                model=config.defaults.model,
-                provider=config.defaults.provider,
-                defaults=config.defaults,
-            )
+            # Build adapters — GitHub Models needs special handling
+            if config.defaults.provider == "github-models":
+                # GitHub Models uses Azure OpenAI-compatible endpoint via litellm
+                adapter = LLMAdapter(
+                    model=f"azure/{config.defaults.model}",
+                    provider="openai",  # litellm uses openai-compat
+                    api_base="https://models.inference.ai.azure.com",
+                    defaults=config.defaults,
+                )
+                # litellm needs OPENAI_API_KEY for azure-compat calls
+                os.environ["OPENAI_API_KEY"] = api_key
+            else:
+                adapter = LLMAdapter(
+                    model=config.defaults.model,
+                    provider=config.defaults.provider,
+                    defaults=config.defaults,
+                )
             evaluator = EvaluatorEngine(llm_adapter=adapter)
             engine = ExecutionEngine(config, adapter, evaluator)
 
