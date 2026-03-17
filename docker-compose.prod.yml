@@ -1,0 +1,73 @@
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: md_evals
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: md_evals
+    volumes:
+      - md-evals-pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U md_evals"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - md-evals-net
+    restart: unless-stopped
+
+  server:
+    build:
+      context: .
+      dockerfile: apps/server/Dockerfile
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgresql+asyncpg://md_evals:${POSTGRES_PASSWORD}@db:5432/md_evals
+      JWT_SECRET: ${JWT_SECRET}
+      STATE_SECRET: ${STATE_SECRET}
+      GITHUB_CLIENT_ID: ${GITHUB_CLIENT_ID}
+      GITHUB_CLIENT_SECRET: ${GITHUB_CLIENT_SECRET}
+      ENCRYPTION_KEY: ${ENCRYPTION_KEY}
+      FRONTEND_URL: https://jnzader.github.io/md-evals/app
+      BACKEND_URL: https://md-evals-api.javierzader.com
+      ALLOWED_ORIGINS: '["https://jnzader.github.io","https://md-evals-api.javierzader.com"]'
+      DEBUG: "false"
+    labels:
+      - "traefik.enable=true"
+      # HTTP → HTTPS redirect
+      - "traefik.http.routers.md-evals-http.entryPoints=http"
+      - "traefik.http.routers.md-evals-http.rule=Host(`md-evals-api.javierzader.com`)"
+      - "traefik.http.routers.md-evals-http.middlewares=redirect-to-https"
+      # HTTPS with Let's Encrypt
+      - "traefik.http.routers.md-evals-https.entryPoints=https"
+      - "traefik.http.routers.md-evals-https.rule=Host(`md-evals-api.javierzader.com`)"
+      - "traefik.http.routers.md-evals-https.tls=true"
+      - "traefik.http.routers.md-evals-https.tls.certresolver=letsencrypt"
+      - "traefik.http.routers.md-evals-https.middlewares=gzip"
+      # Service port
+      - "traefik.http.services.md-evals.loadbalancer.server.port=8000"
+      # Middlewares
+      - "traefik.http.middlewares.redirect-to-https.redirectscheme.scheme=https"
+      - "traefik.http.middlewares.gzip.compress=true"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      start_period: 15s
+      retries: 3
+    networks:
+      - md-evals-net
+      - coolify
+    restart: unless-stopped
+
+volumes:
+  md-evals-pgdata:
+
+networks:
+  md-evals-net:
+    driver: bridge
+  coolify:
+    external: true
+    name: coolify

@@ -47,7 +47,11 @@ async def login() -> RedirectResponse:
     state = generate_state()
     params = urlencode({
         "client_id": settings.GITHUB_CLIENT_ID,
-        "redirect_uri": f"{settings.FRONTEND_URL.rstrip('/')}/api/auth/callback",
+        "redirect_uri": (
+            f"{settings.BACKEND_URL.rstrip('/')}/auth/callback"
+            if settings.BACKEND_URL
+            else f"{settings.FRONTEND_URL.rstrip('/')}/api/auth/callback"
+        ),
         "scope": "read:user",
         "state": state,
     })

@@ -25,6 +25,9 @@ class Settings(BaseSettings):
     # --- Frontend ---
     FRONTEND_URL: str = "http://localhost:5173"
 
+    # --- Backend (public URL for OAuth redirect) ---
+    BACKEND_URL: str = ""  # If empty, derived from FRONTEND_URL for dev
+
     # --- Encryption ---
     ENCRYPTION_KEY: str = ""  # 32-byte hex master key for AES-256-GCM
 
