@@ -38,9 +38,6 @@ import {
 import { cn } from "../lib/cn";
 import type {
   HeatmapCell,
-  SkillTrend,
-  CostSummary,
-  ModelComparison,
   SummaryStats,
 } from "../lib/types";
 
