@@ -31,7 +31,7 @@ def _build_jwt(user: User) -> str:
     """Build a signed JWT for the given user."""
     now = int(time.time())
     payload = {
-        "sub": str(user.github_id),
+        "sub": str(user.id),           # UUID — used as user_id in DB queries
         "github_user_id": user.github_id,
         "login": user.github_login,
         "avatar_url": user.avatar_url or "",
