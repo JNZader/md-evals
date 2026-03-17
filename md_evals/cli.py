@@ -725,5 +725,236 @@ def plugins_list():
     console.print(table2)
 
 
+# ── Suite subcommand ──
+
+suite_app = typer.Typer(name="suite", help="Run eval suites with grade thresholds")
+app.add_typer(suite_app)
+
+
+@suite_app.command("run")
+def suite_run(
+    config: Annotated[Optional[str], typer.Option("--config", "-c", help="Suite YAML config file")] = None,
+    suite_name: Annotated[Optional[str], typer.Option("--suite", "-s", help="Named suite to run")] = None,
+    rubric: Annotated[Optional[str], typer.Option("--rubric", "-r", help="Rubric override path")] = None,
+    eval_config: Annotated[str, typer.Option("--eval-config", help="Eval config for model defaults")] = "eval.yaml",
+    verbose: Annotated[bool, typer.Option("--verbose", "-v", help="Verbose output")] = False,
+):
+    """Run an eval suite and check grade thresholds.
+
+    Exit codes: 0=all pass, 1=config error, 2=threshold failures.
+    """
+    from md_evals.suites import SuiteLoader, SuiteLoadError, SuiteRunner, grade_meets_threshold
+
+    # Load suite config
+    if config:
+        try:
+            suite_config = SuiteLoader.load(config)
+        except SuiteLoadError as e:
+            console.print(f"[red]Suite error: {e}[/red]")
+            raise typer.Exit(code=1)
+    elif suite_name:
+        # Look for suite.yaml or {suite_name}.suite.yaml in CWD
+        for candidate in [f"{suite_name}.suite.yaml", f"{suite_name}.yaml", "suite.yaml"]:
+            if Path(candidate).exists():
+                try:
+                    suite_config = SuiteLoader.load(candidate)
+                    break
+                except SuiteLoadError as e:
+                    console.print(f"[red]Suite error: {e}[/red]")
+                    raise typer.Exit(code=1)
+        else:
+            console.print(f"[red]Suite '{suite_name}' not found. Provide --config path.[/red]")
+            raise typer.Exit(code=1)
+    else:
+        console.print("[red]Provide --config or --suite.[/red]")
+        raise typer.Exit(code=1)
+
+    # Resolve rubric (suite can override)
+    rubric_path = rubric or suite_config.rubric
+    try:
+        rubric_config = RubricLoader.resolve(rubric_path)
+    except (RubricNotFoundError, RubricValidationError) as e:
+        console.print(f"[red]Rubric error: {e}[/red]")
+        raise typer.Exit(code=1)
+
+    # Load eval config for model defaults
+    try:
+        eval_cfg = ConfigLoader.load(eval_config)
+    except ConfigLoaderError as e:
+        console.print(f"[red]Eval config error: {e}[/red]")
+        raise typer.Exit(code=1)
+
+    # Run suite
+    console.print(f"[cyan]Running suite: {suite_config.name or 'unnamed'} ({len(suite_config.skills)} skills)[/cyan]")
+
+    runner = SuiteRunner(config=eval_cfg, rubric=rubric_config)
+    try:
+        result = runner.run_sync(suite_config)
+    except Exception as e:
+        console.print(f"[red]Suite execution error: {e}[/red]")
+        raise typer.Exit(code=1)
+
+    # Report results
+    for skill_path, eval_result, meets in result.results:
+        status = "[green]PASS[/green]" if meets else "[red]FAIL[/red]"
+        console.print(
+            f"  {status} {skill_path}: "
+            f"grade={eval_result.overall_grade} score={eval_result.overall_score:.2f}"
+        )
+
+    console.print()
+    if result.passed:
+        console.print(
+            f"[bold green]Suite PASSED[/bold green] "
+            f"({result.passed_skills}/{result.total_skills} skills meet thresholds)"
+        )
+        raise typer.Exit(code=0)
+    else:
+        console.print(
+            f"[bold red]Suite FAILED[/bold red] "
+            f"({result.failed_skills}/{result.total_skills} skills below threshold)"
+        )
+        raise typer.Exit(code=2)
+
+
+# ── Export command ──
+
+
+@app.command("export")
+def export_cmd(
+    input_file: Annotated[str, typer.Argument(help="JSON result file to export")],
+    format: Annotated[str, typer.Option("--format", "-f", help="Output format (html)")] = "html",
+    output: Annotated[Optional[str], typer.Option("--output", "-o", help="Output file path")] = None,
+):
+    """Export evaluation results to static HTML.
+
+    Takes a JSON result file and generates a self-contained HTML report.
+    """
+    from md_evals.export import HTMLExporter
+
+    if format != "html":
+        console.print(f"[red]Unsupported export format: {format}. Only 'html' is supported.[/red]")
+        raise typer.Exit(code=1)
+
+    input_path = Path(input_file)
+    if not input_path.exists():
+        console.print(f"[red]Input file not found: {input_file}[/red]")
+        raise typer.Exit(code=1)
+
+    # Default output path
+    if output is None:
+        output = str(input_path.with_suffix(".html"))
+
+    exporter = HTMLExporter()
+    try:
+        result_path = exporter.export_from_json(input_file, output)
+        console.print(f"[green]Exported HTML report to {result_path}[/green]")
+        raise typer.Exit(code=0)
+    except Exception as e:
+        console.print(f"[red]Export error: {e}[/red]")
+        raise typer.Exit(code=1)
+
+
+# ── Eval-plugin command ──
+
+
+@app.command("eval-plugin")
+def eval_plugin_cmd(
+    plugin_path: Annotated[str, typer.Argument(help="Path to plugin directory")],
+    min_grade: Annotated[str, typer.Option("--min-grade", "-g", help="Minimum acceptable grade")] = "C",
+    rubric: Annotated[Optional[str], typer.Option("--rubric", "-r", help="Rubric override")] = None,
+    eval_config: Annotated[str, typer.Option("--eval-config", help="Eval config for model defaults")] = "eval.yaml",
+    export_html: Annotated[Optional[str], typer.Option("--export", help="Export HTML report to path")] = None,
+    verbose: Annotated[bool, typer.Option("--verbose", "-v", help="Verbose output")] = False,
+):
+    """Evaluate all skills in a plugin directory.
+
+    Discovers SKILL.md files in the plugin structure and evaluates each.
+    Exit code 0 if aggregate grade meets --min-grade, 2 otherwise.
+    """
+    from md_evals.plugin_eval import PluginEvaluator, PluginError
+    from md_evals.scoring import GRADE_ORDER
+
+    if min_grade not in GRADE_ORDER:
+        console.print(f"[red]Invalid grade: {min_grade}. Must be one of {', '.join(GRADE_ORDER)}[/red]")
+        raise typer.Exit(code=1)
+
+    plugin_dir = Path(plugin_path)
+    if not plugin_dir.is_dir():
+        console.print(f"[red]Plugin directory not found: {plugin_path}[/red]")
+        raise typer.Exit(code=1)
+
+    # Resolve rubric
+    try:
+        rubric_config = RubricLoader.resolve(rubric)
+    except (RubricNotFoundError, RubricValidationError) as e:
+        console.print(f"[red]Rubric error: {e}[/red]")
+        raise typer.Exit(code=1)
+
+    # Load eval config
+    try:
+        eval_cfg = ConfigLoader.load(eval_config)
+    except ConfigLoaderError as e:
+        console.print(f"[red]Eval config error: {e}[/red]")
+        raise typer.Exit(code=1)
+
+    # Discover skills first
+    skills = PluginEvaluator.discover_skills(plugin_path)
+    console.print(f"[cyan]Found {len(skills)} skill(s) in {plugin_path}[/cyan]")
+
+    if not skills:
+        console.print("[yellow]No skills found in plugin directory.[/yellow]")
+        raise typer.Exit(code=1)
+
+    for s in skills:
+        console.print(f"  - {s}")
+
+    # Evaluate
+    evaluator = PluginEvaluator(config=eval_cfg, rubric=rubric_config)
+    try:
+        result = evaluator.evaluate_sync(plugin_path)
+    except Exception as e:
+        console.print(f"[red]Evaluation error: {e}[/red]")
+        raise typer.Exit(code=1)
+
+    # Show results
+    console.print(f"\n[bold]Plugin: {result.plugin_name}[/bold]")
+    console.print(f"  Manifest valid: {result.manifest_valid}")
+    console.print(f"  Skills evaluated: {len(result.skill_results)}")
+    console.print(
+        f"  Aggregate: grade={result.aggregate_grade} score={result.aggregate_score:.2f}"
+    )
+
+    for sr in result.skill_results:
+        console.print(f"    {sr.skill_path}: {sr.overall_grade} ({sr.overall_score:.2f})")
+
+    # Export HTML if requested
+    if export_html:
+        from md_evals.export import HTMLExporter
+
+        exporter = HTMLExporter()
+        # Create a combined report — use the first skill result or build a summary
+        console.print(f"\n[cyan]Exporting HTML report to {export_html}[/cyan]")
+        if result.skill_results:
+            exporter.export(result.skill_results[0], export_html)
+        console.print(f"[green]HTML report exported to {export_html}[/green]")
+
+    # Check aggregate grade
+    from md_evals.suites import grade_meets_threshold
+
+    if grade_meets_threshold(result.aggregate_grade, min_grade):
+        console.print(
+            f"\n[bold green]Plugin PASSED[/bold green] "
+            f"(aggregate {result.aggregate_grade} >= {min_grade})"
+        )
+        raise typer.Exit(code=0)
+    else:
+        console.print(
+            f"\n[bold red]Plugin FAILED[/bold red] "
+            f"(aggregate {result.aggregate_grade} < {min_grade})"
+        )
+        raise typer.Exit(code=2)
+
+
 if __name__ == "__main__":
     app()
