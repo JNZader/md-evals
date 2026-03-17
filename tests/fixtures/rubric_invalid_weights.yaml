@@ -1,0 +1,11 @@
+version: "1.0"
+dimensions:
+  correctness:
+    weight: 0.40
+  completeness:
+    weight: 0.40
+grade_thresholds:
+  A: 0.85
+  B: 0.70
+  C: 0.50
+  D: 0.30

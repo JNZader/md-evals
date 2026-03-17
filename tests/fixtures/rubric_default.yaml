@@ -1,0 +1,39 @@
+version: "1.0"
+dimensions:
+  correctness:
+    weight: 0.25
+    description: "Technical accuracy"
+  completeness:
+    weight: 0.20
+    description: "Coverage"
+  format:
+    weight: 0.15
+    description: "Structure"
+  adherence:
+    weight: 0.15
+    description: "Spec compliance"
+  safety:
+    weight: 0.10
+    description: "Security"
+  efficiency:
+    weight: 0.10
+    description: "Conciseness"
+  robustness:
+    weight: 0.05
+    description: "Edge cases"
+grade_thresholds:
+  S: 0.95
+  A: 0.85
+  B: 0.70
+  C: 0.50
+  D: 0.30
+pre_check:
+  required_sections:
+    - "Description"
+    - "Rules"
+    - "Examples"
+  max_lines: 400
+  security_patterns:
+    - pattern: "\\b(api[_-]?key|secret|password)\\s*[:=]\\s*['\"][^'\"]+['\"]"
+      message: "Hardcoded secret detected"
+      severity: "error"

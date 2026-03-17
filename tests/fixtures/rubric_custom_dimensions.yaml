@@ -1,0 +1,29 @@
+version: "1.0"
+dimensions:
+  correctness:
+    weight: 0.20
+    description: "Technical accuracy"
+  completeness:
+    weight: 0.15
+    description: "Coverage"
+  format:
+    weight: 0.15
+    description: "Structure"
+  adherence:
+    weight: 0.10
+    description: "Compliance"
+  safety:
+    weight: 0.10
+    description: "Security"
+  creativity:
+    weight: 0.15
+    description: "Novel approaches and creative solutions"
+  tone:
+    weight: 0.15
+    description: "Voice consistency and appropriate tone"
+grade_thresholds:
+  S: 0.95
+  A: 0.85
+  B: 0.70
+  C: 0.50
+  D: 0.30

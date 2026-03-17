@@ -1,0 +1,9 @@
+version: "1.0"
+dimensions:
+  correctness:
+    weight: 1.0
+grade_thresholds:
+  A: 0.85
+  B: 0.90
+  C: 0.50
+  D: 0.30
