@@ -1,11 +1,79 @@
 """Tests for AES-256-GCM encryption/decryption and key masking."""
 
+import base64
 import os
 
 import pytest
 from cryptography.exceptions import InvalidTag
 
-from app.services.crypto import decrypt_key, derive_user_key, encrypt_key, mask_key
+from app.services.crypto import (
+    decrypt_key,
+    derive_user_key,
+    encrypt_key,
+    mask_key,
+    normalize_master_key,
+)
+
+
+class TestNormalizeMasterKey:
+    """Tests for flexible master key parsing."""
+
+    def test_hex_64_chars(self) -> None:
+        """64-char hex string produces 32 bytes directly."""
+        hex_key = "aa" * 32  # 64 hex chars = 32 bytes
+        result = normalize_master_key(hex_key)
+        assert len(result) == 32
+        assert result == bytes.fromhex(hex_key)
+
+    def test_base64_32_bytes(self) -> None:
+        """Base64-encoded 32 bytes is decoded correctly."""
+        raw_bytes = os.urandom(32)
+        b64 = base64.b64encode(raw_bytes).decode()
+        result = normalize_master_key(b64)
+        assert result == raw_bytes
+        assert len(result) == 32
+
+    def test_passphrase_produces_32_bytes(self) -> None:
+        """An arbitrary passphrase is SHA-256 hashed to 32 bytes."""
+        result = normalize_master_key("my-super-secret-password!")
+        assert len(result) == 32
+
+    def test_passphrase_is_deterministic(self) -> None:
+        """Same passphrase always produces the same key."""
+        a = normalize_master_key("same-passphrase")
+        b = normalize_master_key("same-passphrase")
+        assert a == b
+
+    def test_different_passphrases_differ(self) -> None:
+        """Different passphrases produce different keys."""
+        a = normalize_master_key("password-one")
+        b = normalize_master_key("password-two")
+        assert a != b
+
+    def test_empty_string_raises(self) -> None:
+        """Empty string raises ValueError."""
+        with pytest.raises(ValueError, match="empty"):
+            normalize_master_key("")
+
+    def test_hex_wrong_length_falls_through(self) -> None:
+        """A valid hex string that is NOT 32 bytes falls to passphrase."""
+        # 10 hex chars = 5 bytes, not 32 → should fall through to SHA-256
+        result = normalize_master_key("aabbccddee")
+        assert len(result) == 32
+
+    def test_realistic_coolify_password(self) -> None:
+        """A realistic password set in Coolify works as passphrase."""
+        # This is the exact scenario from the bug report
+        result = normalize_master_key("K8$mP2!xQ9@nL5vR")
+        assert len(result) == 32
+
+    def test_roundtrip_with_passphrase_key(self) -> None:
+        """Encrypt/decrypt roundtrip works with a passphrase-derived master key."""
+        master = normalize_master_key("any-random-coolify-password-123!")
+        user_key = derive_user_key(master, "test-user")
+        plaintext = "sk-proj-abc123"
+        blob = encrypt_key(plaintext, user_key)
+        assert decrypt_key(blob, user_key) == plaintext
 
 
 class TestDeriveUserKey:

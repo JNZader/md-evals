@@ -29,7 +29,7 @@ class Settings(BaseSettings):
     BACKEND_URL: str = ""  # If empty, derived from FRONTEND_URL for dev
 
     # --- Encryption ---
-    ENCRYPTION_KEY: str = ""  # 32-byte hex master key for AES-256-GCM
+    ENCRYPTION_KEY: str = ""  # Master key: hex, base64, or any passphrase
 
     # --- CORS ---
     ALLOWED_ORIGINS: list[str] = [

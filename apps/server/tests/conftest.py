@@ -31,14 +31,16 @@ def state_secret() -> str:
 
 @pytest.fixture()
 def master_key_hex() -> str:
-    """Return the hex-encoded master encryption key."""
+    """Return the raw master encryption key string."""
     return os.environ["ENCRYPTION_KEY"]
 
 
 @pytest.fixture()
 def master_key_bytes(master_key_hex: str) -> bytes:
-    """Return the master encryption key as raw bytes."""
-    return bytes.fromhex(master_key_hex)
+    """Return the master encryption key as raw bytes (via normalize_master_key)."""
+    from app.services.crypto import normalize_master_key
+
+    return normalize_master_key(master_key_hex)
 
 
 @pytest.fixture()

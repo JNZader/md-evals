@@ -19,7 +19,7 @@ from sqlalchemy import select, update
 
 from app.config import settings
 from app.models import Evaluation, ProviderKey, async_session_factory
-from app.services.crypto import decrypt_key, derive_user_key
+from app.services.crypto import decrypt_key, derive_user_key, normalize_master_key
 from app.services.session_keys import session_key_store
 
 # md_evals imports (core library — never modified)
@@ -300,7 +300,7 @@ class EvalService:
                 f"Agregala en Settings > Provider Keys."
             )
 
-        master_key = bytes.fromhex(settings.ENCRYPTION_KEY)
+        master_key = normalize_master_key(settings.ENCRYPTION_KEY)
         user_key = derive_user_key(master_key, user_id)
         return decrypt_key(row.encrypted_api_key, user_key)
 

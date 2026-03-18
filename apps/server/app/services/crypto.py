@@ -4,14 +4,56 @@ Uses HKDF to derive per-user keys from a master key, then encrypts/decrypts
 with AESGCM. Storage format: nonce(12B) || ciphertext || tag(16B).
 """
 
+import base64
+import hashlib
+import logging
 import os
 
 from cryptography.hazmat.primitives.ciphers.aead import AESGCM
 from cryptography.hazmat.primitives.hashes import SHA256
 from cryptography.hazmat.primitives.kdf.hkdf import HKDF
 
+logger = logging.getLogger(__name__)
+
 _NONCE_SIZE = 12  # bytes
 _KEY_INFO = b"md-evals-key-encryption"
+
+
+def normalize_master_key(raw: str) -> bytes:
+    """Convert a master-key string (any format) into exactly 32 bytes.
+
+    Accepts:
+    1. **Hex string** — 64 hex chars representing 32 bytes (legacy format).
+    2. **Base64 string** — base64-encoded blob that decodes to 32 bytes.
+    3. **Arbitrary passphrase** — any UTF-8 string; derived into 32 bytes
+       via SHA-256 (single-pass, deterministic).
+
+    This makes the ``ENCRYPTION_KEY`` env var forgiving: a randomly generated
+    password, a hex string, or a base64 token all work.
+    """
+    if not raw:
+        raise ValueError("ENCRYPTION_KEY is empty")
+
+    # 1. Try hex (must be exactly 64 hex chars → 32 bytes)
+    try:
+        key = bytes.fromhex(raw)
+        if len(key) == 32:
+            return key
+    except ValueError:
+        pass
+
+    # 2. Try base64 (must decode to exactly 32 bytes)
+    try:
+        key = base64.b64decode(raw, validate=True)
+        if len(key) == 32:
+            logger.debug("Master key interpreted as base64")
+            return key
+    except Exception:
+        pass
+
+    # 3. Fallback: derive 32 bytes from arbitrary passphrase via SHA-256
+    logger.debug("Master key interpreted as passphrase (SHA-256 derivation)")
+    return hashlib.sha256(raw.encode("utf-8")).digest()
 
 
 def derive_user_key(master_key: bytes, user_id: str) -> bytes:

@@ -17,7 +17,7 @@ from app.models.schemas import (
     ProviderKeyValidateRequest,
     ProviderKeyValidateResponse,
 )
-from app.services.crypto import derive_user_key, encrypt_key, mask_key
+from app.services.crypto import derive_user_key, encrypt_key, mask_key, normalize_master_key
 from app.services.provider_validator import validate_provider_key
 from app.services.session_keys import session_key_store
 
@@ -27,14 +27,14 @@ router = APIRouter(prefix="/api/providers", tags=["providers"])
 
 
 def _get_master_key() -> bytes:
-    """Parse the hex-encoded master key from settings."""
+    """Parse the master key from settings (hex, base64, or passphrase)."""
     raw = settings.ENCRYPTION_KEY
     if not raw:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail={"error": "config_error", "message": "Encryption key is not configured."},
         )
-    return bytes.fromhex(raw)
+    return normalize_master_key(raw)
 
 
 # ---------- Validate (dry-run) ----------
