@@ -279,12 +279,6 @@ class EvalService:
         Session keys take precedence because the user explicitly chose
         to use a temporary key for this session.
         """
-        if provider == "github-models":
-            # For github-models, the user's OAuth token is used.
-            # In practice, this would come from the user's stored token.
-            # For now, we check env or provider_keys table.
-            pass
-
         # 1. Check session keys first (in-memory, higher priority)
         session_entry = await session_key_store.get_key(user_id, provider)
         if session_entry is not None:
