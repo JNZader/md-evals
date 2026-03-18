@@ -339,9 +339,10 @@ class TestEvalConfigDefaults:
             "CONTROL"
         )
         
-        # Should return error result with passed=False
+        # Should return error result with passed=False and error message
         assert result.passed is False
-        assert result.response.content == ""  # Empty content on error
+        assert "[LLM ERROR]" in result.response.content
+        assert "API Error" in result.response.content
     
     @pytest.mark.asyncio
     async def test_run_single_empty_variables(self):

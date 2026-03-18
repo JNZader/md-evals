@@ -133,25 +133,22 @@ class EvalService:
         total_tests = 0
 
         try:
-            # Set API key for litellm (provider-agnostic env approach)
-            self._set_provider_env(config.defaults.provider, api_key)
-
-            # Build adapters — GitHub Models needs special handling
+            # Build adapters — pass api_key directly (no env vars).
+            # GitHub Models exposes an OpenAI-compatible endpoint so we
+            # remap provider to "openai" with a custom api_base.
             if config.defaults.provider == "github-models":
-                # GitHub Models exposes an OpenAI-compatible endpoint.
-                # litellm requires: model="openai/<name>", api_base=<url>,
-                # and OPENAI_API_KEY set to the GitHub token.
-                os.environ["OPENAI_API_KEY"] = api_key
                 adapter = LLMAdapter(
-                    model=f"openai/{config.defaults.model}",
+                    model=config.defaults.model,
                     provider="openai",
                     api_base="https://models.inference.ai.azure.com",
+                    api_key=api_key,
                     defaults=config.defaults,
                 )
             else:
                 adapter = LLMAdapter(
                     model=config.defaults.model,
                     provider=config.defaults.provider,
+                    api_key=api_key,
                     defaults=config.defaults,
                 )
             evaluator = EvaluatorEngine(llm_adapter=adapter)
@@ -197,7 +194,7 @@ class EvalService:
                         (r.score for r in result.evaluator_results),
                         default=0.0,
                     )
-                    await queue.put({
+                    event: dict[str, Any] = {
                         "type": "test_completed",
                         "test_index": idx,
                         "test_name": task.name,
@@ -205,7 +202,11 @@ class EvalService:
                         "passed": result.passed,
                         "score": score,
                         "duration_ms": result.response.duration_ms,
-                    })
+                    }
+                    # Surface LLM errors so the frontend can show them
+                    if result.response.content.startswith("[LLM ERROR]"):
+                        event["error"] = result.response.content
+                    await queue.put(event)
 
                     idx += 1
 
@@ -267,7 +268,8 @@ class EvalService:
                 except OSError:
                     pass
 
-            # Clean up env vars (don't leak keys)
+            # Clean up env vars (safety net — keys are passed directly
+            # via api_key param now, but clear just in case)
             self._clear_provider_env()
 
     # ---------- Helpers ----------

@@ -68,21 +68,24 @@ class ExecutionEngine:
                     system_prompt=system_prompt,
                 )
             except LLMError as e:
-                # Return error result with empty response
+                error_payload = e.to_error_payload()
+                error_msg = str(e)
+                _model = getattr(self.llm_adapter, "model", None)
+                _provider = getattr(self.llm_adapter, "provider", None)
                 return ExecutionResult(
                     treatment=treatment_name,
                     test=task.name,
                     prompt=final_prompt,
                     response=LLMResponse(
-                        content="",
-                        model="error",
-                        provider="error",
+                        content=f"[LLM ERROR] {error_msg}",
+                        model=_model if isinstance(_model, str) else "error",
+                        provider=_provider if isinstance(_provider, str) else "error",
                         duration_ms=0,
-                        raw_response=e.to_error_payload()
+                        raw_response=error_payload,
                     ),
                     passed=False,
                     evaluator_results=[],
-                timestamp=datetime.now(timezone.utc).isoformat()
+                    timestamp=datetime.now(timezone.utc).isoformat(),
                 )
             
             # Evaluate if evaluator engine is available
@@ -159,22 +162,25 @@ class ExecutionEngine:
             # Handle exceptions
             for i, result in enumerate(results):
                 if isinstance(result, Exception):
-                    # Create error result with minimal response
+                    # Create error result — surface the actual error message
                     treatment, task, treatment_name = tasks_to_run[i]
+                    error_msg = str(result)
+                    _model = getattr(self.llm_adapter, "model", None)
+                    _provider = getattr(self.llm_adapter, "provider", None)
                     error_result = ExecutionResult(
                         treatment=treatment_name,
                         test=task.name,
                         prompt=task.prompt,
                         response=LLMResponse(
-                            content="",
-                            model="error",
-                            provider="error",
+                            content=f"[LLM ERROR] {error_msg}",
+                            model=_model if isinstance(_model, str) else "error",
+                            provider=_provider if isinstance(_provider, str) else "error",
                             duration_ms=0,
-                            raw_response={"error": str(result)}
+                            raw_response={"error": error_msg},
                         ),
                         passed=False,
                         evaluator_results=[],
-                    timestamp=datetime.now(timezone.utc).isoformat()
+                        timestamp=datetime.now(timezone.utc).isoformat(),
                     )
                     all_results.append(error_result)
                 else:

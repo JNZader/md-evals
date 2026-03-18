@@ -196,11 +196,13 @@ class LLMAdapter:
         model: str,
         provider: str = "openai",
         api_base: str | None = None,
+        api_key: str | None = None,
         defaults: Defaults | None = None
     ):
         self.model = model
         self.provider = provider
         self.api_base = api_base
+        self.api_key = api_key
         self.defaults = defaults or Defaults()
         
         # Configure litellm
@@ -214,15 +216,24 @@ class LLMAdapter:
         timeout: int | None = None,
         **extra_kwargs
     ) -> dict[str, Any]:
-        """Build kwargs for litellm completion."""
-        return {
-            "model": f"{self.provider}/{self.model}" if "/" not in self.model else self.model,
+        """Build kwargs for litellm completion.
+
+        Model string is ALWAYS ``provider/model`` so litellm can route
+        correctly — even when the model id itself contains slashes
+        (e.g. ``openrouter/google/gemma-3-27b-it:free``).
+        """
+        kwargs: dict[str, Any] = {
+            "model": f"{self.provider}/{self.model}",
             "temperature": temperature or self.defaults.temperature,
             "max_tokens": max_tokens or self.defaults.max_tokens,
             "timeout": timeout or self.defaults.timeout,
-            "api_base": self.api_base,
-            **extra_kwargs
         }
+        if self.api_base:
+            kwargs["api_base"] = self.api_base
+        if self.api_key:
+            kwargs["api_key"] = self.api_key
+        kwargs.update(extra_kwargs)
+        return kwargs
     
     async def complete(
         self,

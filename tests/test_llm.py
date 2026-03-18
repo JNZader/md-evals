@@ -428,21 +428,23 @@ class TestLLMAdapterValidationMutations:
     
     def test_model_name_with_provider_prefix(self):
         """
-        Mutation Target: Model name building logic (line 44)
-        
-        Tests: "model": f"{self.provider}/{self.model}" if "/" not in self.model else self.model
-        
-        Model with "/" already present should NOT duplicate provider prefix.
-        Mutation: Remove "/" check (would create invalid model string)
+        Mutation Target: Model name building logic
+
+        litellm ALWAYS needs ``provider/model`` to route correctly.
+        Even when the model id contains slashes (e.g. OpenRouter's
+        ``google/gemma-3-27b-it:free``), the provider prefix must be
+        present so litellm knows which backend to call.
         """
-        # Model with provider prefix should not be modified
-        adapter = LLMAdapter(model="github-models/gpt-4o", provider="custom")
+        # OpenRouter model with slashes → provider MUST be prepended
+        adapter = LLMAdapter(model="google/gemma-3-27b-it:free", provider="openrouter")
         kwargs = adapter._build_kwargs()
-        
-        # Should use model as-is since it contains "/"
-        assert kwargs["model"] == "github-models/gpt-4o"
-        # Should NOT create "custom/github-models/gpt-4o"
-        assert kwargs["model"].count("/") == 1
+        assert kwargs["model"] == "openrouter/google/gemma-3-27b-it:free"
+
+        # Even a model that looks like it has a provider prefix gets
+        # the actual provider prepended (litellm needs it).
+        adapter2 = LLMAdapter(model="github-models/gpt-4o", provider="custom")
+        kwargs2 = adapter2._build_kwargs()
+        assert kwargs2["model"] == "custom/github-models/gpt-4o"
     
     def test_model_name_without_provider_prefix(self):
         """
