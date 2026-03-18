@@ -7,7 +7,6 @@ import {
   Trash2,
   CheckCircle,
   Loader2,
-  Shield,
   Eye,
   EyeOff,
   AlertTriangle,
@@ -25,12 +24,7 @@ const PROVIDERS = [
   { id: "openai", name: "OpenAI", prefix: "sk-" },
   { id: "anthropic", name: "Anthropic", prefix: "sk-ant-" },
   { id: "google", name: "Google", prefix: "AI" },
-  {
-    id: "github-models",
-    name: "GitHub Models",
-    prefix: "",
-    oauth: true,
-  },
+  { id: "github-models", name: "GitHub Models", prefix: "github_pat_" },
 ] as const;
 
 export default function Settings() {
@@ -145,7 +139,6 @@ export default function Settings() {
           <div className="space-y-2">
             {PROVIDERS.map((p) => {
               const saved = providers?.find((pk) => pk.provider === p.id);
-              const isOAuth = "oauth" in p && p.oauth;
               const isSession = saved?.storage === "session";
               const isDeleting =
                 deleteMutation.isPending ||
@@ -160,7 +153,7 @@ export default function Settings() {
                     <div
                       className={cn(
                         "flex h-9 w-9 items-center justify-center rounded-lg text-xs font-bold",
-                        saved || isOAuth
+                        saved
                           ? "bg-green-50 text-green-600 dark:bg-green-950 dark:text-green-400"
                           : "bg-gray-100 text-gray-400 dark:bg-gray-800 dark:text-gray-600",
                       )}
@@ -171,11 +164,7 @@ export default function Settings() {
                       <p className="text-sm font-medium text-gray-900 dark:text-gray-100">
                         {p.name}
                       </p>
-                      {isOAuth ? (
-                        <p className="text-xs text-green-600 dark:text-green-400">
-                          Uses your OAuth token
-                        </p>
-                      ) : saved ? (
+                      {saved ? (
                         <div>
                           <p className="text-xs text-gray-500">
                             {saved.key_hint ?? "****"}{" "}
@@ -202,13 +191,7 @@ export default function Settings() {
                   </div>
 
                   <div className="flex items-center gap-2">
-                    {isOAuth && (
-                      <span className="flex items-center gap-1 rounded-full bg-green-50 px-2 py-0.5 text-xs font-medium text-green-700 dark:bg-green-950 dark:text-green-300">
-                        <Shield className="h-3 w-3" />
-                        Available
-                      </span>
-                    )}
-                    {saved && !isOAuth && (
+                    {saved && (
                       <>
                         {isSession ? (
                           <span className="rounded-full bg-amber-50 px-2 py-0.5 text-xs font-medium text-amber-700 dark:bg-amber-950 dark:text-amber-300">
@@ -273,13 +256,11 @@ export default function Settings() {
                   onChange={(e) => setNewProvider(e.target.value)}
                   className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100"
                 >
-                  {PROVIDERS.filter((p) => !("oauth" in p && p.oauth)).map(
-                    (p) => (
-                      <option key={p.id} value={p.id}>
-                        {p.name}
-                      </option>
-                    ),
-                  )}
+                  {PROVIDERS.map((p) => (
+                    <option key={p.id} value={p.id}>
+                      {p.name}
+                    </option>
+                  ))}
                 </select>
               </div>
 
