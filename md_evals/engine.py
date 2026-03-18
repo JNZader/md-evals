@@ -78,7 +78,7 @@ class ExecutionEngine:
                         model="error",
                         provider="error",
                         duration_ms=0,
-                        raw_response={"error": str(e)}
+                        raw_response=e.to_error_payload()
                     ),
                     passed=False,
                     evaluator_results=[],

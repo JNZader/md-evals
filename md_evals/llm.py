@@ -1,15 +1,191 @@
 """LLM adapter using litellm."""
 
+import asyncio
 from typing import Any
+
 import litellm
-from tenacity import retry, stop_after_attempt, wait_exponential
 
 from md_evals.models import LLMResponse, Defaults
 
 
 class LLMError(Exception):
     """LLM API error."""
-    pass
+
+    def __init__(self, message: str, payload: dict[str, Any] | None = None):
+        super().__init__(message)
+        self._payload = payload or {"error": message}
+
+    def to_error_payload(self) -> dict[str, Any]:
+        """Return a backward-compatible structured payload for error consumers."""
+        return dict(self._payload)
+
+
+class LLMTimeoutError(LLMError):
+    """Normalized timeout error for LiteLLM calls."""
+
+    def __init__(self, payload: dict[str, Any]):
+        message = str(payload.get("message") or "LLM request timed out")
+        merged_payload = {"error": message, **payload}
+        super().__init__(message=message, payload=merged_payload)
+
+
+TIMEOUT_ERROR_TYPE = "llm_timeout"
+TIMEOUT_ERROR_CODE = "LITELLM_TIMEOUT"
+
+_TIMEOUT_MESSAGE_TOKENS = (
+    "timed out",
+    "timeout",
+    "read timeout",
+    "connect timeout",
+    "request timeout",
+    "operation timed out",
+)
+
+_NON_TIMEOUT_MESSAGE_TOKENS = (
+    "auth",
+    "unauthorized",
+    "forbidden",
+    "invalid api key",
+    "rate limit",
+    "quota",
+    "validation",
+    "bad request",
+    "permission",
+)
+
+
+def classify_litellm_timeout(exc: BaseException) -> tuple[bool, str, str]:
+    """Classify whether an exception should be treated as timeout.
+
+    Ordered checks: explicit type, cause chain, timeout attributes,
+    then conservative message fallback.
+    """
+    if _is_cancellation_exception(exc):
+        return False, "cancellation_excluded", "high"
+
+    if _is_known_timeout_type(exc):
+        return True, "known_type", "high"
+
+    for cause in _iter_exception_chain(exc):
+        if _is_known_timeout_type(cause):
+            return True, "cause_chain", "high"
+
+    if _has_timeout_attributes(exc):
+        return True, "attribute", "medium"
+
+    message = _exception_text(exc)
+    if _has_timeout_message(message) and not _has_non_timeout_message(message):
+        return True, "message_fallback", "low"
+
+    return False, "not_timeout", "high"
+
+
+def normalize_timeout_error(
+    exc: BaseException,
+    *,
+    provider: str | None,
+    model: str | None,
+    stage: str | None,
+    attempt: int | None,
+    max_attempts: int | None,
+) -> dict[str, Any]:
+    """Build normalized timeout contract for CLI and structured output."""
+    provider_name = provider or "unknown"
+    model_name = model or "unknown"
+    stage_name = stage or "single_pass"
+    raw_exception = _exception_text(exc)
+
+    message = (
+        f"LLM request timed out for {provider_name}/{model_name} during {stage_name}. "
+        "Try increasing timeout, reducing payload size, or retrying with lower concurrency."
+    )
+
+    return {
+        "error_type": TIMEOUT_ERROR_TYPE,
+        "error_code": TIMEOUT_ERROR_CODE,
+        "message": message,
+        "provider": provider_name,
+        "model": model_name,
+        "stage": stage_name,
+        "is_retryable": True,
+        "attempt": attempt,
+        "max_attempts": max_attempts,
+        "raw_exception": raw_exception,
+    }
+
+
+def map_litellm_error(
+    exc: BaseException,
+    *,
+    provider: str,
+    model: str,
+    stage: str,
+    attempt: int | None,
+    max_attempts: int | None,
+) -> LLMError | None:
+    """Map LiteLLM exception into normalized md-evals error contract."""
+    is_timeout, _, _ = classify_litellm_timeout(exc)
+    if not is_timeout:
+        return None
+
+    payload = normalize_timeout_error(
+        exc,
+        provider=provider,
+        model=model,
+        stage=stage,
+        attempt=attempt,
+        max_attempts=max_attempts,
+    )
+    return LLMTimeoutError(payload)
+
+
+def _iter_exception_chain(exc: BaseException) -> list[BaseException]:
+    chain: list[BaseException] = []
+    current: BaseException | None = exc
+    seen_ids: set[int] = set()
+    while current is not None and id(current) not in seen_ids:
+        seen_ids.add(id(current))
+        chain.append(current)
+        next_exc = current.__cause__ or current.__context__
+        current = next_exc if isinstance(next_exc, BaseException) else None
+    return chain
+
+
+def _is_cancellation_exception(exc: BaseException) -> bool:
+    return isinstance(exc, (asyncio.CancelledError, KeyboardInterrupt, GeneratorExit))
+
+
+def _is_known_timeout_type(exc: BaseException) -> bool:
+    timeout_error_type = getattr(getattr(litellm, "exceptions", object()), "TimeoutError", None)
+    if timeout_error_type and isinstance(exc, timeout_error_type):
+        return True
+    if isinstance(exc, (TimeoutError, asyncio.TimeoutError)):
+        return True
+
+    name = type(exc).__name__.lower()
+    return name in {"timeouterror", "readtimeout", "connecttimeout", "apitimeouterror"}
+
+
+def _has_timeout_attributes(exc: BaseException) -> bool:
+    for attr_name in ("timeout", "timed_out", "is_timeout"):
+        value = getattr(exc, attr_name, None)
+        if value is True:
+            return True
+    return False
+
+
+def _exception_text(exc: BaseException) -> str:
+    return str(exc).strip() or type(exc).__name__
+
+
+def _has_timeout_message(message: str) -> bool:
+    lowered = message.lower()
+    return any(token in lowered for token in _TIMEOUT_MESSAGE_TOKENS)
+
+
+def _has_non_timeout_message(message: str) -> bool:
+    lowered = message.lower()
+    return any(token in lowered for token in _NON_TIMEOUT_MESSAGE_TOKENS)
 
 
 class LLMAdapter:
@@ -89,7 +265,9 @@ class LLMAdapter:
             kwargs["messages"] = [{"role": "user", "content": prompt}]
         
         try:
-            response = await self._complete_with_retry(**kwargs)
+            response = await self._complete_with_retry(stage_type=stage_type, **kwargs)
+        except LLMTimeoutError:
+            raise
         except Exception as e:
             raise LLMError(f"LLM API error: {e}") from e
         
@@ -145,24 +323,38 @@ class LLMAdapter:
             stage_type=stage_type,
         )
     
-    @retry(
-        stop=stop_after_attempt(3),
-        wait=wait_exponential(multiplier=1, min=1, max=10),
-        reraise=True
-    )
-    async def _complete_with_retry(self, **kwargs) -> Any:
+    async def _complete_with_retry(self, *, stage_type: str = "single_pass", **kwargs) -> Any:
         """Complete with retry logic."""
-        try:
-            return await litellm.acompletion(**kwargs)
-        except litellm.exceptions.RateLimitError:
-            # Rate limited, let tenacity handle retry
-            raise
-        except litellm.exceptions.TimeoutError:
-            # Timeout, let tenacity handle retry
-            raise
-        except Exception:
-            # Other errors, maybe retry helps
-            raise
+        max_attempts = max(1, int(self.defaults.retry_attempts or 1))
+        initial_backoff = max(0.0, float(self.defaults.retry_delay or 0.0))
+        last_exception: BaseException | None = None
+
+        for attempt in range(1, max_attempts + 1):
+            try:
+                return await litellm.acompletion(**kwargs)
+            except Exception as exc:  # pragma: no branch - single mapping path
+                last_exception = exc
+                if attempt >= max_attempts or _is_cancellation_exception(exc):
+                    mapped_error = map_litellm_error(
+                        exc,
+                        provider=self.provider,
+                        model=self.model,
+                        stage=stage_type,
+                        attempt=attempt,
+                        max_attempts=max_attempts,
+                    )
+                    if mapped_error is not None:
+                        raise mapped_error from exc
+                    raise
+
+                backoff_seconds = min(initial_backoff * (2 ** (attempt - 1)), 10.0)
+                if backoff_seconds > 0:
+                    await asyncio.sleep(backoff_seconds)
+
+        if last_exception is not None:
+            raise last_exception
+
+        raise LLMError("LLM API error: unknown retry failure")
     
     async def complete_with_json(
         self,

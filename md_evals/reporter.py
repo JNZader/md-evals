@@ -13,6 +13,7 @@ from rich import box
 from md_evals.metrics import build_usage_metrics
 from md_evals.models import EvalConfig, ExecutionResult
 from md_evals.scoring import EvalResult, eval_result_to_dict
+from md_evals.llm import TIMEOUT_ERROR_CODE
 
 
 class Reporter:
@@ -126,6 +127,14 @@ class Reporter:
                     self.console.print(
                         f"[red]▼[/red] {treatment}: {improvement:.0f}% vs CONTROL"
                     )
+
+        timeout_failures = [r for r in results if self._extract_timeout_error(r) is not None]
+        if timeout_failures:
+            self.console.print()
+            self.console.print(
+                "[yellow]Timeout failures detected.[/yellow] "
+                "Try increasing timeout, reducing payload size, or retrying with lower concurrency."
+            )
         
         # ─── T-28: Grade summary from scoring engine ───
         if self._eval_result is not None:
@@ -472,25 +481,7 @@ class Reporter:
                 "version": self.config.version
             },
             "results": [
-                {
-                    "treatment": r.treatment,
-                    "test": r.test,
-                    "prompt": r.prompt,
-                    "response": r.response.content if r.response else None,
-                    "passed": r.passed,
-                    "evaluators": [
-                        {
-                            "name": e.evaluator_name,
-                            "passed": e.passed,
-                            "score": e.score,
-                            "reason": e.reason
-                        }
-                        for e in r.evaluator_results
-                    ],
-                    "tokens": r.response.tokens if r.response else None,
-                    "duration_ms": r.response.duration_ms if r.response else None,
-                    "timestamp": r.timestamp
-                }
+                self._build_result_item(r)
                 for r in results
             ],
             "summary": summary
@@ -508,6 +499,56 @@ class Reporter:
             output["eval_result"] = eval_result_to_dict(self._eval_result)
 
         return output
+
+    def _build_result_item(self, result: ExecutionResult) -> dict[str, Any]:
+        item: dict[str, Any] = {
+            "treatment": result.treatment,
+            "test": result.test,
+            "prompt": result.prompt,
+            "response": result.response.content if result.response else None,
+            "passed": result.passed,
+            "evaluators": [
+                {
+                    "name": evaluator.evaluator_name,
+                    "passed": evaluator.passed,
+                    "score": evaluator.score,
+                    "reason": evaluator.reason,
+                }
+                for evaluator in result.evaluator_results
+            ],
+            "tokens": result.response.tokens if result.response else None,
+            "duration_ms": result.response.duration_ms if result.response else None,
+            "timestamp": result.timestamp,
+        }
+
+        timeout_error = self._extract_timeout_error(result)
+        if timeout_error is not None:
+            item["error"] = timeout_error
+            for key in (
+                "error_type",
+                "error_code",
+                "message",
+                "provider",
+                "model",
+                "stage",
+                "is_retryable",
+                "attempt",
+                "max_attempts",
+                "raw_exception",
+            ):
+                item[key] = timeout_error.get(key)
+
+        return item
+
+    def _extract_timeout_error(self, result: ExecutionResult) -> dict[str, Any] | None:
+        raw_response = result.response.raw_response if result.response else None
+        if not isinstance(raw_response, dict):
+            return None
+
+        if raw_response.get("error_code") != TIMEOUT_ERROR_CODE:
+            return None
+
+        return raw_response
     
     def _build_markdown(self, results: list[ExecutionResult]) -> str:
         """Build Markdown report."""
