@@ -315,6 +315,11 @@ class EvalService:
             "anthropic": "ANTHROPIC_API_KEY",
             "google": "GOOGLE_API_KEY",
             "github-models": "GITHUB_TOKEN",
+            "groq": "GROQ_API_KEY",
+            "mistral": "MISTRAL_API_KEY",
+            "cerebras": "CEREBRAS_API_KEY",
+            "deepseek": "DEEPSEEK_API_KEY",
+            "openrouter": "OPENROUTER_API_KEY",
         }
         env_var = env_map.get(provider, "OPENAI_API_KEY")
         os.environ[env_var] = api_key
@@ -322,7 +327,11 @@ class EvalService:
     @staticmethod
     def _clear_provider_env() -> None:
         """Remove all provider env vars to avoid key leakage."""
-        for var in ("OPENAI_API_KEY", "ANTHROPIC_API_KEY", "GOOGLE_API_KEY", "GITHUB_TOKEN"):
+        for var in (
+            "OPENAI_API_KEY", "ANTHROPIC_API_KEY", "GOOGLE_API_KEY",
+            "GITHUB_TOKEN", "GROQ_API_KEY", "MISTRAL_API_KEY",
+            "CEREBRAS_API_KEY", "DEEPSEEK_API_KEY", "OPENROUTER_API_KEY",
+        ):
             os.environ.pop(var, None)
 
     @staticmethod

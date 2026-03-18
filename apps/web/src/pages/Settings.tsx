@@ -25,6 +25,11 @@ const PROVIDERS = [
   { id: "anthropic", name: "Anthropic", prefix: "sk-ant-" },
   { id: "google", name: "Google", prefix: "AI" },
   { id: "github-models", name: "GitHub Models", prefix: "github_pat_" },
+  { id: "groq", name: "Groq", prefix: "gsk_" },
+  { id: "cerebras", name: "Cerebras", prefix: "csk-" },
+  { id: "deepseek", name: "DeepSeek", prefix: "sk-" },
+  { id: "openrouter", name: "OpenRouter", prefix: "sk-or-" },
+  { id: "mistral", name: "Mistral", prefix: "mis" },
 ] as const;
 
 export default function Settings() {
@@ -411,14 +416,35 @@ export default function Settings() {
                 defaultValue="gpt-4o"
                 className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100"
               >
-                <option value="gpt-4o">gpt-4o</option>
-                <option value="gpt-4o-mini">gpt-4o-mini</option>
-                <option value="gpt-4.1">gpt-4.1</option>
-                <option value="gpt-4.1-mini">gpt-4.1-mini</option>
-                <option value="claude-sonnet-4-20250514">claude-sonnet-4</option>
-                <option value="claude-3-5-haiku-20241022">
-                  claude-3.5-haiku
-                </option>
+                <optgroup label="OpenAI">
+                  <option value="gpt-4o">gpt-4o</option>
+                  <option value="gpt-4o-mini">gpt-4o-mini</option>
+                  <option value="gpt-4.1">gpt-4.1</option>
+                  <option value="gpt-4.1-mini">gpt-4.1-mini</option>
+                </optgroup>
+                <optgroup label="Anthropic">
+                  <option value="claude-sonnet-4-20250514">claude-sonnet-4</option>
+                  <option value="claude-3-5-haiku-20241022">claude-3.5-haiku</option>
+                </optgroup>
+                <optgroup label="Google">
+                  <option value="gemini-2.5-flash">gemini-2.5-flash</option>
+                  <option value="gemini-2.0-flash">gemini-2.0-flash</option>
+                </optgroup>
+                <optgroup label="Groq (free)">
+                  <option value="llama-3.3-70b-versatile">llama-3.3-70b-versatile</option>
+                  <option value="llama-3.1-8b-instant">llama-3.1-8b-instant</option>
+                </optgroup>
+                <optgroup label="Cerebras (free)">
+                  <option value="llama3.1-8b">llama3.1-8b</option>
+                  <option value="gpt-oss-120b">gpt-oss-120b</option>
+                </optgroup>
+                <optgroup label="DeepSeek">
+                  <option value="deepseek-chat">deepseek-chat</option>
+                  <option value="deepseek-reasoner">deepseek-reasoner</option>
+                </optgroup>
+                <optgroup label="Mistral">
+                  <option value="mistral-small-latest">mistral-small</option>
+                </optgroup>
               </select>
             </div>
             <div>
@@ -433,6 +459,11 @@ export default function Settings() {
                 <option value="openai">OpenAI</option>
                 <option value="anthropic">Anthropic</option>
                 <option value="google">Google</option>
+                <option value="groq">Groq (free)</option>
+                <option value="cerebras">Cerebras (free)</option>
+                <option value="deepseek">DeepSeek</option>
+                <option value="openrouter">OpenRouter</option>
+                <option value="mistral">Mistral</option>
               </select>
             </div>
           </div>

@@ -43,10 +43,6 @@ async def validate_provider_key(
         Tuple of ``(is_valid, available_models)``. On failure,
         ``is_valid`` is ``False`` and ``available_models`` is empty.
     """
-    if provider == "github-models":
-        # GitHub Models uses the user's OAuth token — no separate validation
-        return True, []
-
     handler = _PROVIDER_VALIDATORS.get(provider)
     if handler is None:
         logger.warning("No validator for provider: %s", provider)
@@ -115,8 +111,122 @@ async def _validate_google(api_key: str) -> tuple[bool, list[str]]:
     return True, models
 
 
+async def _validate_groq(api_key: str) -> tuple[bool, list[str]]:
+    """Validate Groq key via GET /openai/v1/models."""
+    async with httpx.AsyncClient(timeout=_VALIDATION_TIMEOUT) as client:
+        resp = await client.get(
+            "https://api.groq.com/openai/v1/models",
+            headers={"Authorization": f"Bearer {api_key}"},
+        )
+    if resp.status_code != 200:
+        return False, []
+    data = resp.json()
+    models = [m["id"] for m in data.get("data", [])]
+    return True, models
+
+
+async def _validate_mistral(api_key: str) -> tuple[bool, list[str]]:
+    """Validate Mistral key via GET /v1/models."""
+    async with httpx.AsyncClient(timeout=_VALIDATION_TIMEOUT) as client:
+        resp = await client.get(
+            "https://api.mistral.ai/v1/models",
+            headers={"Authorization": f"Bearer {api_key}"},
+        )
+    if resp.status_code != 200:
+        return False, []
+    data = resp.json()
+    models = [m["id"] for m in data.get("data", [])]
+    return True, models
+
+
+async def _validate_github_models(api_key: str) -> tuple[bool, list[str]]:
+    """Validate GitHub PAT against the Models inference API.
+
+    Uses a minimal completion call to verify the token can access inference.
+    OAuth tokens with read:user scope will fail here (by design).
+    """
+    async with httpx.AsyncClient(timeout=_VALIDATION_TIMEOUT) as client:
+        resp = await client.post(
+            "https://models.inference.ai.azure.com/chat/completions",
+            headers={
+                "Authorization": f"Bearer {api_key}",
+                "Content-Type": "application/json",
+            },
+            json={
+                "model": "gpt-4o-mini",
+                "messages": [{"role": "user", "content": "hi"}],
+                "max_tokens": 1,
+            },
+        )
+    # 200 = success, 429 = rate limited but key is valid
+    if resp.status_code in (200, 429):
+        return True, ["gpt-4o-mini", "gpt-4o"]
+    logger.warning(
+        "GitHub Models validation failed (status=%d). "
+        "Make sure you're using a PAT, not an OAuth token.",
+        resp.status_code,
+    )
+    return False, []
+
+
+async def _validate_cerebras(api_key: str) -> tuple[bool, list[str]]:
+    """Validate Cerebras key via GET /v1/models."""
+    async with httpx.AsyncClient(timeout=_VALIDATION_TIMEOUT) as client:
+        resp = await client.get(
+            "https://api.cerebras.ai/v1/models",
+            headers={"Authorization": f"Bearer {api_key}"},
+        )
+    if resp.status_code != 200:
+        return False, []
+    data = resp.json()
+    models = [m["id"] for m in data.get("data", [])]
+    if not models:
+        models = ["llama3.1-8b", "gpt-oss-120b"]
+    return True, models
+
+
+async def _validate_deepseek(api_key: str) -> tuple[bool, list[str]]:
+    """Validate DeepSeek key via GET /v1/models."""
+    async with httpx.AsyncClient(timeout=_VALIDATION_TIMEOUT) as client:
+        resp = await client.get(
+            "https://api.deepseek.com/v1/models",
+            headers={"Authorization": f"Bearer {api_key}"},
+        )
+    if resp.status_code != 200:
+        return False, []
+    data = resp.json()
+    models = [m["id"] for m in data.get("data", [])]
+    if not models:
+        models = ["deepseek-chat", "deepseek-reasoner"]
+    return True, models
+
+
+async def _validate_openrouter(api_key: str) -> tuple[bool, list[str]]:
+    """Validate OpenRouter key via GET /api/v1/models."""
+    async with httpx.AsyncClient(timeout=_VALIDATION_TIMEOUT) as client:
+        resp = await client.get(
+            "https://openrouter.ai/api/v1/models",
+            headers={"Authorization": f"Bearer {api_key}"},
+        )
+    if resp.status_code != 200:
+        return False, []
+    # OpenRouter returns a very large list; return curated popular/free models
+    return True, [
+        "deepseek/deepseek-chat",
+        "deepseek/deepseek-r1:free",
+        "google/gemma-3-27b-it:free",
+        "qwen/qwen3-235b-a22b:free",
+    ]
+
+
 _PROVIDER_VALIDATORS = {
     "openai": _validate_openai,
     "anthropic": _validate_anthropic,
     "google": _validate_google,
+    "groq": _validate_groq,
+    "mistral": _validate_mistral,
+    "github-models": _validate_github_models,
+    "cerebras": _validate_cerebras,
+    "deepseek": _validate_deepseek,
+    "openrouter": _validate_openrouter,
 }

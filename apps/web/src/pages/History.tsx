@@ -102,6 +102,14 @@ export default function History() {
               <option value="gpt-4.1">gpt-4.1</option>
               <option value="gpt-4.1-mini">gpt-4.1-mini</option>
               <option value="claude-sonnet-4-20250514">claude-sonnet-4</option>
+              <option value="claude-3-5-haiku-20241022">claude-3.5-haiku</option>
+              <option value="gemini-2.5-flash">gemini-2.5-flash</option>
+              <option value="gemini-2.0-flash">gemini-2.0-flash</option>
+              <option value="llama-3.3-70b-versatile">llama-3.3-70b (Groq)</option>
+              <option value="llama-3.1-8b-instant">llama-3.1-8b (Groq)</option>
+              <option value="llama3.1-8b">llama3.1-8b (Cerebras)</option>
+              <option value="deepseek-chat">deepseek-chat</option>
+              <option value="mistral-small-latest">mistral-small</option>
             </select>
           </div>
           <div>
