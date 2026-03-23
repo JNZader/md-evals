@@ -18,8 +18,8 @@ from unittest.mock import MagicMock, AsyncMock
 from datetime import datetime
 
 from md_evals.models import (
-    EvalConfig, Defaults, Treatment, Task, 
-    RegexEvaluator, LLMJudgeEvaluator, ExecutionConfig
+    EvalConfig, Defaults, Treatment, Task,
+    RegexEvaluator, LLMJudgeEvaluator,
 )
 from md_evals.llm import LLMAdapter
 from md_evals.engine import ExecutionEngine
@@ -148,8 +148,8 @@ def mock_eval_config() -> EvalConfig:
             model="gpt-4o",
         ),
         treatments={
-            "CONTROL": Treatment(name="CONTROL", provider="mock"),
-            "TREATMENT": Treatment(name="TREATMENT", provider="mock"),
+            "CONTROL": Treatment(description="Control group"),
+            "TREATMENT": Treatment(description="Treatment group"),
         },
         tests=[
             Task(
@@ -159,7 +159,6 @@ def mock_eval_config() -> EvalConfig:
                     RegexEvaluator(
                         name="contains_4",
                         pattern="4",
-                        match_type="contains"
                     )
                 ]
             )
@@ -181,8 +180,8 @@ def mock_eval_config_with_llm() -> EvalConfig:
             model="gpt-4o",
         ),
         treatments={
-            "CONTROL": Treatment(name="CONTROL"),
-            "TREATMENT": Treatment(name="TREATMENT"),
+            "CONTROL": Treatment(description="Control group"),
+            "TREATMENT": Treatment(description="Treatment group"),
         },
         tests=[
             Task(
@@ -191,8 +190,8 @@ def mock_eval_config_with_llm() -> EvalConfig:
                 evaluators=[
                     LLMJudgeEvaluator(
                         name="creativity",
-                        prompt="Rate the creativity of this response on a scale of 1-10.",
-                        model="gpt-4o",
+                        judge_model="gpt-4o",
+                        criteria="Rate the creativity of this response on a scale of 1-10.",
                     )
                 ]
             )
@@ -240,10 +239,6 @@ def execution_engine(mock_eval_config, mock_llm_adapter) -> ExecutionEngine:
     return ExecutionEngine(
         config=mock_eval_config,
         llm_adapter=mock_llm_adapter,
-        execution_config=ExecutionConfig(
-            parallel_workers=1,  # Single-threaded for tests
-            timeout_seconds=30,
-        )
     )
 
 
