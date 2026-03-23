@@ -224,9 +224,9 @@ class LLMAdapter:
         """
         kwargs: dict[str, Any] = {
             "model": f"{self.provider}/{self.model}",
-            "temperature": temperature or self.defaults.temperature,
-            "max_tokens": max_tokens or self.defaults.max_tokens,
-            "timeout": timeout or self.defaults.timeout,
+            "temperature": temperature if temperature is not None else self.defaults.temperature,
+            "max_tokens": max_tokens if max_tokens is not None else self.defaults.max_tokens,
+            "timeout": timeout if timeout is not None else self.defaults.timeout,
         }
         if self.api_base:
             kwargs["api_base"] = self.api_base
