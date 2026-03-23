@@ -148,9 +148,11 @@ class EvaluatorEngine:
                     score = 0
             
             # Normalize score to 0-1
-            if 1 <= score <= 5:
+            # Scores already in [0, 1] are passed through unchanged.
+            # Scores > 1 are assumed to be on a 1-5 or 1-10 scale.
+            if score > 1 and score <= 5:
                 score = score / 5
-            elif 1 <= score <= 10:
+            elif score > 5 and score <= 10:
                 score = score / 10
             
             reasoning = result_data.get("reasoning", "")
