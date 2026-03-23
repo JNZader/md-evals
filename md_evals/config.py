@@ -98,9 +98,8 @@ class ConfigLoader:
         
         for treatment in treatments:
             if "*" in treatment or "?" in treatment:
-                # Expand wildcard
-                pattern = treatment.replace("?", "?").replace("*", "*")
-                matches = [n for n in available_names if fnmatch.fnmatch(n, pattern)]
+                # Expand wildcard using fnmatch
+                matches = [n for n in available_names if fnmatch.fnmatch(n, treatment)]
                 expanded.extend(matches)
             else:
                 if treatment in available_names:
