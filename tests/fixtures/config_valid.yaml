@@ -1,0 +1,47 @@
+name: "Integration Test Eval"
+version: "1.0"
+description: "Config for integration testing"
+
+defaults:
+  model: "gpt-4o"
+  provider: "openai"
+  temperature: 0.7
+  max_tokens: 2048
+  timeout: 60
+  retry_attempts: 3
+
+treatments:
+  CONTROL:
+    description: "Baseline without skill"
+    skill_path: null
+  WITH_SKILL:
+    description: "With skill injected"
+    skill_path: "./tests/fixtures/skill_valid.md"
+
+tests:
+  - name: "greeting_test"
+    prompt: "Say hello to {name}"
+    variables:
+      name: "World"
+    evaluators:
+      - type: "regex"
+        name: "has_hello"
+        pattern: "[Hh]ello"
+        pass_on_match: true
+  - name: "math_test"
+    prompt: "What is 2+2?"
+    evaluators:
+      - type: "regex"
+        name: "has_four"
+        pattern: "4"
+        pass_on_match: true
+
+output:
+  format: "table"
+  save_results: true
+  results_dir: "./results"
+
+execution:
+  parallel_workers: 1
+  repetitions: 1
+  fail_fast: false

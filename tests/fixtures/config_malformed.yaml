@@ -1,0 +1,3 @@
+name: "Broken Config"
+this is not: valid: yaml: [
+  unclosed bracket
