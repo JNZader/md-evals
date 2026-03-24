@@ -29,8 +29,8 @@ fi
 
 # 3. Remaining docs content → _site/docs/
 if [ -d docs ]; then
-  # Copy everything except the landing page index.html
-  rsync -a --exclude='index.html' docs/ _site/docs/
+  # Copy all docs content, then overwrite index.html with docsify if present
+  cp -r docs/* _site/docs/
   # Use docsify.html as the docs portal index
   if [ -f docs/docsify.html ]; then
     cp docs/docsify.html _site/docs/index.html
