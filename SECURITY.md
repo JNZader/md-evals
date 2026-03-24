@@ -237,7 +237,7 @@ For security-related questions:
 
 For other questions:
 - 💬 [GitHub Discussions](https://github.com/JNZader/md-evals/discussions)
-- 📚 [Documentation](https://jnzader.github.io/md-evals/)
+- 📚 [Documentation](https://evals.javierzader.com/)
 
 ## Security Advisory History
 

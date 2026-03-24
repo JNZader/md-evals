@@ -11,7 +11,7 @@
 
 Inspired by [LangChain skills-benchmarks](https://github.com/langchain-ai/skills-benchmarks).
 
-**📚 [Full Documentation](https://jnzader.github.io/md-evals/)** | [Quick Start](#quick-start) | [GitHub Models Guide](#-github-models-freelow-cost-llm-evaluation) | [Examples](docs/examples/)
+**📚 [Full Documentation](https://evals.javierzader.com/)** | [Quick Start](#quick-start) | [GitHub Models Guide](#-github-models-freelow-cost-llm-evaluation) | [Examples](docs/examples/)
 
 ## Why md-evals?
 
@@ -148,7 +148,7 @@ md-evals run --config eval.yaml --provider github-models --model deepseek-r1
 | `deepseek-r1` | 64k | Speed, cost efficiency | 🟢 Free |
 | `grok-3` | 128k | Latest, edge cases | 🟢 Free |
 
-**Rate Limits:** 15 requests/min (public preview) · [Full Guide →](https://jnzader.github.io/md-evals/#/guide/github-models-setup)
+**Rate Limits:** 15 requests/min (public preview) · [Full Guide →](https://evals.javierzader.com/#/guide/github-models-setup)
 
 ## Configuration
 
@@ -405,8 +405,8 @@ tests/
 ## Community & Support
 
 ### 📖 Documentation
-- **[Full Guide](https://jnzader.github.io/md-evals/)** - Installation, tutorials, API reference
-- **[GitHub Models Setup](https://jnzader.github.io/md-evals/#/guide/github-models-setup)** - Free LLM evaluation guide
+- **[Full Guide](https://evals.javierzader.com/)** - Installation, tutorials, API reference
+- **[GitHub Models Setup](https://evals.javierzader.com/#/guide/github-models-setup)** - Free LLM evaluation guide
 - **[Examples](docs/examples/)** - Real-world usage examples
 
 ### 🤝 Contributing

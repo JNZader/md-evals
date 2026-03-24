@@ -97,5 +97,5 @@ Add any other information that might help us understand or reproduce the issue:
 - [ ] I've provided all requested environment information
 - [ ] I've included steps to reproduce
 - [ ] I've included error messages/logs
-- [ ] I've read the [documentation](https://jnzader.github.io/md-evals/)
+- [ ] I've read the [documentation](https://evals.javierzader.com/)
 - [ ] I understand this is a bug, not a feature request

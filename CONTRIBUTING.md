@@ -567,7 +567,7 @@ See [GitHub Models Guide](guide/github-models-setup.md) for details.
 
 ### Resources
 
-- 📚 **[Full Documentation](https://jnzader.github.io/md-evals/)**
+- 📚 **[Full Documentation](https://evals.javierzader.com/)**
 - 🐛 **[Issue Tracker](https://github.com/JNZader/md-evals/issues)**
 - 💬 **[Discussions](https://github.com/JNZader/md-evals/discussions)**
 
@@ -589,7 +589,7 @@ See [GitHub Models Guide](guide/github-models-setup.md) for details.
 
 - Check [existing issues](https://github.com/JNZader/md-evals/issues) for similar problems
 - Start a [discussion](https://github.com/JNZader/md-evals/discussions) for questions
-- Review [documentation](https://jnzader.github.io/md-evals/)
+- Review [documentation](https://evals.javierzader.com/)
 
 ## Recognition
 

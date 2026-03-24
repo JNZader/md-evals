@@ -98,5 +98,5 @@ evaluators:
 - [ ] I've clearly described the use case
 - [ ] I've provided examples of desired usage
 - [ ] This is a feature request, not a bug report
-- [ ] I've read the [documentation](https://jnzader.github.io/md-evals/)
+- [ ] I've read the [documentation](https://evals.javierzader.com/)
 - [ ] I understand this may not be implemented immediately
