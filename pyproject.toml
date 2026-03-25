@@ -21,7 +21,7 @@ classifiers = [
 dependencies = [
     "typer[all]>=0.12.0",
     "rich>=13.7.0",
-    "litellm>=1.40.0",
+    "litellm>=1.82.6,!=1.82.8",  # !=1.82.8 was compromised (supply chain attack)
     "pydantic>=2.6.0",
     "pyyaml>=6.0.0",
     "httpx>=0.27.0",
