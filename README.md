@@ -37,6 +37,10 @@ Building AI applications that work reliably requires **scientific validation**. 
 - 💾 **Export**: JSON, Markdown, or table format for reporting and analysis
 - ⚡ **Parallel Execution**: Run multiple tests concurrently for faster feedback
 - 🎉 **GitHub Models Support**: Use free/low-cost models (Claude 3.5, GPT-4, DeepSeek, Grok)
+- 🔬 **Deterministic Graders**: File, command, and state graders for side-effect evaluation
+- 🔄 **Three-Phase Pipeline**: Structure → Analyze → Generate sequential evaluation
+- 📜 **Contract Assertions**: Define output contracts and validate A/B variants against them
+- 🏗️ **Workspace Runner**: Isolated temp workspaces for reproducible task evaluation
 
 ## Installation
 
@@ -272,6 +276,174 @@ md-evals lint
 - `-p, --provider PROVIDER` - Filter by provider
 - `-v, --verbose` - Show metadata (temperature ranges, costs, rate limits)
 
+## Deterministic Graders
+
+Beyond regex and LLM-as-judge evaluators, md-evals includes **deterministic graders** that check side effects of agent task execution (files created, commands run, workspace state) rather than LLM output text.
+
+All graders implement the `Grader` protocol (`md_evals.graders.base`) and return `EvaluatorResult`, so they integrate seamlessly with the existing reporter and pipeline infrastructure.
+
+### File Graders
+
+| Grader | Purpose |
+|--------|---------|
+| `FileExistsGrader` | Assert a file exists (or does not exist) in the workspace |
+| `FileContentGrader` | Assert file content matches a regex pattern or exact string |
+| `FileSizeGrader` | Assert file size is within a min/max byte range |
+
+### Command Grader
+
+`CommandGrader` runs a shell command inside the workspace and asserts on exit code and optionally stdout content. Useful for verifying that generated code compiles, tests pass, or scripts produce expected output.
+
+```python
+from md_evals.graders import CommandGrader
+
+grader = CommandGrader(
+    name="tests_pass",
+    command="python -m pytest tests/",
+    expected_exit_code=0,
+    expected_output="passed",
+    timeout=30,
+)
+```
+
+### State Grader
+
+`StateGrader` compares workspace file-system state before and after task execution. It tracks created, deleted, and modified files using modification time snapshots.
+
+```python
+from md_evals.graders import StateGrader
+
+grader = StateGrader(
+    name="check_state",
+    expected_created=["output.json"],
+    expected_deleted=["temp.txt"],
+    expected_modified=["config.yaml"],
+)
+# Call grader.snapshot(workspace) before task, grader.grade(workspace) after
+```
+
+## Three-Phase Evaluation Pipeline
+
+The `ThreePhaseEvaluator` (`md_evals.three_phase`) orchestrates evaluation in three sequential phases with fail-fast behavior:
+
+1. **Structure** — Validate input/output format (JSON valid? fields present? types correct?)
+2. **Analyze** — Evaluate quality of analysis (keyword coverage, section coverage, minimum length)
+3. **Generate** — Evaluate final output quality (pattern matching, constraint checking)
+
+If a required phase fails, subsequent phases are skipped. Each phase has configurable weight for scoring.
+
+### Phase Graders
+
+| Phase | Grader | Purpose |
+|-------|--------|---------|
+| Structure | `JSONValidGrader` | Validate JSON format (file or string mode) |
+| Structure | `RequiredFieldsGrader` | Check required fields exist (dot-notation for nesting) |
+| Structure | `FieldTypeGrader` | Validate field types (str, int, float, bool, list, dict) |
+| Analyze | `KeywordCoverageGrader` | Check keyword/concept coverage with configurable threshold |
+| Analyze | `SectionCoverageGrader` | Check for expected sections/headings via regex patterns |
+| Analyze | `MinLengthGrader` | Enforce minimum word count and/or character count |
+| Generate | `OutputMatchGrader` | Match regex patterns (AND logic, with negate option) |
+| Generate | `ConstraintGrader` | Enforce max words, max chars, and forbidden patterns |
+
+### Example
+
+```python
+from md_evals.three_phase import ThreePhaseEvaluator, PhaseConfig
+from md_evals.graders import JSONValidGrader, RequiredFieldsGrader, KeywordCoverageGrader
+
+evaluator = ThreePhaseEvaluator(
+    structure=PhaseConfig(
+        graders=[
+            JSONValidGrader(name="valid_json", path="output.json"),
+            RequiredFieldsGrader(name="has_fields", path="output.json",
+                                 required_fields=["name", "metadata.version"]),
+        ],
+        weight=0.3,
+        required=True,
+    ),
+    analyze=PhaseConfig(
+        graders=[KeywordCoverageGrader(name="covers_topics",
+                                        path="output.json",
+                                        keywords=["architecture", "testing"],
+                                        pass_threshold=0.8)],
+        weight=0.4,
+    ),
+    generate=PhaseConfig(graders=[], weight=0.3),
+)
+result = evaluator.evaluate(workspace_path)
+# result.passed, result.overall_score, result.failed_phase
+```
+
+## Contract-Based Assertions
+
+Define structural contracts for outputs and validate them deterministically using `ContractAssertionGrader`. The `ABContractGrader` extends this for A/B testing — both variants must satisfy the same contract while producing different content.
+
+### OutputContract
+
+```python
+from md_evals.graders import OutputContract, ContractAssertionGrader, ABContractGrader
+
+contract = OutputContract(
+    required_sections=[r"^## Purpose", r"^## Implementation"],
+    format_rules=[r"```python"],
+    forbidden_patterns=[r"TODO", r"FIXME"],
+    min_words=50,
+    max_words=2000,
+)
+
+# Single output validation
+grader = ContractAssertionGrader(
+    name="contract_check",
+    contract=contract,
+    path="output.md",        # file mode
+    # content="...",         # or content mode
+)
+
+# A/B contract validation
+ab_grader = ABContractGrader(
+    name="ab_contract",
+    contract=contract,
+    variant_a="Control output...",
+    variant_b="Treatment output...",
+)
+```
+
+## Workspace Runner
+
+`WorkspaceRunner` (`md_evals.workspace`) manages the full lifecycle for deterministic evaluation in isolated temporary directories:
+
+1. Create temporary workspace
+2. Set up files (`SetupFile` with path and content)
+3. Snapshot state (for `StateGrader` baselines)
+4. Execute the task command (with timeout)
+5. Apply all graders
+6. Cleanup
+
+### Example
+
+```python
+from md_evals.workspace import WorkspaceRunner, WorkspaceConfig, SetupFile
+from md_evals.graders import FileExistsGrader, CommandGrader
+
+config = WorkspaceConfig(
+    name="test_code_generation",
+    setup_files=[
+        SetupFile(path="requirements.txt", content="pytest\n"),
+        SetupFile(path="src/main.py", content="print('hello')"),
+    ],
+    task_command="python src/main.py > output.txt",
+    graders=[
+        FileExistsGrader(name="output_created", path="output.txt"),
+        CommandGrader(name="syntax_ok", command="python -m py_compile src/main.py"),
+    ],
+    task_timeout=60,
+)
+
+runner = WorkspaceRunner()
+result = runner.run(config)
+# result.passed, result.grader_results, result.task_exit_code
+```
+
 ## Development
 
 ### Setup
@@ -385,6 +557,9 @@ md_evals/
 ├── cli.py                    # Command-line interface
 ├── engine.py                 # Evaluation engine (A/B testing)
 ├── llm.py                    # LLM provider interface
+├── config.py                 # YAML config parsing
+├── three_phase.py            # Three-phase evaluation pipeline
+├── workspace.py              # WorkspaceRunner for isolated evaluation
 ├── providers/                # LLM provider implementations
 │   ├── github_models.py     # GitHub Models (free!)
 │   ├── openai_provider.py
@@ -393,7 +568,19 @@ md_evals/
 ├── evaluators/               # Evaluation strategies
 │   ├── regex_evaluator.py
 │   └── llm_evaluator.py
-└── config.py                 # YAML config parsing
+├── graders/                  # Deterministic graders
+│   ├── base.py              # Grader protocol
+│   ├── file_graders.py      # FileExists, FileContent, FileSize
+│   ├── command_grader.py    # CommandGrader (shell commands)
+│   ├── state_grader.py      # StateGrader (file-system diffs)
+│   ├── structure_grader.py  # JSONValid, RequiredFields, FieldType
+│   ├── analysis_grader.py   # KeywordCoverage, SectionCoverage, MinLength
+│   ├── generation_grader.py # OutputMatch, ConstraintGrader
+│   └── contract_grader.py   # OutputContract, ContractAssertion, ABContract
+└── pipeline/                 # Plugin evaluation pipeline
+    ├── pipeline.py
+    ├── runner.py
+    └── ...
 
 tests/
 ├── test_engine.py

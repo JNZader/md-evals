@@ -13,6 +13,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `list-models` command to show available models per provider
 - Support for Claude 3.5 Sonnet, GPT-4o, DeepSeek-R1, and Grok-3 models
 - Comprehensive GitHub Models documentation and examples
+- **Deterministic graders package** (`md_evals/graders/`):
+  - `Grader` protocol (`base.py`) — unified interface for all deterministic graders
+  - `FileExistsGrader`, `FileContentGrader`, `FileSizeGrader` (`file_graders.py`) — file-based assertions
+  - `CommandGrader` (`command_grader.py`) — shell command execution with exit code and stdout assertions
+  - `StateGrader` (`state_grader.py`) — file-system state diffs (created, deleted, modified files)
+  - `JSONValidGrader`, `RequiredFieldsGrader`, `FieldTypeGrader` (`structure_grader.py`) — structure phase graders
+  - `KeywordCoverageGrader`, `SectionCoverageGrader`, `MinLengthGrader` (`analysis_grader.py`) — analysis phase graders
+  - `OutputMatchGrader`, `ConstraintGrader` (`generation_grader.py`) — generation phase graders
+  - `OutputContract`, `ContractAssertionGrader`, `ABContractGrader` (`contract_grader.py`) — contract-based assertions
+- **Three-phase evaluation pipeline** (`md_evals/three_phase.py`):
+  - Sequential Structure → Analyze → Generate phases with fail-fast behavior
+  - Configurable phase weights for weighted scoring
+  - `evaluate()` for workspace directories and `evaluate_content()` for raw strings
+- **WorkspaceRunner** (`md_evals/workspace.py`):
+  - Isolated temp workspace creation, file setup, task execution, and grader application
+  - `WorkspaceConfig`, `SetupFile`, `WorkspaceResult` data classes
+  - Automatic `StateGrader` snapshot integration
+  - Configurable task timeout with cleanup on completion
 
 ### Changed
 - Enhanced error messages with actionable guidance
