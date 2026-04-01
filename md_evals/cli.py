@@ -1090,5 +1090,172 @@ def analytics_heatmap(
     console.print(table)
 
 
+# ── Mission subcommand ──
+
+mission_app = typer.Typer(name="mission", help="Run YAML-based mission test suites for regression tracking")
+app.add_typer(mission_app)
+
+
+@mission_app.command("run")
+def mission_run(
+    mission_file: Annotated[str, typer.Argument(help="Path to mission YAML file")],
+    model: Annotated[Optional[str], typer.Option("--model", "-m", help="Override model")] = None,
+    provider: Annotated[Optional[str], typer.Option("--provider", "-p", help="Override provider")] = None,
+    no_track: Annotated[bool, typer.Option("--no-track", help="Skip regression tracking")] = False,
+    report: Annotated[Optional[str], typer.Option("--report", "-r", help="Save markdown report to path")] = None,
+    verbose: Annotated[bool, typer.Option("--verbose", "-v", help="Verbose output")] = False,
+):
+    """Execute a mission YAML file and track regressions.
+
+    Runs all test cases in the mission, saves results, and compares
+    against the previous run to flag regressions.
+
+    Exit codes: 0=all pass, 1=load error, 2=regressions detected, 4=all fail.
+    """
+    from md_evals.mission.runner import MissionRunner, MissionLoadError
+    from md_evals.mission.tracker import RegressionTracker
+    from md_evals.mission.reporter import MissionReporter
+
+    # Load mission
+    try:
+        config = MissionRunner.load(mission_file)
+    except MissionLoadError as e:
+        console.print(f"[red]Mission load error: {e}[/red]")
+        raise typer.Exit(code=1)
+
+    # Apply overrides
+    if model:
+        config.model = model
+    if provider:
+        config.provider = provider
+
+    console.print(f"[cyan]Running mission: {config.name} ({len(config.test_cases)} test cases)[/cyan]")
+
+    # Create LLM adapter (optional — missions can run without LLM for deterministic-only tests)
+    llm_adapter = None
+    try:
+        llm_adapter = LLMAdapter(
+            model=config.model,
+            provider=config.provider,
+        )
+    except Exception as e:
+        console.print(f"[yellow]LLM adapter not available: {e}[/yellow]")
+        console.print("[yellow]Running deterministic criteria only.[/yellow]")
+
+    # Run mission
+    runner = MissionRunner(llm_adapter=llm_adapter)
+    try:
+        result = asyncio.run(runner.run(config))
+    except Exception as e:
+        console.print(f"[red]Mission execution error: {e}[/red]")
+        raise typer.Exit(code=1)
+
+    # Save result
+    result_path = runner.save_result(result, config.results_dir)
+    console.print(f"[dim]Result saved: {result_path}[/dim]")
+
+    # Regression tracking
+    regression = None
+    if not no_track:
+        previous = RegressionTracker.find_previous_result(
+            config.results_dir,
+            config.name,
+            exclude_timestamp=result.timestamp,
+        )
+        regression = RegressionTracker.compare(
+            result.model_dump(mode="json"),
+            previous,
+        )
+
+    # Terminal output
+    s = result.summary
+    console.print()
+    table = Table(title=f"Mission: {result.mission_name}", show_header=True, header_style="bold magenta")
+    table.add_column("Test", style="cyan")
+    table.add_column("Status", justify="center")
+    table.add_column("Score", justify="right")
+    table.add_column("Duration", justify="right")
+
+    for tr in result.test_results:
+        status_str = "[green]PASS[/green]" if tr.passed else "[red]FAIL[/red]"
+        table.add_row(tr.test_name, status_str, f"{tr.score:.2f}", f"{tr.duration_ms}ms")
+
+    console.print(table)
+    console.print(f"\n[bold]Summary:[/bold] {s.passed}/{s.total} passed ({s.pass_rate:.0%}) in {s.duration_ms}ms")
+
+    # Regression info
+    if regression and regression.previous_timestamp:
+        if regression.has_regressions:
+            console.print(f"\n[red]REGRESSIONS DETECTED: {regression.regressions} test(s) regressed[/red]")
+            for item in regression.items:
+                if item.status == "regression":
+                    console.print(f"  [red]- {item.test_name}: PASS -> FAIL ({item.score_delta:+.2f})[/red]")
+        if regression.improvements > 0:
+            console.print(f"\n[green]Improvements: {regression.improvements} test(s)[/green]")
+    elif regression:
+        console.print("\n[dim]First run -- no regression comparison available.[/dim]")
+
+    # Generate report
+    if report:
+        md_content = MissionReporter.generate(result, regression)
+        report_path = MissionReporter.save(md_content, report)
+        console.print(f"\n[green]Report saved: {report_path}[/green]")
+
+    # Exit code
+    if s.passed == s.total:
+        if regression and regression.has_regressions:
+            raise typer.Exit(code=2)
+        raise typer.Exit(code=0)
+    elif s.passed > 0:
+        if regression and regression.has_regressions:
+            raise typer.Exit(code=2)
+        raise typer.Exit(code=0)
+    else:
+        raise typer.Exit(code=4)
+
+
+@mission_app.command("report")
+def mission_report(
+    mission_file: Annotated[str, typer.Argument(help="Path to mission YAML file")],
+    output: Annotated[str, typer.Option("--output", "-o", help="Output path for report")] = "mission-report.md",
+):
+    """Generate a markdown report from the latest mission run."""
+    from md_evals.mission.runner import MissionRunner, MissionLoadError
+    from md_evals.mission.tracker import RegressionTracker
+    from md_evals.mission.reporter import MissionReporter
+    from md_evals.mission.models import MissionResult
+
+    # Load mission config to find results dir
+    try:
+        config = MissionRunner.load(mission_file)
+    except MissionLoadError as e:
+        console.print(f"[red]Mission load error: {e}[/red]")
+        raise typer.Exit(code=1)
+
+    # Find latest result
+    latest = RegressionTracker.find_previous_result(config.results_dir, config.name)
+    if latest is None:
+        console.print("[yellow]No previous results found. Run the mission first.[/yellow]")
+        raise typer.Exit(code=1)
+
+    result = MissionResult(**latest)
+
+    # Find second-latest for regression
+    previous = RegressionTracker.find_previous_result(
+        config.results_dir,
+        config.name,
+        exclude_timestamp=result.timestamp,
+    )
+    regression = RegressionTracker.compare(
+        latest,
+        previous,
+    )
+
+    md_content = MissionReporter.generate(result, regression)
+    report_path = MissionReporter.save(md_content, output)
+    console.print(f"[green]Report generated: {report_path}[/green]")
+    raise typer.Exit(code=0)
+
+
 if __name__ == "__main__":
     app()
