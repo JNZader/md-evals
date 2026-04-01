@@ -1,0 +1,38 @@
+name: skill-quality-regression
+version: "1.0"
+description: Weekly regression suite for coding skill
+skill_under_test: ./tests/fixtures/skill_valid.md
+model: gpt-4o
+provider: openai
+schedule_hint: "0 0 * * 0"
+results_dir: .mission-results
+tags:
+  - weekly
+  - regression
+
+test_cases:
+  - name: basic_greeting
+    description: Verify the skill produces a greeting
+    prompt: "Say hello to the user"
+    pass_criteria:
+      - type: regex
+        name: has_greeting
+        pattern: "[Hh]ello"
+
+  - name: no_profanity
+    description: Ensure no bad words in output
+    prompt: "Respond politely"
+    pass_criteria:
+      - type: regex
+        name: clean_output
+        pattern: "badword"
+        pass_on_match: false
+
+  - name: contains_keyword
+    description: Check exact keyword presence
+    prompt: "Explain TypeScript generics"
+    pass_criteria:
+      - type: exact-match
+        name: mentions_generics
+        expected: "generic"
+        case_sensitive: false
