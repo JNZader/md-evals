@@ -38,6 +38,7 @@ from md_evals.graders.contract_grader import (
     ABContractGrader,
 )
 from md_evals.graders.code_ref_grader import CodeRefGrader
+from md_evals.graders.sql_grader import SQLGrader
 
 __all__ = [
     "Grader",
@@ -64,4 +65,6 @@ __all__ = [
     "ABContractGrader",
     # Code reference validation
     "CodeRefGrader",
+    # SQL execution validation
+    "SQLGrader",
 ]
