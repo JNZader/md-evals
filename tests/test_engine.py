@@ -1739,3 +1739,111 @@ class TestEngineOrchestrationMutations:
         # (May exceed slightly due to Python async overhead)
         assert max_concurrent <= 3, f"Exceeded parallel workers limit: {max_concurrent}"
         assert len(results) >= 3, "Should process all 3 tasks"
+
+
+class TestFailFast:
+    """Test fail_fast stops execution after first failure."""
+
+    @pytest.mark.asyncio
+    async def test_fail_fast_stops_on_first_failure(self):
+        """When fail_fast=True, engine should stop after first failure."""
+        config = EvalConfig(
+            name="Test",
+            defaults=Defaults(model="gpt-4o"),
+            treatments={"CONTROL": Treatment(skill_path=None)},
+            tests=[
+                Task(name="test1", prompt="p1", evaluators=[]),
+                Task(name="test2", prompt="p2", evaluators=[]),
+                Task(name="test3", prompt="p3", evaluators=[]),
+            ],
+            execution=ExecutionConfig(fail_fast=True),
+        )
+
+        call_count = 0
+
+        async def mock_complete(**kwargs):
+            nonlocal call_count
+            call_count += 1
+            # First call fails (content triggers no evaluators but we
+            # force failure via evaluator engine)
+            return LLMResponse(
+                content="fail" if call_count == 1 else "ok",
+                model="gpt-4o",
+                provider="openai",
+                tokens=5,
+                duration_ms=100,
+                raw_response={},
+            )
+
+        mock_adapter = MagicMock()
+        mock_adapter.complete = mock_complete
+
+        # Use evaluator that always fails for the first call
+        from md_evals.evaluator import EvaluatorEngine
+        from md_evals.models import RegexEvaluator
+
+        mock_evaluator = MagicMock(spec=EvaluatorEngine)
+
+        eval_call_count = 0
+
+        async def mock_evaluate(content, evaluators):
+            nonlocal eval_call_count
+            eval_call_count += 1
+            from md_evals.models import EvaluatorResult
+            # First call fails
+            return [
+                EvaluatorResult(
+                    evaluator_name="check",
+                    passed=eval_call_count > 1,
+                    score=1.0 if eval_call_count > 1 else 0.0,
+                )
+            ]
+
+        mock_evaluator.evaluate = mock_evaluate
+
+        # Add evaluator to tasks
+        for task in config.tests:
+            task.evaluators = [
+                RegexEvaluator(name="check", pattern="ok")
+            ]
+
+        engine = ExecutionEngine(
+            config, mock_adapter, evaluator_engine=mock_evaluator
+        )
+        results = await engine.run_all(["CONTROL"])
+
+        # Should have stopped after first failure (1 result only)
+        assert len(results) == 1
+        assert results[0].passed is False
+
+    @pytest.mark.asyncio
+    async def test_no_fail_fast_runs_all(self):
+        """When fail_fast=False, all tests run even after failure."""
+        config = EvalConfig(
+            name="Test",
+            defaults=Defaults(model="gpt-4o"),
+            treatments={"CONTROL": Treatment(skill_path=None)},
+            tests=[
+                Task(name="test1", prompt="p1", evaluators=[]),
+                Task(name="test2", prompt="p2", evaluators=[]),
+                Task(name="test3", prompt="p3", evaluators=[]),
+            ],
+            execution=ExecutionConfig(fail_fast=False),
+        )
+
+        mock_adapter = MagicMock()
+        mock_response = LLMResponse(
+            content="ok",
+            model="gpt-4o",
+            provider="openai",
+            tokens=5,
+            duration_ms=100,
+            raw_response={},
+        )
+        mock_adapter.complete = AsyncMock(return_value=mock_response)
+
+        engine = ExecutionEngine(config, mock_adapter)
+        results = await engine.run_all(["CONTROL"])
+
+        # All 3 tests should have run
+        assert len(results) == 3

@@ -4,6 +4,11 @@ from typing import Literal, Any
 from pydantic import BaseModel, Field
 
 
+# ============== Testing Modes ==============
+
+TestingMode = Literal["smoke", "reliable", "regression"]
+
+
 # ============== Core Configuration ==============
 
 

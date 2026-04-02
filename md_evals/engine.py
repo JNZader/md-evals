@@ -148,45 +148,69 @@ class ExecutionEngine:
         # Run with repetitions
         all_results = []
         repetitions = self.config.execution.repetitions
-        
+        fail_fast = self.config.execution.fail_fast
+        aborted = False
+
         for rep in range(repetitions):
-            # Run all tasks
-            coroutines = [
-                self.run_single(treatment, task, treatment_name)
-                for treatment, task, treatment_name in tasks_to_run
-            ]
-            
-            # Execute concurrently (limited by semaphore)
-            results = await asyncio.gather(*coroutines, return_exceptions=True)
-            
-            # Handle exceptions
-            for i, result in enumerate(results):
-                if isinstance(result, Exception):
-                    # Create error result — surface the actual error message
-                    treatment, task, treatment_name = tasks_to_run[i]
-                    error_msg = str(result)
-                    _model = getattr(self.llm_adapter, "model", None)
-                    _provider = getattr(self.llm_adapter, "provider", None)
-                    error_result = ExecutionResult(
-                        treatment=treatment_name,
-                        test=task.name,
-                        prompt=task.prompt,
-                        response=LLMResponse(
-                            content=f"[LLM ERROR] {error_msg}",
-                            model=_model if isinstance(_model, str) else "error",
-                            provider=_provider if isinstance(_provider, str) else "error",
-                            duration_ms=0,
-                            raw_response={"error": error_msg},
-                        ),
-                        passed=False,
-                        evaluator_results=[],
-                        timestamp=datetime.now(timezone.utc).isoformat(),
-                    )
-                    all_results.append(error_result)
-                else:
+            if aborted:
+                break
+
+            if fail_fast:
+                # Sequential execution for fail_fast — stop on first failure
+                for treatment, task, treatment_name in tasks_to_run:
+                    try:
+                        result = await self.run_single(treatment, task, treatment_name)
+                    except Exception as exc:
+                        result = self._make_error_result(treatment, task, treatment_name, exc)
+
                     all_results.append(result)
-        
+                    if fail_fast and not result.passed:
+                        aborted = True
+                        break
+            else:
+                # Concurrent execution (limited by semaphore)
+                coroutines = [
+                    self.run_single(treatment, task, treatment_name)
+                    for treatment, task, treatment_name in tasks_to_run
+                ]
+                results = await asyncio.gather(*coroutines, return_exceptions=True)
+
+                for i, result in enumerate(results):
+                    if isinstance(result, Exception):
+                        treatment, task, treatment_name = tasks_to_run[i]
+                        error_result = self._make_error_result(treatment, task, treatment_name, result)
+                        all_results.append(error_result)
+                    else:
+                        all_results.append(result)
+
         return all_results
+
+    def _make_error_result(
+        self,
+        treatment: Treatment,
+        task: Task,
+        treatment_name: str,
+        exc: Exception,
+    ) -> ExecutionResult:
+        """Create an error ExecutionResult from an exception."""
+        error_msg = str(exc)
+        _model = getattr(self.llm_adapter, "model", None)
+        _provider = getattr(self.llm_adapter, "provider", None)
+        return ExecutionResult(
+            treatment=treatment_name,
+            test=task.name,
+            prompt=task.prompt,
+            response=LLMResponse(
+                content=f"[LLM ERROR] {error_msg}",
+                model=_model if isinstance(_model, str) else "error",
+                provider=_provider if isinstance(_provider, str) else "error",
+                duration_ms=0,
+                raw_response={"error": error_msg},
+            ),
+            passed=False,
+            evaluator_results=[],
+            timestamp=datetime.now(timezone.utc).isoformat(),
+        )
     
     async def run_treatment(
         self,

@@ -15,7 +15,9 @@ from md_evals.engine import ExecutionEngine
 from md_evals.evaluator import EvaluatorEngine
 from md_evals.llm import LLMAdapter
 from md_evals.linter import LinterEngine
-from md_evals.models import LinterConfig
+from md_evals.baseline import BaselineManager
+from md_evals.mode_resolver import resolve_mode
+from md_evals.models import LinterConfig, TestingMode
 from md_evals.precheck import PreCheckEngine
 from md_evals.providers.github_models import GitHubModelsProvider
 from md_evals.reporter import Reporter
@@ -223,6 +225,8 @@ def run(
     collect_usage_metrics: Annotated[Optional[bool], typer.Option("--collect-usage-metrics/--no-collect-usage-metrics", help="Collect extended usage metrics (cost + context)")] = None,
     pipeline: Annotated[Optional[bool], typer.Option("--pipeline/--no-pipeline", help="Force pipeline mode on/off")] = None,
     probe: Annotated[Optional[str], typer.Option("--probe", help="Comma-separated probe names (e.g., dimension,edge-case)")] = None,
+    mode: Annotated[Optional[str], typer.Option("--mode", help="Testing mode: smoke, reliable, regression")] = None,
+    fail_fast: Annotated[Optional[bool], typer.Option("--fail-fast/--no-fail-fast", help="Stop on first failure")] = None,
 ):
     """Run evaluations with support for GitHub Models and other providers."""
     # Configure logging if debug is enabled
@@ -239,11 +243,34 @@ def run(
         console.print(f"[red]Error loading config: {e}[/red]")
         raise typer.Exit(code=1)
     
-    # Override execution settings
-    if count > 1:
-        config_obj.execution.repetitions = count
-    if workers > 1:
-        config_obj.execution.parallel_workers = workers
+    # ── Mode resolution (before other overrides) ──
+    mode_defaults = None
+    if mode is not None:
+        valid_modes = ("smoke", "reliable", "regression")
+        if mode not in valid_modes:
+            console.print(f"[red]Invalid mode: {mode}. Choose from: {', '.join(valid_modes)}[/red]")
+            raise typer.Exit(code=1)
+        # CLI --count > 1 means explicit override; default 1 means "not set"
+        explicit_count = count if count > 1 else None
+        mode_defaults = resolve_mode(
+            mode,  # type: ignore[arg-type]
+            cli_count=explicit_count,
+            cli_fail_fast=fail_fast,
+        )
+        if mode_defaults is not None:
+            config_obj.execution.repetitions = mode_defaults.repetitions
+            config_obj.execution.fail_fast = mode_defaults.fail_fast
+            if workers > 1:
+                config_obj.execution.parallel_workers = workers
+
+    # Override execution settings (when no mode, or explicit CLI flags)
+    if mode_defaults is None:
+        if count > 1:
+            config_obj.execution.repetitions = count
+        if workers > 1:
+            config_obj.execution.parallel_workers = workers
+        if fail_fast is not None:
+            config_obj.execution.fail_fast = fail_fast
     if model:
         config_obj.defaults.model = model
     if provider:
@@ -455,9 +482,33 @@ def run(
         
         raise typer.Exit(code=3)
     
+    # ── Baseline handling (regression mode) ──
+    regression_findings = None
+    if mode_defaults is not None:
+        results_dir = config_obj.output.results_dir
+        config_name = config_obj.name
+
+        if mode_defaults.compare_baseline:
+            baseline = BaselineManager.load(config_name, results_dir)
+            if baseline is None:
+                console.print(
+                    "[yellow]No previous baseline — saving current as baseline[/yellow]"
+                )
+            else:
+                regression_findings = BaselineManager.compare(results, baseline)
+
+        if mode_defaults.save_baseline:
+            saved_path = BaselineManager.save(results, config_name, results_dir)
+            console.print(f"[green]Baseline saved to {saved_path}[/green]")
+
+        # Always save baseline on regression mode (even if comparing)
+        if mode_defaults.compare_baseline:
+            saved_path = BaselineManager.save(results, config_name, results_dir)
+            console.print(f"[green]Baseline saved to {saved_path}[/green]")
+
     # Report
     reporter = Reporter(config_obj)
-    
+
     if output == "table":
         reporter.report_terminal(results, verbose)
     elif output == "json":
@@ -468,11 +519,24 @@ def run(
         output_path = f"{config_obj.output.results_dir}/results.md"
         reporter.report_markdown(results, output_path)
         console.print(f"[green]Saved results to {output_path}[/green]")
-    
+
+    # ── Mode-aware reporting ──
+    if mode == "reliable" and mode_defaults is not None:
+        reporter.report_pass_rates(results)
+    if mode == "regression" and regression_findings is not None:
+        reporter.report_regression_delta(regression_findings)
+
     # Exit code based on results
+    has_regressions = (
+        regression_findings is not None
+        and any(f.status == "regression" for f in regression_findings)
+    )
+    if has_regressions:
+        raise typer.Exit(code=5)
+
     passed = sum(1 for r in results if r.passed)
     total = len(results)
-    
+
     if passed == total:
         raise typer.Exit(code=0)
     elif passed > 0:

@@ -3,7 +3,7 @@
 import json
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any
+from typing import Any, TYPE_CHECKING
 
 from rich.console import Console
 from rich.table import Table
@@ -14,6 +14,9 @@ from md_evals.metrics import build_usage_metrics
 from md_evals.models import EvalConfig, ExecutionResult
 from md_evals.scoring import EvalResult, eval_result_to_dict
 from md_evals.llm import TIMEOUT_ERROR_CODE
+
+if TYPE_CHECKING:
+    from md_evals.baseline import RegressionItem
 
 
 class Reporter:
@@ -399,6 +402,119 @@ class Reporter:
 
         self.console.print()
         self.console.print(table)
+
+    def report_pass_rates(self, results: list[ExecutionResult]) -> None:
+        """Print per-test pass rate table for reliable mode.
+
+        Groups results by test name across all repetitions, showing
+        how many passed out of total runs.
+
+        Args:
+            results: List of execution results (may span multiple reps).
+        """
+        # Group by (treatment, test)
+        grouped: dict[str, list[ExecutionResult]] = {}
+        for r in results:
+            key = f"{r.treatment}::{r.test}"
+            grouped.setdefault(key, []).append(r)
+
+        table = Table(
+            title="Pass Rates (Reliable Mode)",
+            box=box.ROUNDED,
+            show_header=True,
+            header_style="bold cyan",
+        )
+        table.add_column("Treatment", style="cyan")
+        table.add_column("Test", style="white")
+        table.add_column("Passed", justify="center")
+        table.add_column("Total", justify="center")
+        table.add_column("Pass Rate", justify="center")
+
+        for key, group in grouped.items():
+            treatment, test_name = key.split("::", 1)
+            passed = sum(1 for r in group if r.passed)
+            total = len(group)
+            rate = (passed / total * 100) if total else 0
+
+            if rate >= 80:
+                rate_style = "green"
+            elif rate >= 50:
+                rate_style = "yellow"
+            else:
+                rate_style = "red"
+
+            table.add_row(
+                treatment,
+                test_name,
+                str(passed),
+                str(total),
+                f"[{rate_style}]{rate:.0f}% ({passed}/{total})[/{rate_style}]",
+            )
+
+        self.console.print()
+        self.console.print(table)
+
+    def report_regression_delta(
+        self, findings: "list[RegressionItem]"
+    ) -> None:
+        """Print regression delta table for regression mode.
+
+        Shows baseline vs current values with status indicators.
+
+        Args:
+            findings: List of RegressionItem from BaselineManager.compare().
+        """
+        table = Table(
+            title="Regression Report",
+            box=box.ROUNDED,
+            show_header=True,
+            header_style="bold cyan",
+        )
+        table.add_column("Treatment", style="cyan")
+        table.add_column("Test", style="white")
+        table.add_column("Dimension", style="dim")
+        table.add_column("Baseline", justify="center")
+        table.add_column("Current", justify="center")
+        table.add_column("Delta", justify="center")
+        table.add_column("Status", justify="center")
+
+        status_styles = {
+            "regression": "[red]REGRESSION[/red]",
+            "improvement": "[green]IMPROVEMENT[/green]",
+            "stable": "[dim]STABLE[/dim]",
+            "new": "[blue]NEW[/blue]",
+        }
+
+        for f in findings:
+            delta_sign = "+" if f.delta > 0 else ""
+            delta_str = f"{delta_sign}{f.delta:.2%}"
+            if f.status == "regression":
+                delta_str = f"[red]{delta_str}[/red]"
+            elif f.status == "improvement":
+                delta_str = f"[green]{delta_str}[/green]"
+
+            table.add_row(
+                f.treatment,
+                f.test_name,
+                f.dimension,
+                f"{f.baseline_value:.2%}",
+                f"{f.current_value:.2%}",
+                delta_str,
+                status_styles.get(f.status, f.status),
+            )
+
+        self.console.print()
+        self.console.print(table)
+
+        regressions = [f for f in findings if f.status == "regression"]
+        if regressions:
+            self.console.print(
+                f"\n[red]Found {len(regressions)} regression(s). Exit code 5.[/red]"
+            )
+        else:
+            self.console.print(
+                "\n[green]No regressions detected.[/green]"
+            )
 
     def _print_verbose(self, results: list[ExecutionResult]) -> None:
         """Print verbose results."""

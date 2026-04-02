@@ -177,6 +177,35 @@ class TestSmokeCommand:
         assert "FAIL" in result.output
 
 
+class TestModeFlag:
+    """Test `md-evals run --mode` flag validation."""
+
+    def test_invalid_mode_rejected(self):
+        result = runner.invoke(
+            app,
+            ["run", "--config", str(FIXTURES / "eval.yaml"), "--mode", "invalid"],
+        )
+        assert result.exit_code == 1
+        output = result.output.replace("\n", " ").lower()
+        assert "invalid mode" in output
+
+    def test_mode_smoke_accepted(self):
+        """Smoke mode should be accepted (may fail at LLM call but not at mode validation)."""
+        result = runner.invoke(
+            app,
+            [
+                "run",
+                "--config", str(FIXTURES / "eval.yaml"),
+                "--mode", "smoke",
+                "--no-lint",
+                "--no-pre-check",
+            ],
+        )
+        # Should NOT fail with "invalid mode" — may fail later at LLM init
+        output = result.output.replace("\n", " ").lower()
+        assert "invalid mode" not in output
+
+
 class TestPluginsListCommand:
     """Test `md-evals plugins list`."""
 
