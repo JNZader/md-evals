@@ -12,6 +12,7 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
 
+from md_evals.graders._path_utils import validate_workspace_path
 from md_evals.models import EvaluatorResult
 
 # Regex to match ```sql ... ``` fenced code blocks
@@ -57,7 +58,7 @@ class SQLGrader:
         Returns:
             EvaluatorResult with proportional score and query details.
         """
-        md_path = workspace / self.markdown_file
+        md_path = validate_workspace_path(workspace, self.markdown_file)
         if not md_path.exists():
             return EvaluatorResult(
                 evaluator_name=self.name,
@@ -162,7 +163,7 @@ class SQLGrader:
 
         Returns None if the database file does not exist.
         """
-        full_path = workspace / db_path
+        full_path = validate_workspace_path(workspace, db_path)
         if not full_path.exists():
             return None
         return sqlite3.connect(str(full_path))

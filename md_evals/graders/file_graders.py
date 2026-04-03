@@ -10,6 +10,7 @@ import re
 from dataclasses import dataclass
 from pathlib import Path
 
+from md_evals.graders._path_utils import validate_workspace_path
 from md_evals.models import EvaluatorResult
 
 
@@ -28,7 +29,7 @@ class FileExistsGrader:
     should_exist: bool = True
 
     def grade(self, workspace: Path) -> EvaluatorResult:
-        target = workspace / self.path
+        target = validate_workspace_path(workspace, self.path)
         exists = target.exists()
         passed = exists if self.should_exist else not exists
 
@@ -66,7 +67,7 @@ class FileContentGrader:
     expected: str | None = None
 
     def grade(self, workspace: Path) -> EvaluatorResult:
-        target = workspace / self.path
+        target = validate_workspace_path(workspace, self.path)
 
         if not target.exists():
             return EvaluatorResult(
@@ -126,7 +127,7 @@ class FileSizeGrader:
     max_bytes: int | None = None
 
     def grade(self, workspace: Path) -> EvaluatorResult:
-        target = workspace / self.path
+        target = validate_workspace_path(workspace, self.path)
 
         if not target.exists():
             return EvaluatorResult(

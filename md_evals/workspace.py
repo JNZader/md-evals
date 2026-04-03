@@ -11,6 +11,7 @@ Orchestrates the full lifecycle for deterministic evaluation:
 
 from __future__ import annotations
 
+import shlex
 import shutil
 import subprocess
 import tempfile
@@ -111,8 +112,8 @@ class WorkspaceRunner:
             if config.task_command:
                 try:
                     proc = subprocess.run(
-                        config.task_command,
-                        shell=True,
+                        shlex.split(config.task_command),
+                        shell=False,
                         cwd=str(workspace),
                         capture_output=True,
                         text=True,
@@ -164,7 +165,12 @@ class WorkspaceRunner:
             workspace: Root directory.
             setup_files: Files to create.
         """
+        resolved_workspace = workspace.resolve()
         for sf in setup_files:
-            target = workspace / sf.path
+            target = (workspace / sf.path).resolve()
+            if not str(target).startswith(str(resolved_workspace)):
+                raise ValueError(
+                    f"Path traversal detected: '{sf.path}' resolves outside workspace"
+                )
             target.parent.mkdir(parents=True, exist_ok=True)
             target.write_text(sf.content, encoding="utf-8")

@@ -11,6 +11,7 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Literal
 
+from md_evals.graders._path_utils import validate_workspace_path
 from md_evals.models import EvaluatorResult
 
 # Regex to match fenced code blocks: ```lang\n...\n```
@@ -86,7 +87,7 @@ class CodeRefGrader:
         Returns:
             EvaluatorResult with proportional score and resolution details.
         """
-        md_path = workspace / self.markdown_file
+        md_path = validate_workspace_path(workspace, self.markdown_file)
         if not md_path.exists():
             return EvaluatorResult(
                 evaluator_name=self.name,
@@ -190,12 +191,19 @@ class CodeRefGrader:
 
     def _resolve_file(self, ref: str, workspace: Path) -> bool:
         """Check if a file-path reference exists in the workspace."""
-        return (workspace / ref).exists()
+        try:
+            target = validate_workspace_path(workspace, ref)
+            return target.exists()
+        except ValueError:
+            return False
 
     def _resolve_symbol(self, ref: str, workspace: Path) -> bool:
         """Search for a symbol string in source files within search_dirs."""
         for search_dir in self.search_dirs:
-            base = workspace / search_dir
+            try:
+                base = validate_workspace_path(workspace, search_dir)
+            except ValueError:
+                continue
             if not base.is_dir():
                 continue
             for ext in self.file_extensions:

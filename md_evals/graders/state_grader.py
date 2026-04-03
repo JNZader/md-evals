@@ -9,6 +9,7 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from pathlib import Path
 
+from md_evals.graders._path_utils import validate_workspace_path
 from md_evals.models import EvaluatorResult
 
 
@@ -57,17 +58,19 @@ class StateGrader:
 
         # Check created files
         for rel_path in self.expected_created:
-            if not (workspace / rel_path).exists():
+            target = validate_workspace_path(workspace, rel_path)
+            if not target.exists():
                 failures.append(f"Expected created file '{rel_path}' not found")
 
         # Check deleted files
         for rel_path in self.expected_deleted:
-            if (workspace / rel_path).exists():
+            target = validate_workspace_path(workspace, rel_path)
+            if target.exists():
                 failures.append(f"File '{rel_path}' should have been deleted")
 
         # Check modified files
         for rel_path in self.expected_modified:
-            target = workspace / rel_path
+            target = validate_workspace_path(workspace, rel_path)
             if not target.exists():
                 failures.append(f"Expected modified file '{rel_path}' not found")
                 continue

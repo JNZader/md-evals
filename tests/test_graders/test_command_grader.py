@@ -48,7 +48,7 @@ class TestCommandGrader:
     def test_custom_exit_code(self, tmp_path: Path):
         grader = CommandGrader(
             name="exit_test",
-            command="exit 42",
+            command="bash -c 'exit 42'",
             expected_exit_code=42,
         )
         result = grader.grade(tmp_path)
@@ -77,7 +77,7 @@ class TestCommandGrader:
     def test_stderr_captured(self, tmp_path: Path):
         grader = CommandGrader(
             name="stderr_test",
-            command="echo err >&2",
+            command="bash -c 'echo err >&2'",
         )
         result = grader.grade(tmp_path)
         assert result.passed is True
@@ -86,7 +86,7 @@ class TestCommandGrader:
     def test_both_exit_and_output_fail(self, tmp_path: Path):
         grader = CommandGrader(
             name="both_fail",
-            command="echo wrong && exit 1",
+            command="bash -c 'echo wrong && exit 1'",
             expected_exit_code=0,
             expected_output="expected",
         )

@@ -17,6 +17,7 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
 
+from md_evals.graders._path_utils import validate_workspace_path
 from md_evals.models import EvaluatorResult
 
 
@@ -69,7 +70,7 @@ class JSONValidGrader:
         if self.content is not None:
             return self.content
         if self.path is not None:
-            target = workspace / self.path
+            target = validate_workspace_path(workspace, self.path)
             if not target.exists():
                 return None
             return target.read_text(encoding="utf-8", errors="replace")
@@ -166,7 +167,7 @@ class RequiredFieldsGrader:
         if self.content is not None:
             return self.content
         if self.path is not None:
-            target = workspace / self.path
+            target = validate_workspace_path(workspace, self.path)
             if not target.exists():
                 return None
             return target.read_text(encoding="utf-8", errors="replace")
@@ -292,7 +293,7 @@ class FieldTypeGrader:
         if self.content is not None:
             return self.content
         if self.path is not None:
-            target = workspace / self.path
+            target = validate_workspace_path(workspace, self.path)
             if not target.exists():
                 return None
             return target.read_text(encoding="utf-8", errors="replace")

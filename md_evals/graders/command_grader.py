@@ -6,6 +6,7 @@ and optionally stdout content.
 
 from __future__ import annotations
 
+import shlex
 import subprocess
 from dataclasses import dataclass
 from pathlib import Path
@@ -36,8 +37,8 @@ class CommandGrader:
     def grade(self, workspace: Path) -> EvaluatorResult:
         try:
             result = subprocess.run(
-                self.command,
-                shell=True,
+                shlex.split(self.command),
+                shell=False,
                 cwd=str(workspace),
                 capture_output=True,
                 text=True,

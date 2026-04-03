@@ -51,7 +51,7 @@ class TestWorkspaceRunner:
             setup_files=[
                 SetupFile(path="marker.txt", content="found_it"),
             ],
-            task_command="cat marker.txt > result.txt",
+            task_command="bash -c 'cat marker.txt > result.txt'",
             graders=[
                 FileContentGrader(
                     name="result_check", path="result.txt", expected="found_it"
@@ -80,7 +80,7 @@ class TestWorkspaceRunner:
             setup_files=[
                 SetupFile(path="input.txt", content="data"),
             ],
-            task_command="echo 'processed' > output.txt",
+            task_command="bash -c 'echo processed > output.txt'",
             graders=[
                 FileExistsGrader(name="input_ok", path="input.txt"),
                 FileExistsGrader(name="output_ok", path="output.txt"),
@@ -170,7 +170,7 @@ class TestWorkspaceRunner:
             setup_files=[
                 SetupFile(path="to_delete.txt", content="bye"),
             ],
-            task_command="rm to_delete.txt && echo created > new.txt",
+            task_command="bash -c 'rm to_delete.txt && echo created > new.txt'",
             graders=[
                 StateGrader(
                     name="state_check",
@@ -195,7 +195,7 @@ class TestWorkspaceRunner:
         runner = WorkspaceRunner()
         config = WorkspaceConfig(
             name="stderr_test",
-            task_command="echo error_msg >&2",
+            task_command="bash -c 'echo error_msg >&2'",
         )
         result = runner.run(config)
         assert "error_msg" in result.task_stderr
