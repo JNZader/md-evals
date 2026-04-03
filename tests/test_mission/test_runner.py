@@ -3,10 +3,13 @@
 import json
 import tempfile
 from pathlib import Path
+from unittest.mock import AsyncMock, patch
 
 import pytest
 import yaml
+from pydantic import ValidationError
 
+from md_evals.llm import LLMError, LLMTimeoutError
 from md_evals.mission.models import (
     MissionConfig,
     MissionPassCriteria,
@@ -300,3 +303,132 @@ class TestMissionSaveResult:
         result = await runner.run(config)
         saved_path = runner.save_result(result, deep_dir)
         assert saved_path.exists()
+
+
+class TestNarrowedExceptions:
+    """Verify that specific exceptions are caught and generic ones propagate."""
+
+    def test_load_catches_validation_error(self, tmp_path):
+        """Pydantic ValidationError is caught and wrapped as MissionLoadError."""
+        bad_schema = tmp_path / "bad.yaml"
+        # Missing required 'name' field triggers ValidationError
+        bad_schema.write_text(yaml.dump({"test_cases": "not_a_list"}))
+        with pytest.raises(MissionLoadError, match="Invalid mission config"):
+            MissionRunner.load(str(bad_schema))
+
+    def test_load_catches_type_error(self, tmp_path):
+        """TypeError from unpacking is caught and wrapped as MissionLoadError."""
+        bad = tmp_path / "bad.yaml"
+        # A list instead of a dict causes TypeError on **data
+        bad.write_text("- item1\n- item2\n")
+        with pytest.raises(MissionLoadError, match="Invalid mission config"):
+            MissionRunner.load(str(bad))
+
+    def test_load_propagates_unexpected_exceptions(self, tmp_path):
+        """Exceptions NOT in the narrow list propagate uncaught."""
+        valid = tmp_path / "valid.yaml"
+        valid.write_text(yaml.dump({"name": "test", "test_cases": []}))
+        with patch(
+            "md_evals.mission.runner.MissionConfig",
+            side_effect=RuntimeError("unexpected"),
+        ):
+            with pytest.raises(RuntimeError, match="unexpected"):
+                MissionRunner.load(str(valid))
+
+    @pytest.mark.asyncio
+    async def test_run_catches_llm_error(self):
+        """LLMError from the adapter is caught, test marked as failed."""
+        adapter = AsyncMock()
+        adapter.complete = AsyncMock(side_effect=LLMError("API rate limit"))
+        config = MissionConfig(
+            name="llm-err",
+            test_cases=[
+                MissionTestCase(
+                    name="t1",
+                    prompt="hello",
+                    pass_criteria=[
+                        MissionPassCriteria(type="regex", name="c1", pattern="hi"),
+                    ],
+                )
+            ],
+        )
+        runner = MissionRunner(llm_adapter=adapter)
+        with patch("md_evals.llm.inject_skill", return_value=("hello", None)):
+            result = await runner.run(config)
+        assert result.test_results[0].passed is False
+        assert "LLM error" in result.test_results[0].error
+
+    @pytest.mark.asyncio
+    async def test_run_catches_llm_timeout_error(self):
+        """LLMTimeoutError from the adapter is caught, test marked as failed."""
+        adapter = AsyncMock()
+        adapter.complete = AsyncMock(
+            side_effect=LLMTimeoutError({"message": "timed out"})
+        )
+        config = MissionConfig(
+            name="timeout-err",
+            test_cases=[
+                MissionTestCase(
+                    name="t1",
+                    prompt="hello",
+                    pass_criteria=[
+                        MissionPassCriteria(type="regex", name="c1", pattern="hi"),
+                    ],
+                )
+            ],
+        )
+        runner = MissionRunner(llm_adapter=adapter)
+        with patch("md_evals.llm.inject_skill", return_value=("hello", None)):
+            result = await runner.run(config)
+        assert result.test_results[0].passed is False
+        assert "LLM error" in result.test_results[0].error
+
+    @pytest.mark.asyncio
+    async def test_run_catches_file_not_found_from_inject_skill(self):
+        """FileNotFoundError from inject_skill is caught."""
+        adapter = AsyncMock()
+        config = MissionConfig(
+            name="fnf-err",
+            skill_under_test="./nonexistent.md",
+            test_cases=[
+                MissionTestCase(
+                    name="t1",
+                    prompt="hello",
+                    pass_criteria=[
+                        MissionPassCriteria(type="regex", name="c1", pattern="hi"),
+                    ],
+                )
+            ],
+        )
+        runner = MissionRunner(llm_adapter=adapter)
+        with patch(
+            "md_evals.llm.inject_skill",
+            side_effect=FileNotFoundError("Skill file not found"),
+        ):
+            result = await runner.run(config)
+        assert result.test_results[0].passed is False
+        assert "LLM error" in result.test_results[0].error
+
+    @pytest.mark.asyncio
+    async def test_run_propagates_unexpected_exceptions(self):
+        """Exceptions NOT in the narrow list propagate uncaught from _run_test_case."""
+        adapter = AsyncMock()
+        config = MissionConfig(
+            name="unhandled",
+            test_cases=[
+                MissionTestCase(
+                    name="t1",
+                    prompt="hello",
+                    pass_criteria=[
+                        MissionPassCriteria(type="regex", name="c1", pattern="hi"),
+                    ],
+                )
+            ],
+        )
+        runner = MissionRunner(llm_adapter=adapter)
+        with patch(
+            "md_evals.llm.inject_skill",
+            side_effect=RuntimeError("unexpected bug"),
+        ):
+            with pytest.raises(RuntimeError, match="unexpected bug"):
+                await runner.run(config)

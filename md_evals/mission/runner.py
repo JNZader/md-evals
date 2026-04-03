@@ -9,7 +9,9 @@ from pathlib import Path
 from typing import Any
 
 import yaml
+from pydantic import ValidationError
 
+from md_evals.llm import LLMError, LLMTimeoutError
 from md_evals.mission.models import (
     MissionConfig,
     MissionPassCriteria,
@@ -71,7 +73,7 @@ class MissionRunner:
 
         try:
             return MissionConfig(**data)
-        except Exception as exc:
+        except (ValidationError, ValueError, KeyError, TypeError) as exc:
             raise MissionLoadError(f"Invalid mission config in {path}: {exc}")
 
     async def run(self, config: MissionConfig) -> MissionResult:
@@ -167,7 +169,7 @@ class MissionRunner:
                     system_prompt=system_prompt,
                 )
                 response_content = response.content
-            except Exception as exc:
+            except (LLMError, LLMTimeoutError, FileNotFoundError, ConnectionError, TimeoutError) as exc:
                 duration = int((time.monotonic() - start) * 1000)
                 return MissionTestResult(
                     test_name=test_case.name,
