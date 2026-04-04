@@ -1321,5 +1321,55 @@ def mission_report(
     raise typer.Exit(code=0)
 
 
+@app.command()
+def dashboard(
+    dashboard_file: Annotated[str, typer.Argument(help="Path to the Markdown dashboard file with sql-eval blocks")],
+    store: Annotated[str, typer.Option("--store", "-s", help="Path to the JSONL analytics store")] = ".md-evals/analytics.jsonl",
+    output: Annotated[Optional[str], typer.Option("--output", "-o", help="Output file path (defaults to stdout)")] = None,
+    db_path: Annotated[Optional[str], typer.Option("--db-path", help="Persist the SQLite DB to this path for reuse")] = None,
+):
+    """Render a SQL-in-Markdown dashboard from the analytics store.
+
+    Reads a Markdown file containing ```sql-eval fenced blocks, executes each
+    query against the analytics data exported to SQLite, and replaces the
+    blocks with formatted Markdown tables.
+
+    Example:
+
+        md-evals dashboard examples/dashboard.md --store .md-evals/analytics.jsonl
+    """
+    from md_evals.dashboard import render_dashboard
+
+    dashboard_path = Path(dashboard_file)
+    if not dashboard_path.exists():
+        console.print(f"[red]Dashboard file not found: {dashboard_file}[/red]")
+        raise typer.Exit(code=1)
+
+    store_path = Path(store)
+    if not store_path.exists():
+        console.print(f"[yellow]Analytics store not found: {store}[/yellow]")
+        console.print("[dim]Run some evals first to populate the store.[/dim]")
+        raise typer.Exit(code=1)
+
+    try:
+        rendered = render_dashboard(
+            dashboard_md=dashboard_path,
+            store_path=store_path,
+            db_path=db_path,
+        )
+    except Exception as exc:  # noqa: BLE001
+        console.print(f"[red]Dashboard rendering failed: {exc}[/red]")
+        raise typer.Exit(code=1)
+
+    if output:
+        out_path = Path(output)
+        out_path.write_text(rendered, encoding="utf-8")
+        console.print(f"[green]Dashboard written to {output}[/green]")
+    else:
+        print(rendered)
+
+    raise typer.Exit(code=0)
+
+
 if __name__ == "__main__":
     app()
