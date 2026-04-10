@@ -1,9 +1,8 @@
 """Tests for md_evals.baseline."""
 
-import json
 import pytest
 
-from md_evals.baseline import BaselineManager, BaselineReport, RegressionItem
+from md_evals.baseline import BaselineManager, BaselineReport
 from md_evals.models import ExecutionResult, LLMResponse
 
 

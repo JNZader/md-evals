@@ -285,7 +285,6 @@ class TestExecuteSqlBlocks:
 
 class TestRenderDashboard:
     def _write_store(self, path: Path, records: list[EvalRecord]) -> None:
-        import json
         from dataclasses import asdict
         with open(path, "w") as f:
             for r in records:
@@ -335,7 +334,6 @@ class TestDashboardCLI:
     runner = CliRunner()
 
     def _write_store(self, path: Path, records: list[EvalRecord]) -> None:
-        import json
         from dataclasses import asdict
         with open(path, "w") as f:
             for r in records:

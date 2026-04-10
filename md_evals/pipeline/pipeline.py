@@ -31,7 +31,6 @@ from md_evals.scoring import (
     EvalMetadata,
     EvalResult,
     calculate_overall_grade,
-    score_to_grade,
 )
 
 logger = logging.getLogger(__name__)

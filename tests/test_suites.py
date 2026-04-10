@@ -16,7 +16,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
-from md_evals.scoring import GRADE_ORDER, DimensionScore, EvalMetadata, EvalResult
+from md_evals.scoring import DimensionScore, EvalMetadata, EvalResult
 from md_evals.suites import (
     SkillEntry,
     SuiteConfig,

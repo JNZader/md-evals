@@ -1,7 +1,6 @@
 """Tests for StateGrader."""
 
 import time
-import pytest
 from pathlib import Path
 
 from md_evals.graders.state_grader import StateGrader

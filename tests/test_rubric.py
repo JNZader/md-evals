@@ -20,7 +20,6 @@ from md_evals.rubric import (
     RubricLoader,
     RubricNotFoundError,
     RubricValidationError,
-    DimensionConfig,
 )
 
 

@@ -353,12 +353,12 @@ class LLMJudgeDetector:
 
         parts.extend([
             "",
-            f"## Test Scenario",
+            "## Test Scenario",
             f"Prompt: {scenario.prompt}",
             f"Expected behavior: {scenario.expected_behavior}",
             f"Dimension: {scenario.dimension or 'general'}",
             "",
-            f"## Target Response",
+            "## Target Response",
             response[:3000],
         ])
 

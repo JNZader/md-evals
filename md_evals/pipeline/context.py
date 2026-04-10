@@ -28,11 +28,7 @@ from dataclasses import dataclass, field
 from typing import Any, TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from md_evals.pipeline.config import PipelineConfig
-    from md_evals.pipeline.skill_parser import ParsedSkill
-    from md_evals.precheck import PreCheckResult
-    from md_evals.rubric import RubricConfig
-    from md_evals.scoring import DimensionScore
+    pass
 
 
 # ─── Frozen Value Objects ───

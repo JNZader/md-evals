@@ -1,6 +1,5 @@
 """Tests for Mission models (Pydantic schemas)."""
 
-import pytest
 
 from md_evals.mission.models import (
     MissionConfig,

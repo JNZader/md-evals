@@ -2,7 +2,6 @@
 
 from pathlib import Path
 
-import pytest
 
 from md_evals.linter import LinterEngine
 from md_evals.models import LinterConfig

@@ -6,13 +6,12 @@ ComplianceProbe generate correct Scenario objects with proper lineage.
 
 from __future__ import annotations
 
-from unittest.mock import AsyncMock, MagicMock, patch
+from unittest.mock import AsyncMock, MagicMock
 import json
 
-import pytest
 
 from md_evals.pipeline.config import AuditorConfig, PipelineConfig
-from md_evals.pipeline.context import EvalContext, Scenario
+from md_evals.pipeline.context import EvalContext
 from md_evals.pipeline.probes import (
     ComplianceProbe,
     DimensionProbe,

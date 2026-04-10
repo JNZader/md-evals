@@ -1,6 +1,5 @@
 """Tests for analysis phase graders (keyword coverage, sections, length)."""
 
-import pytest
 from pathlib import Path
 
 from md_evals.graders.analysis_grader import (

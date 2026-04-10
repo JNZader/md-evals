@@ -17,7 +17,7 @@ from md_evals.llm import LLMAdapter
 from md_evals.linter import LinterEngine
 from md_evals.baseline import BaselineManager
 from md_evals.mode_resolver import resolve_mode
-from md_evals.models import LinterConfig, TestingMode
+from md_evals.models import LinterConfig
 from md_evals.precheck import PreCheckEngine
 from md_evals.providers.github_models import GitHubModelsProvider
 from md_evals.reporter import Reporter
@@ -76,8 +76,8 @@ def check(
     if result.passed:
         console.print(f"[green]✓ {skill_path} — Pre-check PASSED ({result.checks_run} checks, {len(result.findings)} findings, {result.duration_ms}ms)[/green]")
     else:
-        error_count = sum(1 for f in result.findings if f.severity == "error")
-        warn_count = sum(1 for f in result.findings if f.severity == "warning")
+        sum(1 for f in result.findings if f.severity == "error")
+        sum(1 for f in result.findings if f.severity == "warning")
         console.print(f"[red]✗ {skill_path} — Pre-check FAILED ({result.checks_run} checks, {len(result.findings)} findings, {result.duration_ms}ms)[/red]")
 
     # Show findings
@@ -807,7 +807,7 @@ def suite_run(
 
     Exit codes: 0=all pass, 1=config error, 2=threshold failures.
     """
-    from md_evals.suites import SuiteLoader, SuiteLoadError, SuiteRunner, grade_meets_threshold
+    from md_evals.suites import SuiteLoader, SuiteLoadError, SuiteRunner
 
     # Load suite config
     if config:
@@ -936,7 +936,7 @@ def eval_plugin_cmd(
     Discovers SKILL.md files in the plugin structure and evaluates each.
     Exit code 0 if aggregate grade meets --min-grade, 2 otherwise.
     """
-    from md_evals.plugin_eval import PluginEvaluator, PluginError
+    from md_evals.plugin_eval import PluginEvaluator
     from md_evals.scoring import GRADE_ORDER
 
     if min_grade not in GRADE_ORDER:
@@ -1040,7 +1040,7 @@ def analytics_trends(
     if not skill:
         # Show summary stats instead
         stats = engine.get_summary_stats()
-        console.print(f"[bold]Analytics Summary[/bold]")
+        console.print("[bold]Analytics Summary[/bold]")
         console.print(f"  Total evals: {stats['total_evals']}")
         console.print(f"  Unique skills: {stats['unique_skills']}")
         console.print(f"  Avg score: {stats['avg_score']:.2f}")

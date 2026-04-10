@@ -8,7 +8,6 @@ from __future__ import annotations
 
 from unittest.mock import MagicMock, patch
 
-import pytest
 
 from md_evals.pipeline.config import AuditorConfig, JudgeConfig, PipelineConfig, TargetConfig
 from md_evals.pipeline.model_router import ModelRouter
@@ -66,9 +65,9 @@ def test_router_returns_adapter_for_each_stage(MockAdapter):
     defaults = _make_defaults()
     router = ModelRouter(defaults, config)
 
-    a = router.get_adapter("auditor")
-    t = router.get_adapter("target")
-    j = router.get_adapter("judge")
+    router.get_adapter("auditor")
+    router.get_adapter("target")
+    router.get_adapter("judge")
 
     # Three distinct adapters created (different models)
     assert MockAdapter.call_count == 3

@@ -2,7 +2,7 @@
 
 import pytest
 
-from md_evals.mode_resolver import ModeDefaults, MODE_PRESETS, resolve_mode
+from md_evals.mode_resolver import MODE_PRESETS, resolve_mode
 
 
 class TestModePresets:

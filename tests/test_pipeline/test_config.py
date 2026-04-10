@@ -6,7 +6,6 @@ AuditorConfig, TargetConfig, JudgeConfig, and StageConfig.
 
 from __future__ import annotations
 
-import pytest
 
 from md_evals.pipeline.config import (
     AuditorConfig,

@@ -8,7 +8,7 @@ from __future__ import annotations
 
 import pytest
 
-from md_evals.pipeline.context import EvalContext, Scenario
+from md_evals.pipeline.context import EvalContext
 from md_evals.pipeline.gherkin import GherkinScenario, GherkinProbe, parse_gherkin_scenarios
 from md_evals.pipeline.skill_parser import ParsedSkill
 

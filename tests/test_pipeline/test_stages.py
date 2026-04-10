@@ -7,12 +7,10 @@ AuditorStage, TargetStage, and JudgeStage behavior.
 from __future__ import annotations
 
 import asyncio
-from unittest.mock import AsyncMock, MagicMock, PropertyMock
+from unittest.mock import AsyncMock, MagicMock
 
-import pytest
 
-from md_evals.pipeline.config import PipelineConfig
-from md_evals.pipeline.context import EvalContext, Scenario, StageError, StageResult
+from md_evals.pipeline.context import EvalContext, Scenario
 from md_evals.pipeline.skill_parser import ParsedSkill
 from md_evals.pipeline.stages import AuditorStage, JudgeStage, PreCheckStage, TargetStage
 from md_evals.scoring import DimensionScore

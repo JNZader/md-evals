@@ -35,7 +35,6 @@ from md_evals.pipeline.context import EvalContext, Scenario, StageError, StageRe
 if TYPE_CHECKING:
     from md_evals.pipeline.model_router import ModelRouter
     from md_evals.pipeline.protocols import Detector, Probe
-    from md_evals.pipeline.skill_parser import ParsedSkill
     from md_evals.precheck import PreCheckEngine
     from md_evals.rubric import RubricConfig
     from md_evals.scoring import DimensionScore

@@ -9,8 +9,6 @@ Tests cover:
 from __future__ import annotations
 
 import json
-import os
-import tempfile
 from dataclasses import asdict
 from datetime import datetime, timedelta
 
@@ -19,11 +17,7 @@ import pytest
 from md_evals.analytics import (
     AnalyticsEngine,
     AnalyticsStore,
-    CostSummary,
     EvalRecord,
-    HeatmapCell,
-    SkillTrend,
-    TrendPoint,
 )
 from md_evals.metrics import CostMetrics
 from md_evals.scoring import DimensionScore, EvalMetadata, EvalResult

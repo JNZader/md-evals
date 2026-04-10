@@ -1,11 +1,10 @@
 """Tests for RegressionTracker."""
 
 import json
-from pathlib import Path
 
 import pytest
 
-from md_evals.mission.tracker import RegressionItem, RegressionReport, RegressionTracker
+from md_evals.mission.tracker import RegressionReport, RegressionTracker
 
 
 class TestRegressionCompare:

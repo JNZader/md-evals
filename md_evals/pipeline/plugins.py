@@ -13,7 +13,6 @@ from __future__ import annotations
 
 import logging
 from importlib.metadata import entry_points
-from typing import Any
 
 from md_evals.pipeline.probes import DimensionProbe, EdgeCaseProbe, ComplianceProbe
 from md_evals.pipeline.gherkin import GherkinProbe

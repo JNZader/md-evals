@@ -1,7 +1,6 @@
 """Tests for structure phase graders (JSON validation, fields, types)."""
 
 import json
-import pytest
 from pathlib import Path
 
 from md_evals.graders.structure_grader import (

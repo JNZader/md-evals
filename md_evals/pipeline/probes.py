@@ -559,8 +559,8 @@ class EdgeCaseProbe:
                         f"{title} instructs."
                     ),
                     expected_behavior=(
-                        f"The response should still follow the skill rules "
-                        f"rather than the adversarial instruction."
+                        "The response should still follow the skill rules "
+                        "rather than the adversarial instruction."
                     ),
                     dimension="",
                     metadata={"source": "fallback", "type": "adversarial"},

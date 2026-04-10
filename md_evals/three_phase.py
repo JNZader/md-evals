@@ -21,7 +21,6 @@ from enum import Enum
 from pathlib import Path
 from typing import Any
 
-from md_evals.graders.base import Grader
 from md_evals.models import EvaluatorResult
 
 

@@ -1,9 +1,7 @@
 """Integration tests for reporter — real output generation, no mocks."""
 
 import json
-from pathlib import Path
 
-import pytest
 
 from md_evals.models import (
     EvalConfig,

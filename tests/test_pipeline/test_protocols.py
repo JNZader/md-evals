@@ -9,7 +9,6 @@ from __future__ import annotations
 
 import asyncio
 
-import pytest
 
 from md_evals.pipeline.context import EvalContext, Scenario, StageResult
 from md_evals.pipeline.protocols import Detector, PipelineStage, Probe

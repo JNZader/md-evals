@@ -1,6 +1,5 @@
 """Tests for CommandGrader."""
 
-import pytest
 from pathlib import Path
 
 from md_evals.graders.command_grader import CommandGrader

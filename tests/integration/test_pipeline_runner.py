@@ -12,17 +12,17 @@ We test:
 
 import asyncio
 from pathlib import Path
-from unittest.mock import MagicMock, AsyncMock, patch
+from unittest.mock import MagicMock
 
 import pytest
 
-from md_evals.pipeline.config import PipelineConfig, AuditorConfig, TargetConfig, JudgeConfig
+from md_evals.pipeline.config import PipelineConfig, TargetConfig
 from md_evals.pipeline.context import EvalContext, Scenario, StageResult, StageError
 from md_evals.pipeline.pipeline import Pipeline
-from md_evals.pipeline.stages import PreCheckStage, AuditorStage, TargetStage, JudgeStage
+from md_evals.pipeline.stages import PreCheckStage
 from md_evals.precheck import PreCheckEngine
 from md_evals.rubric import RubricConfig, DimensionConfig, RubricLoader
-from md_evals.scoring import DimensionScore, EvalMetadata, EvalResult, calculate_overall_grade
+from md_evals.scoring import DimensionScore, EvalResult
 
 
 FIXTURES = Path(__file__).parent.parent / "fixtures"

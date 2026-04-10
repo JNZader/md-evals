@@ -1,6 +1,5 @@
 """Tests for MissionReporter."""
 
-import pytest
 
 from md_evals.mission.models import (
     MissionResult,

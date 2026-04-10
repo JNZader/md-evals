@@ -7,9 +7,8 @@ handling, error recording, and EvalResult assembly.
 from __future__ import annotations
 
 import asyncio
-from unittest.mock import AsyncMock, MagicMock
+from unittest.mock import MagicMock
 
-import pytest
 
 from md_evals.pipeline.context import EvalContext, StageResult
 from md_evals.pipeline.pipeline import Pipeline
@@ -166,7 +165,7 @@ def test_pipeline_with_timeout():
     pipeline = Pipeline(stages, timeout_per_stage=1)
     ctx = EvalContext(skill_path="/test/skill.md")
 
-    result = _run(pipeline.execute(ctx))
+    _run(pipeline.execute(ctx))
 
     assert len(ctx.errors) == 1
     assert ctx.errors[0].error_type == "timeout"

@@ -19,7 +19,6 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
 
-from md_evals.graders.base import Grader
 from md_evals.graders.state_grader import StateGrader
 from md_evals.models import EvaluatorResult
 

@@ -8,7 +8,7 @@ from __future__ import annotations
 
 import pytest
 
-from md_evals.pipeline.skill_parser import ParsedSkill, SkillExample, SkillParser
+from md_evals.pipeline.skill_parser import SkillExample, SkillParser
 
 
 # ── Fixtures ──

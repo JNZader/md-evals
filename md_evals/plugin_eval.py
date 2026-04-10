@@ -23,7 +23,7 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
 
-from md_evals.scoring import GRADE_ORDER, EvalResult
+from md_evals.scoring import EvalResult
 
 logger = logging.getLogger(__name__)
 

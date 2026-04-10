@@ -19,21 +19,13 @@ from md_evals.graders.file_graders import (
 from md_evals.graders.state_grader import StateGrader
 from md_evals.graders.structure_grader import (
     JSONValidGrader,
-    RequiredFieldsGrader,
-    FieldTypeGrader,
 )
 from md_evals.graders.analysis_grader import (
     KeywordCoverageGrader,
-    SectionCoverageGrader,
-    MinLengthGrader,
 )
 from md_evals.graders.generation_grader import (
     OutputMatchGrader,
-    ConstraintGrader,
 )
-from md_evals.graders.code_ref_grader import CodeRefGrader
-from md_evals.graders.contract_grader import ContractAssertionGrader
-from md_evals.graders.sql_grader import SQLGrader
 from md_evals.workspace import SetupFile, WorkspaceConfig, WorkspaceRunner
 
 
@@ -61,7 +53,7 @@ class TestShellInjectionPrevention:
             name="semicolon_test",
             command=f"echo safe; touch {marker}",
         )
-        result = grader.grade(tmp_path)
+        grader.grade(tmp_path)
         # With shell=False, the semicolon is passed as an argument to echo
         assert not marker.exists(), "Shell injection via semicolon succeeded!"
 
@@ -93,7 +85,7 @@ class TestShellInjectionPrevention:
             name="redirect_test",
             command=f"echo data > {outfile}",
         )
-        result = grader.grade(tmp_path)
+        grader.grade(tmp_path)
         assert not outfile.exists(), "Shell redirect was interpreted!"
 
     def test_workspace_runner_shell_injection_blocked(self, tmp_path: Path):

@@ -1,6 +1,5 @@
 """Tests for file-based deterministic graders."""
 
-import pytest
 from pathlib import Path
 
 from md_evals.graders.file_graders import (
