@@ -39,6 +39,23 @@ from md_evals.graders.contract_grader import (
 )
 from md_evals.graders.code_ref_grader import CodeRefGrader
 from md_evals.graders.sql_grader import SQLGrader
+from md_evals.graders.semantic_diff_grader import (
+    SemanticDiffGrader,
+    SemanticUnit,
+    SemanticDiff,
+    UnitType,
+    parse_semantic_units,
+    compute_semantic_diff,
+)
+from md_evals.graders.knowledge_graph_grader import (
+    KnowledgeGraph,
+    KnowledgeGraphGrader,
+    Entity,
+    Relation,
+    Fact,
+    FactCheck,
+    check_claim_against_graph,
+)
 
 __all__ = [
     "Grader",
@@ -67,4 +84,19 @@ __all__ = [
     "CodeRefGrader",
     # SQL execution validation
     "SQLGrader",
+    # Semantic diff evaluation
+    "SemanticDiffGrader",
+    "SemanticUnit",
+    "SemanticDiff",
+    "UnitType",
+    "parse_semantic_units",
+    "compute_semantic_diff",
+    # Knowledge graph grounding
+    "KnowledgeGraph",
+    "KnowledgeGraphGrader",
+    "Entity",
+    "Relation",
+    "Fact",
+    "FactCheck",
+    "check_claim_against_graph",
 ]
