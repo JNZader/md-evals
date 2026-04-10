@@ -209,6 +209,27 @@ class TestCheckClaim:
         assert check.grounded is True
         assert check.confidence > 0.0
 
+    def test_contradictory_claim_not_grounded(self):
+        """A claim that contradicts a known fact should NOT be grounded."""
+        graph = KnowledgeGraph()
+        graph.add_entity("Python")
+        graph.add_fact("Python", "is a high-level programming language")
+        check = check_claim_against_graph(
+            "Python is a low-level assembly language.", graph
+        )
+        assert check.grounded is False, (
+            f"Contradictory claim should not be grounded, got confidence={check.confidence:.2f}"
+        )
+
+    def test_low_overlap_not_grounded(self):
+        """Claims sharing only stop words with facts should not be grounded."""
+        graph = KnowledgeGraph()
+        graph.add_entity("Python")
+        graph.add_fact("Python", "is a high-level programming language")
+        check = check_claim_against_graph("Python is a snake.", graph)
+        assert check.grounded is False
+        assert check.confidence < 0.5
+
 
 # ── KnowledgeGraphGrader ──
 

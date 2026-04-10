@@ -234,22 +234,46 @@ def parse_semantic_units(text: str) -> list[SemanticUnit]:
 
 
 def _compute_term_similarity(a: SemanticUnit, b: SemanticUnit) -> float:
-    """Compute Jaccard similarity between key term sets."""
+    """Compute similarity between key term sets using overlap ratio + bigrams.
+
+    Uses a weighted blend of two signals:
+    - Token overlap ratio (70%): shared terms / smaller set size. More
+      forgiving than Jaccard for different-length phrases.
+    - Sorted-bigram overlap (30%): captures word-pair co-occurrence patterns
+      like "install pip" matching between "install with pip" and "use pip
+      to install".
+    """
     if not a.key_terms and not b.key_terms:
         return 1.0 if a.normalized == b.normalized else 0.0
     if not a.key_terms or not b.key_terms:
         return 0.0
 
+    # Signal 1: token overlap ratio (forgiving for length differences)
     intersection = a.key_terms & b.key_terms
-    union = a.key_terms | b.key_terms
-    return len(intersection) / len(union) if union else 0.0
+    smaller = min(len(a.key_terms), len(b.key_terms))
+    token_overlap = len(intersection) / smaller if smaller else 0.0
+
+    # Signal 2: sorted bigram overlap
+    def _bigrams(terms: frozenset[str]) -> set[tuple[str, str]]:
+        s = sorted(terms)
+        return {(s[i], s[i + 1]) for i in range(len(s) - 1)}
+
+    bg_a = _bigrams(a.key_terms)
+    bg_b = _bigrams(b.key_terms)
+    if bg_a or bg_b:
+        bg_union = bg_a | bg_b
+        bigram_score = len(bg_a & bg_b) / len(bg_union) if bg_union else 0.0
+    else:
+        bigram_score = token_overlap
+
+    return 0.7 * token_overlap + 0.3 * bigram_score
 
 
 def compute_semantic_diff(
     expected: list[SemanticUnit],
     actual: list[SemanticUnit],
     *,
-    similarity_threshold: float = 0.5,
+    similarity_threshold: float = 0.35,
 ) -> SemanticDiff:
     """Compute the semantic diff between expected and actual unit lists.
 

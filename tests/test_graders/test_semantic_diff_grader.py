@@ -150,6 +150,26 @@ class TestComputeSemanticDiff:
         assert 0.0 < diff.overall_similarity < 1.0
         assert len(diff.missing_units) > 0
 
+    def test_rephrased_sentences_match(self):
+        """Similar but rephrased sentences should match with improved similarity."""
+        expected = parse_semantic_units(
+            "Python is a high-level language.\n"
+            "It supports OOP and functional programming.\n"
+            "Install with pip."
+        )
+        actual = parse_semantic_units(
+            "Python is a programming language.\n"
+            "It supports object-oriented programming.\n"
+            "Use pip to install."
+        )
+        diff = compute_semantic_diff(expected, actual)
+        assert len(diff.matches) >= 2, (
+            f"Expected at least 2 matches for rephrased sentences, got {len(diff.matches)}"
+        )
+        assert diff.overall_similarity > 0.5, (
+            f"Expected similarity > 0.5, got {diff.overall_similarity:.2f}"
+        )
+
 
 # ── SemanticDiffGrader ──
 

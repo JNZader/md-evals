@@ -475,8 +475,11 @@ def check_claim_against_graph(
                 supporting.append(rel_text)
                 max_similarity = max(max_similarity, sim)
 
-    grounded = len(supporting) > 0
-    confidence = max_similarity if grounded else 0.0
+    # Require meaningful similarity — low overlap (e.g., sharing only
+    # common words like "is", "a", "language") should not count as grounded.
+    min_grounding_confidence = 0.5
+    grounded = len(supporting) > 0 and max_similarity >= min_grounding_confidence
+    confidence = max_similarity if len(supporting) > 0 else 0.0
 
     return FactCheck(
         claim_text=claim,
