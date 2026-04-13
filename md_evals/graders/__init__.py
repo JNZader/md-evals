@@ -56,6 +56,23 @@ from md_evals.graders.knowledge_graph_grader import (
     FactCheck,
     check_claim_against_graph,
 )
+from md_evals.graders.cascade_evaluator import (
+    CascadeEvaluator,
+    CascadeResult,
+    CascadeStepResult,
+    CascadeVerdict,
+    CascadeStep,
+    RegexStep,
+    KeywordStep,
+    LLMJudgeStep,
+)
+from md_evals.graders.dual_score import (
+    DualScoreEvaluator,
+    DualScoreResult,
+    ContentScoreReport,
+    RubricQualityReport,
+    assess_rubric_quality,
+)
 
 __all__ = [
     "Grader",
@@ -99,4 +116,19 @@ __all__ = [
     "Fact",
     "FactCheck",
     "check_claim_against_graph",
+    # Cascade evaluator
+    "CascadeEvaluator",
+    "CascadeResult",
+    "CascadeStepResult",
+    "CascadeVerdict",
+    "CascadeStep",
+    "RegexStep",
+    "KeywordStep",
+    "LLMJudgeStep",
+    # Dual-score pattern
+    "DualScoreEvaluator",
+    "DualScoreResult",
+    "ContentScoreReport",
+    "RubricQualityReport",
+    "assess_rubric_quality",
 ]
