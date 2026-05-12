@@ -8,8 +8,6 @@ Run: pytest tests/test_pageindex.py -v
 """
 
 import pytest
-import tempfile
-from pathlib import Path
 
 
 class TestPageIndex:
@@ -203,8 +201,6 @@ REST endpoints.
             total_issues = 0
 
             for page_num in range(1, result['pages'] + 1):
-                page = page_index.get_page('skill-eval', page_num)
-
                 # Mock evaluation
                 eval_result = {
                     'score': 85,

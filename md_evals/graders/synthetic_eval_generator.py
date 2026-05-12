@@ -91,7 +91,6 @@ def generate_eval_suite(skill_content: str) -> SyntheticEvalSuite:
         or _extract_section(skill_content, "Rules")
     )
     constraints = _extract_section(skill_content, "Constraints")
-    steps = _extract_section(skill_content, "Execution Steps")
     rationalizations = _extract_section(skill_content, "Rationalizations")
 
     # Generate from Critical Rules → negative cases

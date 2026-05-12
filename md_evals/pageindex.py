@@ -7,8 +7,6 @@ Enables evaluating large markdown documents without exceeding context limits.
 
 import sqlite3
 import json
-import re
-from pathlib import Path
 from typing import List, Dict, Optional, Any
 from dataclasses import dataclass
 
@@ -233,9 +231,6 @@ class DocumentPageIndex:
                 scores.append(row[0])
                 issues = json.loads(row[1] or '[]')
                 total_issues += len(issues)
-
-            # Get total pages
-            stats = self.get_doc_stats(doc_id)
 
             if not scores:
                 return {

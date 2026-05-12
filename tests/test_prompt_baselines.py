@@ -1,11 +1,8 @@
 """Tests for prompt baselines grader."""
 
-import pytest
-
 from md_evals.graders.prompt_baselines import (
     BASELINE_PATTERNS,
     BaselineReport,
-    PatternCategory,
     compare_prompts,
     detect_pattern,
     evaluate_prompt,
