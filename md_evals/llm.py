@@ -505,3 +505,92 @@ Below is a skill that provides guidelines for your responses:
 Follow the skill guidelines above when responding to the user."""
     
     return prompt, system_prompt
+
+
+# ---------------------------------------------------------------------------
+# Provider Fallback Chain (inspired by ghagga fallback.ts)
+# ---------------------------------------------------------------------------
+
+
+class ProviderChainEntry:
+    """A single entry in a provider fallback chain."""
+
+    __slots__ = ("provider", "model", "api_key", "api_base")
+
+    def __init__(
+        self,
+        provider: str,
+        model: str,
+        api_key: str,
+        api_base: str | None = None,
+    ):
+        self.provider = provider
+        self.model = model
+        self.api_key = api_key
+        self.api_base = api_base
+
+
+class ProviderFallbackChain:
+    """Fallback chain that tries providers in order on retryable errors.
+
+    Inspired by ghagga's ``fallback.ts``: on 5xx, 429, timeout, or
+    rate-limit errors, the next provider in the chain is attempted.
+    Non-retryable errors (auth, bad request) fail immediately.
+
+    Usage::
+
+        chain = ProviderFallbackChain([
+            ProviderChainEntry("github-models", "gpt-4o-mini", pat_token),
+            ProviderChainEntry("openai", "gpt-4o", openai_key),
+        ])
+        response = await chain.complete(prompt="Hello")
+    """
+
+    def __init__(
+        self,
+        entries: list[ProviderChainEntry],
+        defaults: Defaults | None = None,
+    ):
+        if not entries:
+            raise ValueError("Provider chain must have at least one entry.")
+        self.entries = entries
+        self.defaults = defaults or Defaults()
+
+    async def complete(
+        self,
+        prompt: str,
+        system_prompt: str | None = None,
+        **kwargs: Any,
+    ) -> LLMResponse:
+        """Try each provider in order until one succeeds.
+
+        Non-retryable errors fail fast. Retryable errors trigger fallback.
+        """
+        last_error: Exception | None = None
+
+        for i, entry in enumerate(self.entries):
+            adapter = LLMAdapter(
+                model=entry.model,
+                provider=entry.provider,
+                api_key=entry.api_key,
+                api_base=entry.api_base,
+                defaults=self.defaults,
+            )
+            try:
+                return await adapter.complete(
+                    prompt=prompt,
+                    system_prompt=system_prompt,
+                    **kwargs,
+                )
+            except LLMError as exc:
+                last_error = exc
+                # Non-retryable → fail fast (don't try next provider)
+                if not is_retryable_error(exc):
+                    raise
+                # Retryable → try next provider
+                if i < len(self.entries) - 1:
+                    continue
+                raise
+
+        # Should never reach here, but just in case
+        raise last_error or LLMError("All providers in chain failed")
