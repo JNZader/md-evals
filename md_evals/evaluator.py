@@ -1,4 +1,9 @@
-"""Evaluator engine for regex and LLM-judge evaluation."""
+"""Evaluator engine for regex and LLM-judge evaluation.
+
+Supports per-evaluator judge models: if an LLMJudgeEvaluator specifies a
+``judge_model`` different from the main adapter, a separate LLMAdapter is
+created for that judge call. Inspired by ghagga's multi-model distribution.
+"""
 
 import json
 import re
@@ -14,10 +19,27 @@ if TYPE_CHECKING:
 
 
 class EvaluatorEngine:
-    """Evaluates outputs with regex and LLM-judge."""
-    
-    def __init__(self, llm_adapter: "LLMAdapter | None" = None):
+    """Evaluates outputs with regex and LLM-judge.
+
+    If ``judge_api_key`` is provided, judge evaluators that specify a different
+    ``judge_model`` will use their own LLMAdapter instead of the main one.
+    This follows ghagga's pattern of supporting different models for different
+    purposes (generation vs evaluation).
+    """
+
+    def __init__(
+        self,
+        llm_adapter: "LLMAdapter | None" = None,
+        judge_api_key: str | None = None,
+        judge_provider: str | None = None,
+        judge_api_base: str | None = None,
+    ):
         self.llm_adapter = llm_adapter
+        self._judge_api_key = judge_api_key
+        self._judge_provider = judge_provider
+        self._judge_api_base = judge_api_base
+        # Cache for judge adapters (keyed by model name)
+        self._judge_adapters: dict[str, "LLMAdapter"] = {}
     
     async def evaluate(
         self,
@@ -106,22 +128,86 @@ class EvaluatorEngine:
             reason=None if passed else "Exact match not found"
         )
     
+    def _get_judge_adapter(self, evaluator: LLMJudgeEvaluator) -> "LLMAdapter":
+        """Get or create an LLMAdapter for the judge model.
+
+        If the evaluator's judge_model matches the main adapter's model,
+        reuse it. Otherwise, create a dedicated adapter (ghagga pattern:
+        each model purpose gets its own provider instance).
+        """
+        assert self.llm_adapter is not None  # Caller already checked
+
+        # If judge_model matches the main adapter, reuse it
+        main_model = getattr(self.llm_adapter, "model", None)
+        main_litellm_model = getattr(self.llm_adapter, "_litellm_model", None)
+        if (
+            not evaluator.judge_model
+            or evaluator.judge_model == main_model
+            or evaluator.judge_model == main_litellm_model
+        ):
+            return self.llm_adapter
+
+        # If no judge-specific credentials are configured, fall back to main
+        # adapter (backward-compatible with existing tests/mocks)
+        judge_api_key = self._judge_api_key
+        judge_provider = self._judge_provider
+        if not judge_api_key:
+            raw_key = getattr(self.llm_adapter, "_api_key", None)
+            judge_api_key = raw_key if isinstance(raw_key, str) else None
+        if not judge_provider:
+            raw_prov = getattr(self.llm_adapter, "provider", None)
+            judge_provider = raw_prov if isinstance(raw_prov, str) else None
+        if not judge_api_key and not judge_provider:
+            return self.llm_adapter
+
+        # Check cache
+        if evaluator.judge_model in self._judge_adapters:
+            return self._judge_adapters[evaluator.judge_model]
+
+        # Create a dedicated adapter for this judge model
+        from md_evals.llm import LLMAdapter as _LLMAdapter
+        from md_evals.models import Defaults
+
+        adapter = _LLMAdapter(
+            model=evaluator.judge_model,
+            provider=judge_provider or "openai",
+            api_key=judge_api_key,
+            api_base=self._judge_api_base,
+            defaults=Defaults(
+                model=evaluator.judge_model,
+                provider=judge_provider or "openai",
+                temperature=0.0,  # Judges should be deterministic
+                max_tokens=1000,
+                timeout=60,
+                retry_attempts=2,
+            ),
+        )
+
+        self._judge_adapters[evaluator.judge_model] = adapter
+        return adapter
+
     async def _evaluate_llm_judge(
         self,
         output: str,
-        evaluator: LLMJudgeEvaluator
+        evaluator: LLMJudgeEvaluator,
     ) -> EvaluatorResult:
-        """Evaluate output with LLM judge."""
+        """Evaluate output with LLM judge.
+
+        Uses a dedicated adapter if judge_model differs from the main model.
+        """
         # Build judge prompt
         judge_prompt = self._build_judge_prompt(
             output,
             evaluator.criteria,
-            evaluator.output_schema
+            evaluator.output_schema,
         )
-        
+
         try:
+            # Get the appropriate adapter for this judge
+            judge_adapter = self._get_judge_adapter(evaluator)
+
             # Call LLM with JSON schema
-            response = await self.llm_adapter.complete_with_json(
+            response = await judge_adapter.complete_with_json(
                 prompt=judge_prompt,
                 json_schema=evaluator.output_schema,
                 temperature=0.0,  # Deterministic
