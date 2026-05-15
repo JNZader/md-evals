@@ -188,6 +188,77 @@ def _has_non_timeout_message(message: str) -> bool:
     return any(token in lowered for token in _NON_TIMEOUT_MESSAGE_TOKENS)
 
 
+# ---------------------------------------------------------------------------
+# Error classification helpers (inspired by ghagga fallback.ts)
+# ---------------------------------------------------------------------------
+
+#: Errors that indicate the request may succeed on retry (5xx, rate limit, etc.)
+_RETRYABLE_ERROR_TOKENS = (
+    "rate limit",
+    "rate_limit",
+    "429",
+    "503",
+    "502",
+    "500",
+    "overloaded",
+    "capacity",
+    "tokens per minute",
+    "server error",
+    "service unavailable",
+    "too many requests",
+    "resource_exhausted",
+)
+
+#: Errors that should NOT be retried (auth, bad request, etc.)
+_NON_RETRYABLE_ERROR_TOKENS = (
+    "auth",
+    "unauthorized",
+    "forbidden",
+    "invalid api key",
+    "invalid_api_key",
+    "permission",
+    "bad request",
+    "not found",
+    "validation",
+    "invalid_request",
+    "401",
+    "403",
+    "404",
+)
+
+
+def is_retryable_error(exc: BaseException) -> bool:
+    """Classify whether an LLM error is retryable (ghagga-style).
+
+    Non-retryable errors (auth, bad request) fail fast.
+    Retryable errors (rate limit, 5xx, timeout) allow retry/fallback.
+    """
+    # Timeouts are always retryable
+    is_timeout, _, _ = classify_litellm_timeout(exc)
+    if is_timeout:
+        return True
+
+    msg = str(exc).lower()
+
+    # Non-retryable takes precedence
+    if any(token in msg for token in _NON_RETRYABLE_ERROR_TOKENS):
+        return False
+
+    # Check for retryable patterns
+    if any(token in msg for token in _RETRYABLE_ERROR_TOKENS):
+        return True
+
+    # Check HTTP status codes on litellm exceptions
+    status_code = getattr(exc, "status_code", None)
+    if isinstance(status_code, int):
+        if status_code in (429, 500, 502, 503, 504, 413):
+            return True
+        if 400 <= status_code < 500:
+            return False
+
+    return False
+
+
 class LLMAdapter:
     """Wrapper for litellm completions."""
     
