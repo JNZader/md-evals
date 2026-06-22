@@ -1,5 +1,6 @@
 """Linter for validating SKILL.md files."""
 
+import re
 from pathlib import Path
 from md_evals.models import LinterConfig, LinterReport, LinterViolation
 
@@ -48,12 +49,14 @@ class RequiredSectionsRule(LinterRule):
     
     def check(self, skill_path: str, content: str) -> list[LinterViolation]:
         violations = []
-        content_lower = content.lower()
         
         for section in self.sections:
-            # Check for section header (e.g., "# Description" or "## Description")
-            section_pattern = f"# {section.lower()}"
-            if section_pattern not in content_lower and section.lower() not in content_lower:
+            # Check for a markdown section header (e.g., "# Description" or "## Description")
+            section_pattern = re.compile(
+                rf"^#{{1,6}}\s+{re.escape(section)}(?:\s+#*)?$",
+                re.IGNORECASE | re.MULTILINE,
+            )
+            if not section_pattern.search(content):
                 violations.append(LinterViolation(
                     rule="required-sections",
                     message=f"Missing recommended section: {section}",
