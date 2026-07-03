@@ -76,6 +76,19 @@ Some description
         assert len(violations) > 0
         assert any("Rules" in v.message for v in violations)
 
+    def test_mentions_do_not_count_as_section_headers(self):
+        """Test prose mentions do not satisfy required sections."""
+        rule = RequiredSectionsRule()
+        content = """
+# Description
+This skill explains rules and examples in prose but has no headings for them.
+"""
+
+        violations = rule.check("skill.md", content)
+
+        assert any("Rules" in v.message for v in violations)
+        assert any("Examples" in v.message for v in violations)
+
 
 class TestEmptyFileRule:
     """Test EmptyFileRule."""
