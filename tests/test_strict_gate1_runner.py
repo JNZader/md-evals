@@ -46,7 +46,7 @@ def _valid_cases():
     for number, name in enumerate(("one", "two", "three")):
         structure = _pack(_record("structure", f"{number + 1:x}".zfill(64)))
         memory = _pack(_record("memory", f"{number + 10:x}".zfill(64)))
-        cases.append({"name": name, "prompt": f"Prompt {name}",
+        cases.append({"name": name, "prompt": f"Explain the strict evaluation policy for case {name}",
                       "expected": {"answer": "VALUE", "citations": [], "abstain": False},
                       "packs": {"CONTROL": None, "B_STRUCTURE": structure,
                                 "C_MEMORY": memory,
@@ -270,6 +270,45 @@ def test_runner_uses_injected_adapter_for_exactly_twelve_cells_without_retry_or_
         tools="none", tools_enforced=True, authorize=True, adapter=fake_adapter))
     assert len(calls) == len(results) == 12
     assert {cell.arm for cell in calls} == {"CONTROL", "B_STRUCTURE", "C_MEMORY", "E_PAIRED"}
+
+
+def test_runner_rejects_prompt_and_context_echoes_and_continues_after_adapter_exception():
+    artifacts = _artifacts()
+    calls = []
+
+    def adapter(cell):
+        calls.append(cell)
+        if len(calls) == 1:
+            answer = cell.prompt
+            return StrictGate1CellResult(
+                case_name=cell.case_name, arm=cell.arm, status="completed",
+                answer={"answer": answer, "citations": [], "abstain": False},
+                raw_response_digest="d" * 64,
+            )
+        if len(calls) == 2:
+            return StrictGate1CellResult(
+                case_name=cell.case_name, arm=cell.arm, status="completed",
+                answer={"answer": cell.rendered_context, "citations": [], "abstain": False},
+                raw_response_digest="d" * 64,
+            )
+        if len(calls) == 3:
+            raise RuntimeError("prompt and token=sk-secret must never be exposed")
+        return StrictGate1CellResult(
+            case_name=cell.case_name, arm=cell.arm, status="completed",
+            answer={"answer": "VALUE", "citations": [], "abstain": False},
+            raw_response_digest="d" * 64,
+        )
+
+    results = asyncio.run(run_strict_gate1(
+        artifacts=artifacts, bearer_present=True, retry_attempts=0, fallbacks=False,
+        tools="none", tools_enforced=True, authorize=True, adapter=adapter))
+
+    assert len(results) == 12
+    assert [result.error_code for result in results[:3]] == [
+        "public_material", "public_material", "adapter_exception"
+    ]
+    assert all(result.status == "completed" for result in results[3:])
+    assert all("sk-secret" not in json.dumps(result.to_dict()) for result in results)
 
 
 def test_runner_rejects_malformed_adapter_output():

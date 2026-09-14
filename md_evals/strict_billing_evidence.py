@@ -11,6 +11,7 @@ import hashlib
 import json
 import os
 import re
+import secrets
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
@@ -380,6 +381,7 @@ def write_billing_scaffold(scaffold: dict[str, Any], path: str | Path) -> None:
         _fail("safe billing scaffold creation is unavailable on this platform")
     directory_flags = os.O_RDONLY | os.O_DIRECTORY | os.O_NOFOLLOW
     parent_fd: int | None = None
+    temporary: str | None = None
     try:
         if destination.name in {"", ".", ".."}:
             _fail("billing scaffold destination must have a basename")
@@ -396,16 +398,34 @@ def write_billing_scaffold(scaffold: dict[str, Any], path: str | Path) -> None:
             next_fd = os.open(component, directory_flags, dir_fd=parent_fd)
             os.close(parent_fd)
             parent_fd = next_fd
+        temporary = f".{destination.name}.{secrets.token_hex(12)}.tmp"
         flags = os.O_WRONLY | os.O_CREAT | os.O_EXCL | os.O_NOFOLLOW
-        fd = os.open(destination.name, flags, 0o600, dir_fd=parent_fd)
+        fd = os.open(temporary, flags, 0o600, dir_fd=parent_fd)
+        try:
+            with os.fdopen(fd, "w", encoding="utf-8", errors="strict") as output:
+                fd = -1
+                output.write(_canonical(validated, "billing scaffold") + "\n")
+                output.flush()
+                os.fsync(output.fileno())
+        finally:
+            if fd != -1:
+                os.close(fd)
+        # link() publishes atomically without replacing an existing target.
+        os.link(temporary, destination.name, src_dir_fd=parent_fd,
+                dst_dir_fd=parent_fd, follow_symlinks=False)
+        os.unlink(temporary, dir_fd=parent_fd)
+        temporary = None
         os.close(parent_fd)
         parent_fd = None
-        with os.fdopen(fd, "w", encoding="utf-8", errors="strict") as output:
-            output.write(_canonical(validated, "billing scaffold") + "\n")
     except (FileExistsError, IsADirectoryError) as exc:
         raise StrictBillingEvidenceError("refusing to overwrite billing scaffold") from exc
     except (OSError, TypeError, ValueError) as exc:
         raise StrictBillingEvidenceError("safe billing scaffold creation failed") from exc
     finally:
+        if temporary is not None and parent_fd is not None:
+            try:
+                os.unlink(temporary, dir_fd=parent_fd)
+            except OSError:
+                pass
         if parent_fd is not None:
             os.close(parent_fd)

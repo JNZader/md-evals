@@ -13,6 +13,7 @@ import argparse
 import json
 import os
 import re
+import secrets
 from dataclasses import dataclass
 from pathlib import Path
 from types import MappingProxyType
@@ -96,7 +97,7 @@ def write_strict_gate1_artifacts(
     if not isinstance(artifacts, StrictGate1Artifacts):
         raise StrictGate1Error("validated strict artifacts are required")
 
-    def open_secure_directory(path: str | Path) -> int:
+    def open_secure_parent(path: str | Path) -> tuple[int, str]:
         required_flags = ("O_DIRECTORY", "O_NOFOLLOW")
         if any(not hasattr(os, flag) for flag in required_flags):
             raise StrictGate1Error("strict Gate 1 output directory safety is unsupported")
@@ -104,13 +105,14 @@ def write_strict_gate1_artifacts(
             raise StrictGate1Error("strict Gate 1 directory-fd safety is unsupported")
 
         directory = Path(path)
-        if any(part in {".", ".."} for part in directory.parts):
+        if not directory.name or any(part in {".", ".."} for part in directory.parts):
             raise StrictGate1Error("strict Gate 1 output directory path is invalid")
         flags = os.O_RDONLY | os.O_DIRECTORY | os.O_NOFOLLOW
         try:
             current_fd = os.open(os.sep if directory.is_absolute() else ".", flags)
             try:
-                for part in directory.parts[1:] if directory.is_absolute() else directory.parts:
+                parent_parts = directory.parent.parts[1:] if directory.is_absolute() else directory.parent.parts
+                for part in parent_parts:
                     try:
                         next_fd = os.open(part, flags, dir_fd=current_fd)
                     except FileNotFoundError:
@@ -121,7 +123,7 @@ def write_strict_gate1_artifacts(
                         next_fd = os.open(part, flags, dir_fd=current_fd)
                     os.close(current_fd)
                     current_fd = next_fd
-                return current_fd
+                return current_fd, directory.name
             except Exception:
                 os.close(current_fd)
                 raise
@@ -144,47 +146,80 @@ def write_strict_gate1_artifacts(
             files["packet"]: artifacts.packet.manifest_json,
             files["authorization_request"]: artifacts.authorization_request.manifest_json,
         }
-        directory_fd = open_secure_directory(output_dir)
+        parent_fd, output_name = open_secure_parent(output_dir)
+        output_fd: int | None = None
+        stage_fd: int | None = None
+        stage_name: str | None = None
         try:
             targets = (*manifests, files["index"])
-            for filename in targets:
-                if not isinstance(filename, str) or Path(filename).name != filename:
-                    raise StrictGate1Error("strict Gate 1 artifact target is invalid")
-                try:
-                    os.stat(filename, dir_fd=directory_fd, follow_symlinks=False)
-                except FileNotFoundError:
-                    continue
-                except OSError as exc:
-                    raise StrictGate1Error("could not validate strict Gate 1 artifact target") from exc
-                raise StrictGate1Error("strict Gate 1 artifact target already exists")
+            if any(not isinstance(filename, str) or Path(filename).name != filename for filename in targets):
+                raise StrictGate1Error("strict Gate 1 artifact target is invalid")
 
-            def write_fresh(filename: str, content: str) -> None:
-                descriptor = os.open(
-                    filename,
-                    os.O_WRONLY | os.O_CREAT | os.O_EXCL | os.O_NOFOLLOW,
-                    0o600,
-                    dir_fd=directory_fd,
+            try:
+                output_fd = os.open(
+                    output_name, os.O_RDONLY | os.O_DIRECTORY | os.O_NOFOLLOW, dir_fd=parent_fd
                 )
-                try:
-                    with os.fdopen(descriptor, "w", encoding="utf-8") as handle:
-                        descriptor = -1
-                        handle.write(content)
-                finally:
-                    if descriptor != -1:
-                        os.close(descriptor)
+            except FileNotFoundError:
+                output_fd = None
+            except OSError as exc:
+                raise StrictGate1Error("strict Gate 1 output directory must be a real directory") from exc
+            if output_fd is not None:
+                existing = set(os.listdir(output_fd))
+                if existing & set(targets):
+                    raise StrictGate1Error("strict Gate 1 artifact target already exists")
+                if existing:
+                    raise StrictGate1Error("strict Gate 1 output directory is not empty")
 
-            for filename, manifest_json in manifests.items():
-                write_fresh(filename, manifest_json)
             index = artifacts.to_dict() | {
                 "status": "prepared",
                 "files": files,
             }
-            write_fresh(
-                files["index"],
-                json.dumps(index, ensure_ascii=True, indent=2, sort_keys=True) + "\n",
+            contents = manifests | {
+                files["index"]: json.dumps(index, ensure_ascii=True, indent=2, sort_keys=True) + "\n"
+            }
+            stage_name = f".{output_name}.strict-gate1-{secrets.token_hex(12)}.tmpdir"
+            os.mkdir(stage_name, 0o700, dir_fd=parent_fd)
+            stage_fd = os.open(
+                stage_name, os.O_RDONLY | os.O_DIRECTORY | os.O_NOFOLLOW, dir_fd=parent_fd
             )
+            try:
+                for filename, content in contents.items():
+                    descriptor = os.open(
+                        filename, os.O_WRONLY | os.O_CREAT | os.O_EXCL | os.O_NOFOLLOW,
+                        0o600, dir_fd=stage_fd,
+                    )
+                    try:
+                        with os.fdopen(descriptor, "w", encoding="utf-8") as handle:
+                            descriptor = -1
+                            handle.write(content)
+                            handle.flush()
+                            os.fsync(handle.fileno())
+                    finally:
+                        if descriptor != -1:
+                            os.close(descriptor)
+                os.fsync(stage_fd)
+                os.replace(stage_name, output_name, src_dir_fd=parent_fd, dst_dir_fd=parent_fd)
+                os.fsync(parent_fd)
+                stage_name = None
+            except Exception:
+                if stage_fd is not None:
+                    for filename in contents:
+                        try:
+                            os.unlink(filename, dir_fd=stage_fd)
+                        except OSError:
+                            pass
+                raise
         finally:
-            os.close(directory_fd)
+            if stage_fd is not None:
+                os.close(stage_fd)
+            if output_fd is not None:
+                os.close(output_fd)
+            if stage_name is not None:
+                try:
+                    os.rmdir(stage_name, dir_fd=parent_fd)
+                except OSError:
+                    pass
+            os.close(parent_fd)
     except StrictGate1Error:
         raise
     except OSError as exc:
@@ -305,6 +340,32 @@ class StrictGate1Cell:
     prompt: str
     rendered_context: str | None
     selected_ids: tuple[str, ...]
+
+
+_ECHO_TOKEN = re.compile(r"[a-z0-9]+", re.I)
+
+
+def _contains_dispatched_material(answer: object, cell: StrictGate1Cell) -> bool:
+    """Reject substantial copies of the private prompt or rendered context."""
+    if not isinstance(answer, Mapping) or not isinstance(answer.get("answer"), str):
+        return False
+    answer_tokens = _ECHO_TOKEN.findall(answer["answer"].casefold())
+    answer_text = " ".join(answer_tokens)
+    for source in (cell.prompt, cell.rendered_context):
+        if not isinstance(source, str):
+            continue
+        source_tokens = _ECHO_TOKEN.findall(source.casefold())
+        # Short prompts and ordinary short answers do not provide enough signal.
+        if len(" ".join(source_tokens)) < 24 or len(source_tokens) < 4:
+            continue
+        source_text = " ".join(source_tokens)
+        if source_text in answer_text:
+            return True
+        required = max(5, (len(source_tokens) * 3 + 4) // 5)
+        if any(" ".join(source_tokens[start:start + required]) in answer_text
+               for start in range(len(source_tokens) - required + 1)):
+            return True
+    return False
 
 
 _CELL_RESULT_SCHEMA = "strict-gate1-cell-result/v1"
@@ -495,12 +556,24 @@ async def run_strict_gate1(
         raise StrictGate1Error("strict plan must contain exactly 12 cells")
     results: list[StrictGate1CellResult] = []
     for cell in cells:
-        result = adapter(cell)
-        if inspect.isawaitable(result):
-            result = await result
+        try:
+            result = adapter(cell)
+            if inspect.isawaitable(result):
+                result = await result
+        except Exception:
+            results.append(StrictGate1CellResult(
+                case_name=cell.case_name, arm=cell.arm, status="failed",
+                error_code="adapter_exception", error_message="strict adapter failed",
+            ))
+            continue
         validated = StrictGate1CellResult.from_value(result)
         if validated.case_name != cell.case_name or validated.arm != cell.arm:
             raise StrictGate1Error("adapter result does not match the dispatched strict cell")
+        if validated.status == "completed" and _contains_dispatched_material(validated.answer, cell):
+            validated = StrictGate1CellResult(
+                case_name=cell.case_name, arm=cell.arm, status="failed",
+                error_code="public_material", error_message="answer contains dispatched material",
+            )
         results.append(validated)
     return results
 
