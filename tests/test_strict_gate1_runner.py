@@ -211,6 +211,37 @@ def test_writer_rejects_existing_canonical_target_before_writing_anything(tmp_pa
     assert existing.read_text(encoding="utf-8") == "sentinel"
 
 
+def test_writer_keeps_published_bundle_when_parent_fsync_fails_after_replace(tmp_path, monkeypatch):
+    import os
+
+    original_fsync = os.fsync
+    original_replace = os.replace
+    replaced = False
+
+    def track_replace(*args, **kwargs):
+        nonlocal replaced
+        result = original_replace(*args, **kwargs)
+        replaced = True
+        return result
+
+    def fail_parent_fsync(fd):
+        if replaced:
+            raise OSError("simulated parent fsync failure")
+        return original_fsync(fd)
+
+    monkeypatch.setattr("md_evals.strict_gate1_runner.os.replace", track_replace)
+    monkeypatch.setattr("md_evals.strict_gate1_runner.os.fsync", fail_parent_fsync)
+
+    with pytest.raises(StrictGate1Error, match="could not write"):
+        write_strict_gate1_artifacts(_artifacts(), tmp_path)
+
+    assert {path.name for path in tmp_path.iterdir()} == {
+        "plan.private.json", "assembly.private.json", "packet.json",
+        "authorization-request.json", "index.json",
+    }
+    assert all(path.stat().st_size > 0 for path in tmp_path.iterdir())
+
+
 def test_convenience_function_builds_and_writes_bundle(tmp_path):
     input_path = tmp_path / "strict-input.json"
     output_dir = tmp_path / "strict-artifacts"
@@ -309,6 +340,25 @@ def test_runner_rejects_prompt_and_context_echoes_and_continues_after_adapter_ex
     ]
     assert all(result.status == "completed" for result in results[3:])
     assert all("sk-secret" not in json.dumps(result.to_dict()) for result in results)
+
+
+def test_runner_rejects_interleaved_prompt_echo():
+    artifacts = _artifacts()
+
+    def adapter(cell):
+        answer = cell.prompt.replace(" ", " filler ")
+        return StrictGate1CellResult(
+            case_name=cell.case_name, arm=cell.arm, status="completed",
+            answer={"answer": answer, "citations": [], "abstain": False},
+            raw_response_digest="d" * 64,
+        )
+
+    results = asyncio.run(run_strict_gate1(
+        artifacts=artifacts, bearer_present=True, retry_attempts=0, fallbacks=False,
+        tools="none", tools_enforced=True, authorize=True, adapter=adapter))
+
+    assert len(results) == 12
+    assert all(result.error_code == "public_material" for result in results)
 
 
 def test_runner_rejects_malformed_adapter_output():

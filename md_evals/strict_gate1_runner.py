@@ -14,6 +14,7 @@ import json
 import os
 import re
 import secrets
+from collections import Counter
 from dataclasses import dataclass
 from pathlib import Path
 from types import MappingProxyType
@@ -150,6 +151,7 @@ def write_strict_gate1_artifacts(
         output_fd: int | None = None
         stage_fd: int | None = None
         stage_name: str | None = None
+        published = False
         try:
             targets = (*manifests, files["index"])
             if any(not isinstance(filename, str) or Path(filename).name != filename for filename in targets):
@@ -199,10 +201,11 @@ def write_strict_gate1_artifacts(
                             os.close(descriptor)
                 os.fsync(stage_fd)
                 os.replace(stage_name, output_name, src_dir_fd=parent_fd, dst_dir_fd=parent_fd)
-                os.fsync(parent_fd)
+                published = True
                 stage_name = None
+                os.fsync(parent_fd)
             except Exception:
-                if stage_fd is not None:
+                if not published and stage_fd is not None:
                     for filename in contents:
                         try:
                             os.unlink(filename, dir_fd=stage_fd)
@@ -365,6 +368,17 @@ def _contains_dispatched_material(answer: object, cell: StrictGate1Cell) -> bool
         if any(" ".join(source_tokens[start:start + required]) in answer_text
                for start in range(len(source_tokens) - required + 1)):
             return True
+        # A copied source can be padded or reordered to evade contiguous spans.
+        # Require a substantial overlap and enough source tokens to avoid
+        # rejecting ordinary answers that happen to share a few short words.
+        if len(source_tokens) >= 8:
+            answer_counts = Counter(answer_tokens)
+            overlap = sum(
+                min(answer_counts.get(token, 0), count)
+                for token, count in Counter(source_tokens).items()
+            )
+            if overlap >= max(6, (len(source_tokens) * 3 + 3) // 4):
+                return True
     return False
 
 
