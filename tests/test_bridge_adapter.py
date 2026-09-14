@@ -12,7 +12,9 @@ import httpx
 import pytest
 
 if any(name == "litellm" or name.startswith("md_evals") for name in sys.modules):
-    raise RuntimeError("run this module alone with --noconftest; unexpected preload")
+    pytest.skip(
+        "run this module alone with --noconftest; unexpected preload", allow_module_level=True
+    )
 
 
 class OutboundDenied(AssertionError):

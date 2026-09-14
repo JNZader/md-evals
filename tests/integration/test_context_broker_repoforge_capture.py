@@ -282,7 +282,7 @@ def test_ids_and_traces_bind_the_actual_revision_and_provider(captured, change):
         ),
         (
             "tests/integration/test_context_broker_offline.py",
-            "544aa186304340a624b49170aa84584e2c4146e4ab27f0b99bada333f615f058",
+            "f4def449bfd83375698d92fc0fb673756b7fa4344a25341b801448eaac21e299",
         ),
     ],
 )

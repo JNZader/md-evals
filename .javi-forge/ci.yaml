@@ -1,0 +1,12 @@
+version: 1
+runners:
+  - name: python
+    stack: python
+    directory: .
+    requires:
+      - uv
+    lint:
+      - uv run ruff check
+      - uv run ruff format --check
+    test:
+      - uv run pytest -q tests/test_strict_gate1_runner.py tests/test_strict_billing_evidence.py tests/test_strict_run_assembly.py tests/test_strict_run_packet.py tests/test_gate1_smoke_runner.py tests/test_noncanonical_live_ledger.py tests/test_bridge_usage.py tests/test_captured_batch_usage.py tests/test_captured_answer_grader.py tests/test_captured_batch_report.py tests/test_captured_batch_comparison.py tests/test_captured_run_record.py tests/test_context_renderer.py tests/test_offline_worker.py tests/integration/test_context_broker_offline.py tests/integration/test_context_broker_capture_union.py tests/integration/test_context_broker_repoforge_capture.py

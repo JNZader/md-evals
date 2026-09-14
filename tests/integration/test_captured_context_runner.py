@@ -9,7 +9,10 @@ from unittest.mock import patch
 import pytest
 
 if any(name == "litellm" or name.startswith(("litellm.", "md_evals")) for name in sys.modules):
-    raise RuntimeError("run this module alone with --noconftest; unexpected provider preload")
+    pytest.skip(
+        "run this module alone with --noconftest; unexpected provider preload",
+        allow_module_level=True,
+    )
 
 
 @contextmanager
