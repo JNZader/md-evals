@@ -217,9 +217,7 @@ class CaptureRunSummary:
 def _wire(response: LLMResponse | None) -> str:
     if response is None:
         return ""
-    return json.dumps(
-        _plain_copy(response.model_dump(mode="python")), sort_keys=True, separators=(",", ":")
-    )
+    return json.dumps(plain_response(response), sort_keys=True, separators=(",", ":"))
 
 
 def _plain_copy(value: Any) -> Any:
@@ -229,6 +227,14 @@ def _plain_copy(value: Any) -> Any:
     if isinstance(value, (list, tuple)):
         return [_plain_copy(item) for item in value]
     return deepcopy(value)
+
+
+def plain_response(response: LLMResponse) -> dict[str, Any]:
+    """Materialize response fields without invoking Pydantic serialization."""
+    return {
+        field_name: _plain_copy(getattr(response, field_name))
+        for field_name in type(response).model_fields
+    }
 
 
 def _contains_secret(value: Any, key: str = "") -> bool:
@@ -253,7 +259,7 @@ def _freeze(value: Any) -> Any:
 
 def _frozen_response(response: LLMResponse) -> LLMResponse:
     snapshot = response.model_copy(deep=True)
-    for field_name in snapshot.model_fields:
+    for field_name in type(snapshot).model_fields:
         object.__setattr__(snapshot, field_name, _freeze(getattr(snapshot, field_name)))
     return snapshot
 
@@ -287,12 +293,12 @@ async def capture_cell(cell: FrozenCell, complete: Completion) -> PrivateRawReco
         raise CaptureRecordError("complete must return LLMResponse")
     try:
         snapshot = _frozen_response(response)
-        plain_response = _plain_copy(response.model_dump(mode="python"))
-        if _contains_secret(plain_response) or _contains_secret(snapshot.model_dump(mode="python")):
+        materialized_response = plain_response(response)
+        if _contains_secret(materialized_response) or _contains_secret(plain_response(snapshot)):
             raise CompletionOperationalError(
                 "response contains credential or secret material; retention rejected"
             )
-        wire_payload = json.dumps(plain_response, sort_keys=True, separators=(",", ":"))
+        wire_payload = json.dumps(materialized_response, sort_keys=True, separators=(",", ":"))
         if _contains_secret(wire_payload):
             raise CompletionOperationalError(
                 "serialized response contains credential or secret material; retention rejected"
