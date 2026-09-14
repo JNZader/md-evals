@@ -6,6 +6,8 @@ on:
       - main
       - develop
     paths:
+      - ".github/workflows/test-parallel.yml"
+      - ".javi-forge/ci.yaml"
       - "md_evals/**"
       - "apps/server/**"
       - "tests/**"
@@ -16,11 +18,16 @@ on:
       - main
       - develop
     paths:
+      - ".github/workflows/test-parallel.yml"
+      - ".javi-forge/ci.yaml"
       - "md_evals/**"
       - "apps/server/**"
       - "tests/**"
       - "pyproject.toml"
       - "requirements*.txt"
+
+permissions:
+  contents: read
 
 jobs:
   test:
@@ -34,7 +41,7 @@ jobs:
     
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Set up Python ${{ matrix.python-version }}
         uses: actions/setup-python@v5
@@ -50,6 +57,9 @@ jobs:
       - name: Verify pytest-xdist
         run: |
           python -c "import xdist; print(f'pytest-xdist {xdist.__version__} installed')"
+
+      - name: Lint Python sources
+        run: python -m ruff check --select E,F
 
       - name: Run tests in parallel
         run: |
