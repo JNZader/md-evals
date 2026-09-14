@@ -18,8 +18,12 @@ from unittest.mock import MagicMock, AsyncMock
 from datetime import datetime
 
 from md_evals.models import (
-    EvalConfig, Defaults, Treatment, Task,
-    RegexEvaluator, LLMJudgeEvaluator,
+    EvalConfig,
+    Defaults,
+    Treatment,
+    Task,
+    RegexEvaluator,
+    LLMJudgeEvaluator,
 )
 from md_evals.llm import LLMAdapter
 from md_evals.engine import ExecutionEngine
@@ -29,6 +33,7 @@ from md_evals.engine import ExecutionEngine
 # MARKERS - Define custom pytest markers for test categorization
 # ============================================================================
 
+
 def pytest_configure(config):
     """Register custom pytest markers."""
     config.addinivalue_line(
@@ -37,25 +42,15 @@ def pytest_configure(config):
     config.addinivalue_line(
         "markers", "integration: Integration tests (may use fixtures, mocks, or test services)"
     )
-    config.addinivalue_line(
-        "markers", "e2e: End-to-end tests (full workflow execution)"
-    )
-    config.addinivalue_line(
-        "markers", "slow: Slow-running tests (>1 second)"
-    )
-    config.addinivalue_line(
-        "markers", "performance: Performance benchmark tests"
-    )
-    config.addinivalue_line(
-        "markers", "xfail_known: Known failing tests (xfail with reason)"
-    )
+    config.addinivalue_line("markers", "e2e: End-to-end tests (full workflow execution)")
+    config.addinivalue_line("markers", "slow: Slow-running tests (>1 second)")
+    config.addinivalue_line("markers", "performance: Performance benchmark tests")
+    config.addinivalue_line("markers", "xfail_known: Known failing tests (xfail with reason)")
     config.addinivalue_line(
         "markers", "requires_provider: Tests requiring external provider (mocked in CI)"
     )
     # Phase 7: Parallel execution markers
-    config.addinivalue_line(
-        "markers", "serial: Tests that must run serially (not parallelizable)"
-    )
+    config.addinivalue_line("markers", "serial: Tests that must run serially (not parallelizable)")
     config.addinivalue_line(
         "markers", "isolated: Tests are fully isolated and safe for parallel execution"
     )
@@ -65,10 +60,11 @@ def pytest_configure(config):
 # SESSION-LEVEL FIXTURES - Expensive setup shared across all tests
 # ============================================================================
 
+
 @pytest.fixture(scope="session")
 def session_temp_dir() -> Generator[Path, None, None]:
     """Create a temporary directory for the entire test session.
-    
+
     Yields:
         Path: Temporary directory path that persists for the session
     """
@@ -79,10 +75,10 @@ def session_temp_dir() -> Generator[Path, None, None]:
 @pytest.fixture(scope="session")
 def session_llm_adapter() -> LLMAdapter:
     """Create a session-level LLMAdapter with mock provider.
-    
+
     This fixture is created once per session to avoid repeated initialization.
     All async tests use this adapter (mocked).
-    
+
     Returns:
         LLMAdapter: Configured LLMAdapter with mock provider
     """
@@ -93,7 +89,7 @@ def session_llm_adapter() -> LLMAdapter:
 @pytest.fixture(scope="session")
 def mock_provider_registry():
     """Create mock provider registry for session-level use.
-    
+
     Returns:
         Dict: Mock providers keyed by name
     """
@@ -107,7 +103,7 @@ def mock_provider_registry():
 @pytest.fixture(scope="session")
 def test_fixtures_dir() -> Path:
     """Get path to test fixtures directory.
-    
+
     Returns:
         Path: Path to tests/fixtures directory
     """
@@ -118,13 +114,14 @@ def test_fixtures_dir() -> Path:
 # FUNCTION-LEVEL FIXTURES - Reset between tests for isolation
 # ============================================================================
 
+
 @pytest.fixture
 def tmp_path_session(session_temp_dir) -> Path:
     """Provide isolated temporary paths within session temp directory.
-    
+
     Each test gets its own subdirectory within the session temp dir.
     This is faster than creating new temp directories for each test.
-    
+
     Yields:
         Path: Isolated temporary directory for this test
     """
@@ -137,7 +134,7 @@ def tmp_path_session(session_temp_dir) -> Path:
 @pytest.fixture
 def mock_eval_config() -> EvalConfig:
     """Create a minimal valid EvalConfig for testing.
-    
+
     Returns:
         EvalConfig: Basic configuration with required fields
     """
@@ -160,16 +157,16 @@ def mock_eval_config() -> EvalConfig:
                         name="contains_4",
                         pattern="4",
                     )
-                ]
+                ],
             )
-        ]
+        ],
     )
 
 
 @pytest.fixture
 def mock_eval_config_with_llm() -> EvalConfig:
     """Create EvalConfig with LLM judge evaluator for testing.
-    
+
     Returns:
         EvalConfig: Configuration including LLMJudgeEvaluator
     """
@@ -193,18 +190,18 @@ def mock_eval_config_with_llm() -> EvalConfig:
                         judge_model="gpt-4o",
                         criteria="Rate the creativity of this response on a scale of 1-10.",
                     )
-                ]
+                ],
             )
-        ]
+        ],
     )
 
 
 @pytest.fixture
 def mock_llm_adapter() -> LLMAdapter:
     """Create a mock LLMAdapter for unit tests.
-    
+
     This is mocked per-test (unlike session_llm_adapter).
-    
+
     Returns:
         LLMAdapter: Mock adapter with stubbed provider
     """
@@ -217,7 +214,7 @@ def mock_llm_adapter() -> LLMAdapter:
 @pytest.fixture
 def mock_llm_response() -> Dict[str, Any]:
     """Create a mock LLM response for testing.
-    
+
     Returns:
         Dict: Mock response with text and metadata
     """
@@ -232,7 +229,7 @@ def mock_llm_response() -> Dict[str, Any]:
 @pytest.fixture
 def execution_engine(mock_eval_config, mock_llm_adapter) -> ExecutionEngine:
     """Create an ExecutionEngine for testing.
-    
+
     Returns:
         ExecutionEngine: Configured engine with mock adapter
     """
@@ -246,10 +243,11 @@ def execution_engine(mock_eval_config, mock_llm_adapter) -> ExecutionEngine:
 # AUTOUSE FIXTURES - Automatically applied to all tests
 # ============================================================================
 
+
 @pytest.fixture(autouse=True)
 def reset_singletons():
     """Reset singleton instances between tests.
-    
+
     Ensures test isolation by clearing any cached singletons.
     """
     # This would be used if there are module-level singletons
@@ -261,18 +259,18 @@ def reset_singletons():
 @pytest.fixture(autouse=True)
 def track_test_duration(request):
     """Track and report test execution duration.
-    
+
     Adds performance metadata to test reports.
     """
     start_time = time.time()
-    
+
     yield
-    
+
     duration = time.time() - start_time
     # Mark slow tests
     if duration > 1.0:
         request.node.add_marker(pytest.mark.slow)
-    
+
     # Store duration for reporting
     request.node.duration = duration
 
@@ -280,12 +278,12 @@ def track_test_duration(request):
 @pytest.fixture(autouse=True)
 def clear_environment_variables():
     """Clear environment variables before each test.
-    
+
     Ensures tests don't inherit unwanted environment state.
     """
     # Save original environment
     original_env = os.environ.copy()
-    
+
     # Clear test-sensitive variables
     test_vars = [
         "OPENAI_API_KEY",
@@ -295,9 +293,9 @@ def clear_environment_variables():
     ]
     for var in test_vars:
         os.environ.pop(var, None)
-    
+
     yield
-    
+
     # Restore original environment
     os.environ.clear()
     os.environ.update(original_env)
@@ -307,10 +305,11 @@ def clear_environment_variables():
 # PARAMETRIZATION FIXTURES - Support data-driven testing
 # ============================================================================
 
+
 @pytest.fixture(params=["gpt-4o", "gpt-4-turbo", "claude-3"])
 def various_models(request):
     """Parametrized fixture providing different LLM models.
-    
+
     Yields:
         str: Model name from parametrized list
     """
@@ -320,7 +319,7 @@ def various_models(request):
 @pytest.fixture(params=["exact", "regex", "contains"])
 def evaluator_types(request):
     """Parametrized fixture providing evaluator types.
-    
+
     Yields:
         str: Evaluator type from parametrized list
     """
@@ -330,7 +329,7 @@ def evaluator_types(request):
 @pytest.fixture(params=[1, 2, 4, 8])
 def parallel_worker_counts(request):
     """Parametrized fixture for parallel worker counts.
-    
+
     Yields:
         int: Worker count from parametrized list
     """
@@ -341,13 +340,14 @@ def parallel_worker_counts(request):
 # MOCK AND PATCH FIXTURES - Pre-configured mocks for common operations
 # ============================================================================
 
+
 @pytest.fixture
 def mock_file_system(tmp_path):
     """Create mock file system for testing file operations.
-    
+
     Args:
         tmp_path: pytest's built-in tmp_path fixture
-        
+
     Returns:
         Dict: Mock file system with common test files
     """
@@ -367,10 +367,10 @@ tests:
   - name: test_1
     prompt: What is 2+2?
 """)
-    
+
     skill_file = tmp_path / "SKILL.md"
     skill_file.write_text("# Test Skill\n\nDescription")
-    
+
     return {
         "root": tmp_path,
         "eval_file": eval_file,
@@ -382,24 +382,18 @@ tests:
 @pytest.fixture
 def mock_litellm_completion():
     """Create mock for litellm.completion calls.
-    
+
     Returns:
         MagicMock: Mocked completion function
     """
     mock = AsyncMock()
     mock.return_value = {
-        "choices": [
-            {
-                "message": {
-                    "content": "This is a mock response from the LLM."
-                }
-            }
-        ],
+        "choices": [{"message": {"content": "This is a mock response from the LLM."}}],
         "usage": {
             "prompt_tokens": 10,
             "completion_tokens": 15,
             "total_tokens": 25,
-        }
+        },
     }
     return mock
 
@@ -407,10 +401,10 @@ def mock_litellm_completion():
 @pytest.fixture
 def mock_httpx_client(mocker):
     """Create mock httpx.AsyncClient for HTTP requests.
-    
+
     Args:
         mocker: pytest-mock fixture
-        
+
     Returns:
         MagicMock: Mocked AsyncClient
     """
@@ -419,10 +413,10 @@ def mock_httpx_client(mocker):
     mock_response.status_code = 200
     mock_response.json = AsyncMock(return_value={"status": "success"})
     mock_response.text = "Success"
-    
+
     mock_client.get = AsyncMock(return_value=mock_response)
     mock_client.post = AsyncMock(return_value=mock_response)
-    
+
     return mock_client
 
 
@@ -430,10 +424,11 @@ def mock_httpx_client(mocker):
 # REPORT AND METADATA FIXTURES - For enhanced reporting
 # ============================================================================
 
+
 @pytest.fixture(scope="session")
 def test_metadata() -> Dict[str, Any]:
     """Provide test metadata for reporting.
-    
+
     Returns:
         Dict: Metadata about the test run
     """
@@ -450,9 +445,10 @@ def test_metadata() -> Dict[str, Any]:
 # HOOKS FOR CUSTOM BEHAVIOR
 # ============================================================================
 
+
 def pytest_collection_modifyitems(config, items):
     """Automatically mark tests based on their location and name.
-    
+
     Args:
         config: pytest config
         items: list of collected test items
@@ -461,15 +457,15 @@ def pytest_collection_modifyitems(config, items):
         # Mark all tests in test_performance.py as performance
         if "test_performance" in item.nodeid:
             item.add_marker(pytest.mark.performance)
-        
+
         # Mark all tests in test_e2e as e2e
         if "test_e2e" in item.nodeid:
             item.add_marker(pytest.mark.e2e)
-        
+
         # Mark integration tests
         if "integration" in item.nodeid.lower() or "integration" in item.name.lower():
             item.add_marker(pytest.mark.integration)
-        
+
         # Anything else is unit
         if not any(m.name in ["performance", "e2e", "integration"] for m in item.iter_markers()):
             item.add_marker(pytest.mark.unit)
@@ -477,7 +473,7 @@ def pytest_collection_modifyitems(config, items):
 
 def pytest_runtest_logreport(report):
     """Hook into test reports for custom reporting.
-    
+
     Args:
         report: test report
     """
@@ -488,15 +484,15 @@ def pytest_runtest_logreport(report):
 @pytest.fixture(scope="session", autouse=True)
 def session_report(test_metadata):
     """Generate session-level test report.
-    
+
     Args:
         test_metadata: session metadata
-        
+
     Yields:
         Dict: Report metadata
     """
     yield test_metadata
-    
+
     # Report generation could happen here
     # For now, just provide the metadata
 
@@ -505,36 +501,32 @@ def session_report(test_metadata):
 # UTILITY FIXTURES
 # ============================================================================
 
+
 @pytest.fixture
 def assert_contains():
     """Provide utility for asserting string containment with details.
-    
+
     Returns:
         Callable: Function that asserts and provides detailed error
     """
+
     def _assert(haystack: str, needle: str, *, msg: str = ""):
-        assert needle in haystack, (
-            f"{msg}\n"
-            f"Expected to find: {needle!r}\n"
-            f"In: {haystack!r}"
-        )
+        assert needle in haystack, f"{msg}\nExpected to find: {needle!r}\nIn: {haystack!r}"
+
     return _assert
 
 
 @pytest.fixture
 def assert_matches():
     """Provide utility for regex matching assertions.
-    
+
     Returns:
         Callable: Function that asserts regex match
     """
     import re
-    
+
     def _assert(text: str, pattern: str, *, msg: str = ""):
         if not re.search(pattern, text):
-            assert False, (
-                f"{msg}\n"
-                f"Pattern did not match: {pattern!r}\n"
-                f"In text: {text!r}"
-            )
+            assert False, f"{msg}\nPattern did not match: {pattern!r}\nIn text: {text!r}"
+
     return _assert

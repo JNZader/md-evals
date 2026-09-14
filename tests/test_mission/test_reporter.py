@@ -1,6 +1,5 @@
 """Tests for MissionReporter."""
 
-
 from md_evals.mission.models import (
     MissionResult,
     MissionSummary,
@@ -22,15 +21,23 @@ class TestMissionReporter:
             "provider": "openai",
             "test_results": [
                 MissionTestResult(test_name="t1", passed=True, score=1.0, duration_ms=100),
-                MissionTestResult(test_name="t2", passed=False, score=0.0, duration_ms=200,
-                                  criteria_results=[
-                                      {"name": "check", "type": "regex", "passed": False,
-                                       "score": 0.0, "reason": "Pattern not matched"}
-                                  ]),
+                MissionTestResult(
+                    test_name="t2",
+                    passed=False,
+                    score=0.0,
+                    duration_ms=200,
+                    criteria_results=[
+                        {
+                            "name": "check",
+                            "type": "regex",
+                            "passed": False,
+                            "score": 0.0,
+                            "reason": "Pattern not matched",
+                        }
+                    ],
+                ),
             ],
-            "summary": MissionSummary(
-                total=2, passed=1, failed=1, pass_rate=0.5, duration_ms=300
-            ),
+            "summary": MissionSummary(total=2, passed=1, failed=1, pass_rate=0.5, duration_ms=300),
         }
         defaults.update(kwargs)
         return MissionResult(**defaults)

@@ -142,9 +142,7 @@ class SuiteLoader:
             with open(file_path, "r", encoding="utf-8") as fh:
                 data = yaml.safe_load(fh)
         except yaml.YAMLError as exc:
-            raise SuiteLoadError(
-                f"Invalid YAML in suite file '{path}': {exc}"
-            ) from exc
+            raise SuiteLoadError(f"Invalid YAML in suite file '{path}': {exc}") from exc
 
         if data is None:
             raise SuiteLoadError(f"Suite file is empty: {path}")
@@ -203,9 +201,7 @@ class SuiteLoader:
             elif isinstance(item, dict):
                 path = item.get("path")
                 if not path:
-                    raise SuiteLoadError(
-                        f"Skill entry {i} missing 'path' field"
-                    )
+                    raise SuiteLoadError(f"Skill entry {i} missing 'path' field")
                 min_grade = item.get("min_grade", "C")
                 if min_grade not in GRADE_ORDER:
                     raise SuiteLoadError(
@@ -277,13 +273,9 @@ class SuiteRunner:
         for skill in suite.skills:
             try:
                 eval_result = await runner.run(skill.path)
-                meets = grade_meets_threshold(
-                    eval_result.overall_grade, skill.min_grade
-                )
+                meets = grade_meets_threshold(eval_result.overall_grade, skill.min_grade)
             except Exception as exc:
-                logger.error(
-                    "Failed to evaluate skill '%s': %s", skill.path, exc
-                )
+                logger.error("Failed to evaluate skill '%s': %s", skill.path, exc)
                 # Create a failing result
                 from md_evals.scoring import EvalMetadata
 

@@ -104,7 +104,12 @@ class TestValidateState:
 
     def test_invalid_base36_timestamp_fails(self) -> None:
         """A state with an invalid base36 timestamp should fail."""
-        assert validate_state("INVALID!!.abcdef1234567890abcdef1234567890abcdef1234567890abcdef12345678") is False
+        assert (
+            validate_state(
+                "INVALID!!.abcdef1234567890abcdef1234567890abcdef1234567890abcdef12345678"
+            )
+            is False
+        )
 
     def test_wrong_secret_fails(self) -> None:
         """A state signed with a different secret should fail."""

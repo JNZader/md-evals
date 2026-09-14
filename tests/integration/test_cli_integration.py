@@ -44,9 +44,7 @@ class TestLintCommand:
         assert result.exit_code == 2
 
     def test_lint_no_fail_flag(self):
-        result = runner.invoke(
-            app, ["lint", str(FIXTURES / "skill_invalid_empty.md"), "--no-fail"]
-        )
+        result = runner.invoke(app, ["lint", str(FIXTURES / "skill_invalid_empty.md"), "--no-fail"])
         # Even with violations, --no-fail should exit 0 if only warnings
         # But empty file has error severity, so it depends on implementation
         assert result.exit_code in (0, 2)
@@ -90,9 +88,7 @@ class TestListCommand:
     """Test `md-evals list` with real config."""
 
     def test_list_with_valid_config(self):
-        result = runner.invoke(
-            app, ["list", "--config", str(FIXTURES / "config_valid.yaml")]
-        )
+        result = runner.invoke(app, ["list", "--config", str(FIXTURES / "config_valid.yaml")])
         assert result.exit_code == 0
         assert "CONTROL" in result.output
         assert "WITH_SKILL" in result.output
@@ -163,15 +159,19 @@ class TestSmokeCommand:
     def test_smoke_with_valid_config(self):
         result = runner.invoke(
             app,
-            ["smoke", "--config", str(FIXTURES / "config_valid.yaml"), "--provider", "github-models"],
+            [
+                "smoke",
+                "--config",
+                str(FIXTURES / "config_valid.yaml"),
+                "--provider",
+                "github-models",
+            ],
         )
         # May fail if no GitHub token, but should not crash
         assert result.exit_code in (0, 1)
 
     def test_smoke_missing_config(self):
-        result = runner.invoke(
-            app, ["smoke", "--config", "/nonexistent/eval.yaml"]
-        )
+        result = runner.invoke(app, ["smoke", "--config", "/nonexistent/eval.yaml"])
         assert result.exit_code == 1
         assert "FAIL" in result.output
 
@@ -194,8 +194,10 @@ class TestModeFlag:
             app,
             [
                 "run",
-                "--config", str(FIXTURES / "eval.yaml"),
-                "--mode", "smoke",
+                "--config",
+                str(FIXTURES / "eval.yaml"),
+                "--mode",
+                "smoke",
                 "--no-lint",
                 "--no-pre-check",
             ],

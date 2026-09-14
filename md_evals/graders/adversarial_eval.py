@@ -26,6 +26,7 @@ class Verdict(str, Enum):
 @dataclass
 class AdversarialFinding:
     """A finding from either adversary agent."""
+
     finding_type: FindingType
     input_text: str
     model_output: str
@@ -38,6 +39,7 @@ class AdversarialFinding:
 @dataclass
 class EvalPatch:
     """A new eval case generated from a valid finding."""
+
     name: str
     input_text: str
     expected: str
@@ -48,6 +50,7 @@ class EvalPatch:
 @dataclass
 class AdversarialRound:
     """One round of adversarial testing."""
+
     round_number: int
     loopholes: list[AdversarialFinding] = field(default_factory=list)
     overreaches: list[AdversarialFinding] = field(default_factory=list)
@@ -58,6 +61,7 @@ class AdversarialRound:
 @dataclass
 class AdversarialResult:
     """Result of the full adversarial eval loop."""
+
     rounds: list[AdversarialRound] = field(default_factory=list)
     total_findings: int = 0
     total_patches: int = 0
@@ -76,6 +80,7 @@ JudgeFn = "Callable[[AdversarialFinding], Verdict]"
 
 # ── Default implementations ──
 
+
 def find_loopholes(
     eval_cases: list[dict[str, str]],
     model_outputs: list[str],
@@ -92,23 +97,27 @@ def find_loopholes(
 
         # Heuristic: output is suspiciously short relative to expected
         if len(output.strip()) < len(expected) // 3 and len(expected) > 20:
-            findings.append(AdversarialFinding(
-                finding_type=FindingType.LOOPHOLE,
-                input_text=input_text,
-                model_output=output,
-                expected=expected,
-                explanation="Output is suspiciously short — may have skipped required content",
-            ))
+            findings.append(
+                AdversarialFinding(
+                    finding_type=FindingType.LOOPHOLE,
+                    input_text=input_text,
+                    model_output=output,
+                    expected=expected,
+                    explanation="Output is suspiciously short — may have skipped required content",
+                )
+            )
 
         # Heuristic: output contradicts expected with negation
         if _has_contradiction(output, expected):
-            findings.append(AdversarialFinding(
-                finding_type=FindingType.LOOPHOLE,
-                input_text=input_text,
-                model_output=output,
-                expected=expected,
-                explanation="Output contains contradictory language relative to expected",
-            ))
+            findings.append(
+                AdversarialFinding(
+                    finding_type=FindingType.LOOPHOLE,
+                    input_text=input_text,
+                    model_output=output,
+                    expected=expected,
+                    explanation="Output contains contradictory language relative to expected",
+                )
+            )
 
     return findings
 
@@ -134,13 +143,18 @@ def find_overreaches(
         # Heuristic: high word overlap suggests correct but different phrasing
         overlap = _word_overlap(output, expected)
         if overlap > 0.6:
-            findings.append(AdversarialFinding(
-                finding_type=FindingType.OVERREACH,
-                input_text=input_text,
-                model_output=output,
-                expected=expected,
-                explanation=f"Word overlap {overlap:.0%} suggests correct answer with different phrasing",
-            ))
+            findings.append(
+                AdversarialFinding(
+                    finding_type=FindingType.OVERREACH,
+                    input_text=input_text,
+                    model_output=output,
+                    expected=expected,
+                    explanation=(
+                        f"Word overlap {overlap:.0%} suggests correct answer with different "
+                        "phrasing"
+                    ),
+                )
+            )
 
     return findings
 
@@ -170,7 +184,7 @@ def create_patch(finding: AdversarialFinding, round_num: int) -> EvalPatch:
             input_text=finding.input_text,
             expected=finding.expected,
             grading_criteria=f"Must NOT produce: {finding.model_output[:100]}. "
-                             f"Reason: {finding.explanation}",
+            f"Reason: {finding.explanation}",
             source_finding=FindingType.LOOPHOLE,
         )
     return EvalPatch(
@@ -183,6 +197,7 @@ def create_patch(finding: AdversarialFinding, round_num: int) -> EvalPatch:
 
 
 # ── Loop ──
+
 
 def run_adversarial_loop(
     eval_cases: list[dict[str, str]],
@@ -240,6 +255,7 @@ def run_adversarial_loop(
 
 # ── Helpers ──
 
+
 def _has_contradiction(output: str, expected: str) -> bool:
     """Check if output contradicts expected using simple negation detection."""
     negations = {"not", "never", "no", "don't", "doesn't", "isn't", "aren't", "won't", "can't"}
@@ -283,13 +299,17 @@ def format_adversarial_result(result: AdversarialResult) -> str:
     """Format as markdown."""
     lines = ["## Adversarial Eval Report\n"]
     status = "Converged" if result.converged else f"Max rounds ({len(result.rounds)})"
-    lines.append(f"**Status**: {status} | **Findings**: {result.total_findings} | "
-                 f"**Patches**: {result.total_patches} | **Escalations**: {result.total_escalations}\n")
+    lines.append(
+        f"**Status**: {status} | **Findings**: {result.total_findings} | "
+        f"**Patches**: {result.total_patches} | **Escalations**: {result.total_escalations}\n"
+    )
 
     for rnd in result.rounds:
         lines.append(f"### Round {rnd.round_number}")
-        lines.append(f"Loopholes: {len(rnd.loopholes)} | Overreaches: {len(rnd.overreaches)} | "
-                     f"Patches: {len(rnd.patches)} | Escalations: {len(rnd.escalations)}")
+        lines.append(
+            f"Loopholes: {len(rnd.loopholes)} | Overreaches: {len(rnd.overreaches)} | "
+            f"Patches: {len(rnd.patches)} | Escalations: {len(rnd.escalations)}"
+        )
         for patch in rnd.patches:
             lines.append(f"  + New eval case: `{patch.name}` ({patch.source_finding.value})")
         lines.append("")

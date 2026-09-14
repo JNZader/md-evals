@@ -141,9 +141,7 @@ class RubricConfig(BaseModel):
     def _check_weights(self) -> None:
         total = sum(d.weight for d in self.dimensions.values())
         if abs(total - 1.0) > _WEIGHT_TOLERANCE:
-            raise RubricValidationError(
-                f"Dimension weights must sum to 1.0 (got {total:.4f})"
-            )
+            raise RubricValidationError(f"Dimension weights must sum to 1.0 (got {total:.4f})")
 
     def _check_grade_thresholds(self) -> None:
         keys = set(self.grade_thresholds.keys())
@@ -158,9 +156,7 @@ class RubricConfig(BaseModel):
         # Only valid grade letters allowed
         unknown = keys - REQUIRED_GRADES - OPTIONAL_GRADES
         if unknown:
-            raise RubricValidationError(
-                f"Unknown grade thresholds: {', '.join(sorted(unknown))}"
-            )
+            raise RubricValidationError(f"Unknown grade thresholds: {', '.join(sorted(unknown))}")
 
         # Each threshold in (0.0, 1.0]
         for grade, value in self.grade_thresholds.items():
@@ -275,9 +271,7 @@ class RubricLoader:
             with open(file_path, "r", encoding="utf-8") as fh:
                 data = yaml.safe_load(fh)
         except yaml.YAMLError as exc:
-            raise RubricValidationError(
-                f"Invalid YAML in rubric file '{path}': {exc}"
-            ) from exc
+            raise RubricValidationError(f"Invalid YAML in rubric file '{path}': {exc}") from exc
 
         if data is None:
             raise RubricValidationError(f"Rubric file is empty: {path}")
@@ -288,9 +282,7 @@ class RubricLoader:
             # Re-raise our own validation errors directly
             raise
         except Exception as exc:
-            raise RubricValidationError(
-                f"Invalid rubric configuration in '{path}': {exc}"
-            ) from exc
+            raise RubricValidationError(f"Invalid rubric configuration in '{path}': {exc}") from exc
 
         return config
 

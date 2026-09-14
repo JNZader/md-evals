@@ -261,31 +261,31 @@ def is_retryable_error(exc: BaseException) -> bool:
 
 class LLMAdapter:
     """Wrapper for litellm completions."""
-    
+
     def __init__(
         self,
         model: str,
         provider: str = "openai",
         api_base: str | None = None,
         api_key: str | None = None,
-        defaults: Defaults | None = None
+        defaults: Defaults | None = None,
     ):
         self.model = model
         self.provider = provider
         self.api_base = api_base
         self.api_key = api_key
         self.defaults = defaults or Defaults()
-        
+
         # Configure litellm
         litellm.drop_params = True
         litellm.set_verbose = False
-    
+
     def _build_kwargs(
         self,
         temperature: float | None = None,
         max_tokens: int | None = None,
         timeout: int | None = None,
-        **extra_kwargs
+        **extra_kwargs,
     ) -> dict[str, Any]:
         """Build kwargs for litellm completion.
 
@@ -305,7 +305,7 @@ class LLMAdapter:
             kwargs["api_key"] = self.api_key
         kwargs.update(extra_kwargs)
         return kwargs
-    
+
     async def complete(
         self,
         prompt: str,
@@ -316,7 +316,7 @@ class LLMAdapter:
         **extra_kwargs,
     ) -> LLMResponse:
         """Complete a prompt.
-        
+
         Args:
             prompt: User prompt
             system_prompt: Optional system prompt
@@ -324,74 +324,70 @@ class LLMAdapter:
             max_tokens: Override max tokens
             stage_type: Stage label for orchestrator support
             **extra_kwargs: Additional kwargs forwarded to litellm (e.g. response_format)
-            
+
         Returns:
             LLMResponse instance
         """
         import time
-        
+
         start_time = time.monotonic()
-        
-        kwargs = self._build_kwargs(
-            temperature=temperature,
-            max_tokens=max_tokens,
-            **extra_kwargs
-        )
-        
+
+        kwargs = self._build_kwargs(temperature=temperature, max_tokens=max_tokens, **extra_kwargs)
+
         if system_prompt:
             kwargs["messages"] = [
                 {"role": "system", "content": system_prompt},
-                {"role": "user", "content": prompt}
+                {"role": "user", "content": prompt},
             ]
         else:
             kwargs["messages"] = [{"role": "user", "content": prompt}]
-        
+
         try:
             response = await self._complete_with_retry(stage_type=stage_type, **kwargs)
         except LLMTimeoutError:
             raise
         except Exception as e:
             raise LLMError(f"LLM API error: {e}") from e
-        
+
         duration_ms = int((time.monotonic() - start_time) * 1000)
-        
+
         # Extract content
         if hasattr(response, "choices") and response.choices:
             content = response.choices[0].message.content or ""
         else:
             content = str(response)
-        
+
         # Extract token usage
-        tokens = 0                      # Legacy field — backward compat
+        tokens = 0  # Legacy field — backward compat
         prompt_tokens = None
         completion_tokens_detail = None
         total_tokens_val = None
-        
+
         if hasattr(response, "usage") and response.usage:
             usage = response.usage
             raw_completion = getattr(usage, "completion_tokens", None)
             raw_prompt = getattr(usage, "prompt_tokens", None)
-            
+
             # Only accept integer values (guard against non-numeric types)
             if isinstance(raw_completion, int):
                 completion_tokens_detail = raw_completion
             if isinstance(raw_prompt, int):
                 prompt_tokens = raw_prompt
-            
+
             # Legacy field — keep as completion_tokens or 0
             tokens = completion_tokens_detail or 0
-            
+
             # Clamp negatives (EC-03 from spec)
             if prompt_tokens is not None and prompt_tokens < 0:
                 prompt_tokens = 0
             if completion_tokens_detail is not None and completion_tokens_detail < 0:
                 completion_tokens_detail = 0
                 tokens = 0
-            
+
             # Calculate total
             if prompt_tokens is not None and completion_tokens_detail is not None:
                 total_tokens_val = prompt_tokens + completion_tokens_detail
-        
+
         return LLMResponse(
             content=content,
             model=self.model,
@@ -404,7 +400,7 @@ class LLMAdapter:
             total_tokens=total_tokens_val,
             stage_type=stage_type,
         )
-    
+
     async def _complete_with_retry(self, *, stage_type: str = "single_pass", **kwargs) -> Any:
         """Complete with retry logic."""
         max_attempts = max(1, int(self.defaults.retry_attempts or 1))
@@ -437,63 +433,60 @@ class LLMAdapter:
             raise last_exception
 
         raise LLMError("LLM API error: unknown retry failure")
-    
+
     async def complete_with_json(
-        self,
-        prompt: str,
-        json_schema: dict[str, Any],
-        **kwargs
+        self, prompt: str, json_schema: dict[str, Any], **kwargs
     ) -> LLMResponse:
         """Complete with JSON response format.
-        
+
         Args:
             prompt: User prompt
             json_schema: JSON schema for response
             **kwargs: Additional arguments
-            
+
         Returns:
             LLMResponse with parsed JSON content
         """
         import json
-        
+
         # Add schema to kwargs
         kwargs["response_format"] = json_schema
-        
+
         response = await self.complete(prompt, **kwargs)
-        
+
         # Try to parse as JSON
         try:
             parsed = json.loads(response.content)
             response.content = json.dumps(parsed, indent=2)
         except json.JSONDecodeError:
             pass  # Keep original content if not valid JSON
-        
+
         return response
 
 
 def inject_skill(prompt: str, skill_path: str | None) -> tuple[str, str | None]:
     """Inject skill content into prompt.
-    
+
     Args:
         prompt: User prompt
         skill_path: Path to skill file (None = CONTROL)
-        
+
     Returns:
         Tuple of (final_prompt, system_prompt)
     """
     from pathlib import Path
-    
+
     if skill_path is None:
         # CONTROL - no skill
         return prompt, None
-    
+
     # Read skill file
     skill_file = Path(skill_path)
     if not skill_file.exists():
         raise FileNotFoundError(f"Skill file not found: {skill_path}")
-    
+
     skill_content = skill_file.read_text(encoding="utf-8")
-    
+
     # Inject as system prompt
     system_prompt = f"""You are a helpful AI assistant.
 
@@ -503,7 +496,7 @@ Below is a skill that provides guidelines for your responses:
 ---
 
 Follow the skill guidelines above when responding to the user."""
-    
+
     return prompt, system_prompt
 
 

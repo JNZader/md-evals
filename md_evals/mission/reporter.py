@@ -147,9 +147,7 @@ class MissionReporter:
             for item in improvements:
                 prev = "PASS" if item.previous_passed else "FAIL"
                 curr = "PASS" if item.current_passed else "FAIL"
-                lines.append(
-                    f"| {item.test_name} | {prev} | {curr} | {item.score_delta:+.2f} |"
-                )
+                lines.append(f"| {item.test_name} | {prev} | {curr} | {item.score_delta:+.2f} |")
             lines.append("")
 
         return lines

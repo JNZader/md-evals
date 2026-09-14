@@ -233,9 +233,7 @@ class TestGitHubModelsTokenPropagation:
             usage=Mock(prompt_tokens=200, completion_tokens=50),
         )
 
-        with patch.object(
-            provider, "_stream_completion", new_callable=AsyncMock
-        ) as mock_stream:
+        with patch.object(provider, "_stream_completion", new_callable=AsyncMock) as mock_stream:
             mock_stream.return_value = mock_response
 
             result = await provider.complete("Test prompt")
@@ -256,9 +254,7 @@ class TestGitHubModelsTokenPropagation:
             usage=mock_usage,
         )
 
-        with patch.object(
-            provider, "_stream_completion", new_callable=AsyncMock
-        ) as mock_stream:
+        with patch.object(provider, "_stream_completion", new_callable=AsyncMock) as mock_stream:
             mock_stream.return_value = mock_response
 
             result = await provider.complete("Test prompt")
@@ -276,9 +272,7 @@ class TestGitHubModelsTokenPropagation:
             usage=None,
         )
 
-        with patch.object(
-            provider, "_stream_completion", new_callable=AsyncMock
-        ) as mock_stream:
+        with patch.object(provider, "_stream_completion", new_callable=AsyncMock) as mock_stream:
             mock_stream.return_value = mock_response
 
             result = await provider.complete("Test prompt")
@@ -297,9 +291,13 @@ class TestGitHubModelsTokenPropagation:
             usage=Mock(prompt_tokens=-10, completion_tokens=20),
         )
 
-        content, token_count, prompt_tokens, completion_detail, total = (
-            await provider._handle_stream(mock_response)
-        )
+        (
+            content,
+            token_count,
+            prompt_tokens,
+            completion_detail,
+            total,
+        ) = await provider._handle_stream(mock_response)
 
         assert prompt_tokens == 0  # Clamped
         assert completion_detail == 20
@@ -356,18 +354,14 @@ class TestResolveContextWindow:
 
         config = EvalConfig(name="test")
 
-        result = resolve_context_window(
-            "claude-3.5-sonnet", "github-models", config
-        )
+        result = resolve_context_window("claude-3.5-sonnet", "github-models", config)
         assert result == 200000
 
     def test_unknown_provider_falls_through(self):
         """Unknown provider → falls through to litellm or None."""
         config = EvalConfig(name="test")
 
-        result = resolve_context_window(
-            "some-model", "unknown-provider", config
-        )
+        result = resolve_context_window("some-model", "unknown-provider", config)
         # Should be None or a litellm value, never raises
         assert result is None or isinstance(result, int)
 
@@ -375,9 +369,7 @@ class TestResolveContextWindow:
         """Completely unknown model+provider → None."""
         config = EvalConfig(name="test")
 
-        result = resolve_context_window(
-            "nonexistent-model-xyz", "nonexistent-provider-xyz", config
-        )
+        result = resolve_context_window("nonexistent-model-xyz", "nonexistent-provider-xyz", config)
         assert result is None
 
     def test_none_config_still_works(self):
@@ -434,9 +426,7 @@ class TestResolveContextWindow:
             "max_input_tokens": 32768,
         }
         with patch.dict("sys.modules", {"litellm": mock_litellm}):
-            result = resolve_context_window(
-                "custom-model", "unknown-provider", config
-            )
+            result = resolve_context_window("custom-model", "unknown-provider", config)
             assert result == 32768
 
     def test_litellm_fallback_no_max_input_tokens(self):
@@ -446,9 +436,7 @@ class TestResolveContextWindow:
         mock_litellm = MagicMock()
         mock_litellm.get_model_info.return_value = {"model_name": "custom"}
         with patch.dict("sys.modules", {"litellm": mock_litellm}):
-            result = resolve_context_window(
-                "custom-model", "unknown-provider", config
-            )
+            result = resolve_context_window("custom-model", "unknown-provider", config)
             assert result is None
 
     def test_litellm_exception_handled_gracefully(self):
@@ -458,9 +446,7 @@ class TestResolveContextWindow:
         mock_litellm = MagicMock()
         mock_litellm.get_model_info.side_effect = Exception("Not found")
         with patch.dict("sys.modules", {"litellm": mock_litellm}):
-            result = resolve_context_window(
-                "custom-model", "unknown-provider", config
-            )
+            result = resolve_context_window("custom-model", "unknown-provider", config)
             assert result is None
 
 

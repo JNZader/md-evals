@@ -375,16 +375,22 @@ class TestBuildUsageMetricsStageBreakdown:
         config = _make_config(context_window_overrides={"gpt-4o": 128000})
         results = [
             _make_result(
-                prompt_tokens=2000, completion_tokens_detail=500,
-                stage_type="planner", duration_ms=450,
+                prompt_tokens=2000,
+                completion_tokens_detail=500,
+                stage_type="planner",
+                duration_ms=450,
             ),
             _make_result(
-                prompt_tokens=1500, completion_tokens_detail=800,
-                stage_type="tool_call", duration_ms=600,
+                prompt_tokens=1500,
+                completion_tokens_detail=800,
+                stage_type="tool_call",
+                duration_ms=600,
             ),
             _make_result(
-                prompt_tokens=3000, completion_tokens_detail=1200,
-                stage_type="synthesis", duration_ms=900,
+                prompt_tokens=3000,
+                completion_tokens_detail=1200,
+                stage_type="synthesis",
+                duration_ms=900,
             ),
         ]
 
@@ -664,12 +670,16 @@ class TestAggregateHelpers:
         """Stage metrics extracted from each result."""
         results = [
             _make_result(
-                prompt_tokens=2000, completion_tokens_detail=500,
-                stage_type="planner", duration_ms=450,
+                prompt_tokens=2000,
+                completion_tokens_detail=500,
+                stage_type="planner",
+                duration_ms=450,
             ),
             _make_result(
-                prompt_tokens=3000, completion_tokens_detail=1200,
-                stage_type="synthesis", duration_ms=900,
+                prompt_tokens=3000,
+                completion_tokens_detail=1200,
+                stage_type="synthesis",
+                duration_ms=900,
             ),
         ]
 
@@ -717,9 +727,7 @@ class TestComputeFunctionsEdgeCases:
     def test_cost_req03_s1_exact_formula(self):
         """REQ-03-S1: prompt=10000, completion=2000, rates=2.50/10.00 → 0.045."""
         usage = TokenUsage(prompt_tokens=10000, completion_tokens=2000)
-        cost_map = {
-            "gpt-4o": {"input_rate_per_million": 2.50, "output_rate_per_million": 10.00}
-        }
+        cost_map = {"gpt-4o": {"input_rate_per_million": 2.50, "output_rate_per_million": 10.00}}
         result = compute_cost_metrics(usage, cost_map, "gpt-4o")
         assert result.estimated_cost_usd == pytest.approx(0.045)
 
@@ -779,12 +787,16 @@ class TestBuildComparisonDict:
         variants = {
             "CONTROL": VariantMetrics(
                 pipeline_mode="non_orchestrator",
-                cost_metrics=CostMetrics(prompt_tokens=5000, completion_tokens=1500, total_tokens=6500),
+                cost_metrics=CostMetrics(
+                    prompt_tokens=5000, completion_tokens=1500, total_tokens=6500
+                ),
                 context_metrics=ContextMetrics(prompt_tokens_used=5000),
             ),
             "WITH_SKILL": VariantMetrics(
                 pipeline_mode="non_orchestrator",
-                cost_metrics=CostMetrics(prompt_tokens=8000, completion_tokens=2000, total_tokens=10000),
+                cost_metrics=CostMetrics(
+                    prompt_tokens=8000, completion_tokens=2000, total_tokens=10000
+                ),
                 context_metrics=ContextMetrics(prompt_tokens_used=8000),
             ),
         }

@@ -251,12 +251,14 @@ class TestSuiteLoader:
             SuiteLoader.load(str(suite_file))
 
     def test_from_dict(self):
-        config = SuiteLoader.from_dict({
-            "name": "test",
-            "skills": [
-                {"path": "a.md", "min_grade": "B"},
-            ],
-        })
+        config = SuiteLoader.from_dict(
+            {
+                "name": "test",
+                "skills": [
+                    {"path": "a.md", "min_grade": "B"},
+                ],
+            }
+        )
         assert config.name == "test"
         assert len(config.skills) == 1
 

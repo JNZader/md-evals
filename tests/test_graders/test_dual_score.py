@@ -113,9 +113,7 @@ class TestDualScoreEvaluator:
             rubric_text=self.STRONG_RUBRIC,
             pass_threshold=0.5,
         )
-        result = evaluator.evaluate(
-            "Great output", content_score=0.9, content_reason="Excellent"
-        )
+        result = evaluator.evaluate("Great output", content_score=0.9, content_reason="Excellent")
         assert result.content_score == 0.9
         assert result.rubric_quality > 0.7
         assert result.combined_confidence > 0.5
@@ -127,9 +125,7 @@ class TestDualScoreEvaluator:
             rubric_text=self.WEAK_RUBRIC,
             pass_threshold=0.5,
         )
-        result = evaluator.evaluate(
-            "Great output", content_score=0.9, content_reason="Excellent"
-        )
+        result = evaluator.evaluate("Great output", content_score=0.9, content_reason="Excellent")
         assert result.content_score == 0.9
         assert result.rubric_quality == 0.0  # Weak rubric
         assert result.combined_confidence == 0.0
@@ -141,9 +137,7 @@ class TestDualScoreEvaluator:
             rubric_text=self.STRONG_RUBRIC,
             pass_threshold=0.5,
         )
-        result = evaluator.evaluate(
-            "Bad output", content_score=0.2, content_reason="Poor"
-        )
+        result = evaluator.evaluate("Bad output", content_score=0.2, content_reason="Poor")
         assert result.content_score == 0.2
         assert result.combined_confidence < 0.5
         assert result.passed is False
@@ -171,9 +165,7 @@ class TestDualScoreEvaluator:
         def scorer(output: str, rubric: str) -> ContentScoreReport:
             # Simple scorer: score based on length
             score = min(1.0, len(output) / 100)
-            return ContentScoreReport(
-                score=score, reason=f"Length-based: {len(output)} chars"
-            )
+            return ContentScoreReport(score=score, reason=f"Length-based: {len(output)} chars")
 
         evaluator = DualScoreEvaluator(
             name="test",

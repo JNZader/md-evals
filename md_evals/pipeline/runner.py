@@ -124,10 +124,12 @@ class PipelineRunner:
             if probe_name == "dimension":
                 # Create one DimensionProbe per rubric dimension
                 for dim_name, dim_config in self.rubric.dimensions.items():
-                    probes.append(DimensionProbe(
-                        dimension=dim_name,
-                        description=dim_config.description,
-                    ))
+                    probes.append(
+                        DimensionProbe(
+                            dimension=dim_name,
+                            description=dim_config.description,
+                        )
+                    )
             elif probe_name in available:
                 probe_class = available[probe_name]
                 probes.append(probe_class())

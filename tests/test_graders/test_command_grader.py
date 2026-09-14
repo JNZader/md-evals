@@ -9,9 +9,7 @@ class TestCommandGrader:
     """Tests for CommandGrader."""
 
     def test_echo_succeeds(self, tmp_path: Path):
-        grader = CommandGrader(
-            name="echo_test", command="echo hello"
-        )
+        grader = CommandGrader(name="echo_test", command="echo hello")
         result = grader.grade(tmp_path)
         assert result.passed is True
         assert result.score == 1.0

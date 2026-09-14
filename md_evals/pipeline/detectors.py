@@ -233,9 +233,7 @@ class LLMJudgeDetector:
         effective_dim = scenario.dimension or self._dimension
 
         if adapter is None:
-            logger.warning(
-                "LLMJudgeDetector: no judge_adapter in context, returning 0.0"
-            )
+            logger.warning("LLMJudgeDetector: no judge_adapter in context, returning 0.0")
             return DimensionScore(
                 dimension=effective_dim,
                 score=0.0,
@@ -259,9 +257,7 @@ class LLMJudgeDetector:
         # Parse JSON response
         result = _extract_json_object(content)
         if result is None:
-            logger.warning(
-                "LLMJudgeDetector: failed to parse JSON from judge response"
-            )
+            logger.warning("LLMJudgeDetector: failed to parse JSON from judge response")
             return DimensionScore(
                 dimension=effective_dim,
                 score=0.0,
@@ -301,8 +297,7 @@ class LLMJudgeDetector:
                 for c in validated:
                     status = "verified" if c.verified else "UNVERIFIED"
                     evidence_items.append(
-                        f"[{status}] L{c.line}: \"{c.text}\" "
-                        f"(supports: {c.supports})"
+                        f'[{status}] L{c.line}: "{c.text}" (supports: {c.supports})'
                     )
 
         return DimensionScore(
@@ -351,16 +346,18 @@ class LLMJudgeDetector:
             for rule in skill.rules[:10]:
                 parts.append(f"- {rule}")
 
-        parts.extend([
-            "",
-            "## Test Scenario",
-            f"Prompt: {scenario.prompt}",
-            f"Expected behavior: {scenario.expected_behavior}",
-            f"Dimension: {scenario.dimension or 'general'}",
-            "",
-            "## Target Response",
-            response[:3000],
-        ])
+        parts.extend(
+            [
+                "",
+                "## Test Scenario",
+                f"Prompt: {scenario.prompt}",
+                f"Expected behavior: {scenario.expected_behavior}",
+                f"Dimension: {scenario.dimension or 'general'}",
+                "",
+                "## Target Response",
+                response[:3000],
+            ]
+        )
 
         # Include pre-check findings if available
         if context.pre_check_result is not None:
@@ -369,9 +366,7 @@ class LLMJudgeDetector:
                 if findings:
                     parts.append("\n## Pre-check Findings:")
                     for finding in findings[:5]:
-                        parts.append(
-                            f"- [{finding.severity}] {finding.message}"
-                        )
+                        parts.append(f"- [{finding.severity}] {finding.message}")
             except AttributeError:
                 pass
 
@@ -381,23 +376,24 @@ class LLMJudgeDetector:
             for i, line in enumerate(skill.raw_content.splitlines()[:50], 1):
                 parts.append(f"  {i}: {line}")
 
-        parts.extend([
-            "",
-            "## Instructions",
-            "Evaluate the response and return a JSON object with exactly "
-            "these fields:",
-            '{"score": <float 0.0-1.0>, "rationale": "<explanation>", '
-            '"dimension": "<dimension name>", '
-            '"citations": [{"line": <int>, "text": "<quoted text from that line>", '
-            '"supports": "<dimension>"}]}',
-            "",
-            "IMPORTANT: You MUST cite specific lines from the Skill Content above "
-            "to support your score. Each citation must reference an actual line "
-            "number and quote the relevant text from that line.",
-            "",
-            "Score 1.0 = perfect, 0.0 = completely wrong. Be precise.",
-            "Return ONLY the JSON object, no other text.",
-        ])
+        parts.extend(
+            [
+                "",
+                "## Instructions",
+                "Evaluate the response and return a JSON object with exactly these fields:",
+                '{"score": <float 0.0-1.0>, "rationale": "<explanation>", '
+                '"dimension": "<dimension name>", '
+                '"citations": [{"line": <int>, "text": "<quoted text from that line>", '
+                '"supports": "<dimension>"}]}',
+                "",
+                "IMPORTANT: You MUST cite specific lines from the Skill Content above "
+                "to support your score. Each citation must reference an actual line "
+                "number and quote the relevant text from that line.",
+                "",
+                "Score 1.0 = perfect, 0.0 = completely wrong. Be precise.",
+                "Return ONLY the JSON object, no other text.",
+            ]
+        )
 
         return "\n".join(parts)
 
@@ -488,9 +484,7 @@ class FormatDetector:
         # Check 4: Consistent indentation (no mixed tabs and spaces)
         lines = response.splitlines()
         has_tab_indent = any(line.startswith("\t") for line in lines if line.strip())
-        has_space_indent = any(
-            re.match(r"^ {2,}", line) for line in lines if line.strip()
-        )
+        has_space_indent = any(re.match(r"^ {2,}", line) for line in lines if line.strip())
         if not (has_tab_indent and has_space_indent):
             checks_passed += 1
             evidence.append("Consistent indentation: PASS")
@@ -723,13 +717,9 @@ def aggregate_detector_scores(
 
         if total_weight == 0.0:
             # Degenerate case — simple average
-            avg_score = (
-                sum(ds.score for ds, _ in scored_pairs) / len(scored_pairs)
-            )
+            avg_score = sum(ds.score for ds, _ in scored_pairs) / len(scored_pairs)
         else:
-            avg_score = (
-                sum(ds.score * w for ds, w in scored_pairs) / total_weight
-            )
+            avg_score = sum(ds.score * w for ds, w in scored_pairs) / total_weight
 
         clamped = max(0.0, min(1.0, avg_score))
 
@@ -796,9 +786,7 @@ def _parse_citations(raw_citations: list[Any]) -> list[Citation]:
             text = str(item.get("text", ""))
             supports = str(item.get("supports", ""))
             if line > 0 and text:
-                citations.append(
-                    Citation(line=line, text=text, supports=supports)
-                )
+                citations.append(Citation(line=line, text=text, supports=supports))
         except (ValueError, TypeError):
             continue
     return citations

@@ -256,8 +256,7 @@ def test_engine_secret_detection_fails():
     assert result.passed is False
 
     secret_findings = [
-        f for f in result.findings
-        if f.check == "security_antipattern" and f.severity == "error"
+        f for f in result.findings if f.check == "security_antipattern" and f.severity == "error"
     ]
     assert len(secret_findings) >= 1
     assert "Hardcoded secret" in secret_findings[0].message
@@ -269,9 +268,7 @@ def test_engine_secret_detection_has_line_number():
     engine = PreCheckEngine(rubric)
     result = engine.run(str(FIXTURES_DIR / "skill_with_secret.md"))
 
-    secret_findings = [
-        f for f in result.findings if f.check == "security_antipattern"
-    ]
+    secret_findings = [f for f in result.findings if f.check == "security_antipattern"]
     assert len(secret_findings) >= 1
     assert secret_findings[0].line is not None
     assert secret_findings[0].line > 0
@@ -289,8 +286,7 @@ def test_engine_shell_pattern_warns_but_passes():
     result = engine.run(str(FIXTURES_DIR / "skill_with_shell.md"))
 
     shell_findings = [
-        f for f in result.findings
-        if f.check == "security_antipattern" and f.severity == "warning"
+        f for f in result.findings if f.check == "security_antipattern" and f.severity == "warning"
     ]
     assert len(shell_findings) >= 1
     assert result.passed is True
@@ -309,9 +305,7 @@ def test_engine_empty_file_fails():
 
     assert result.passed is False
 
-    empty_findings = [
-        f for f in result.findings if f.check == "empty-file"
-    ]
+    empty_findings = [f for f in result.findings if f.check == "empty-file"]
     assert len(empty_findings) == 1
     assert empty_findings[0].severity == "error"
 
@@ -360,9 +354,7 @@ def test_engine_linter_violations_appear_as_findings(tmp_path):
     result = engine.run(str(skill))
 
     # RequiredSectionsRule should produce warnings for missing sections
-    section_findings = [
-        f for f in result.findings if f.check == "required-sections"
-    ]
+    section_findings = [f for f in result.findings if f.check == "required-sections"]
     assert len(section_findings) >= 1
     for f in section_findings:
         assert f.severity == "warning"
@@ -378,9 +370,7 @@ def test_engine_multiple_findings_same_file(tmp_path):
     """File with multiple issues produces multiple findings."""
     # Create a file with both a secret and missing sections
     bad_skill = tmp_path / "bad_skill.md"
-    bad_skill.write_text(
-        '# Bad Skill\napi_key = "sk-secret123"\n'
-    )
+    bad_skill.write_text('# Bad Skill\napi_key = "sk-secret123"\n')
 
     rubric = _default_rubric()
     engine = PreCheckEngine(rubric)
@@ -433,7 +423,12 @@ def test_engine_very_long_content_performance(tmp_path):
     """Large file is processed without error and in reasonable time."""
     long_skill = tmp_path / "long_skill.md"
     # Create a 10,000-line file
-    lines = ["# Long Skill\n", "## Description\nContent\n", "## Rules\nRules\n", "## Examples\nExamples\n"]
+    lines = [
+        "# Long Skill\n",
+        "## Description\nContent\n",
+        "## Rules\nRules\n",
+        "## Examples\nExamples\n",
+    ]
     lines.extend([f"Line {i}: some content here\n" for i in range(10_000)])
     long_skill.write_text("".join(lines))
 
@@ -460,7 +455,14 @@ def test_engine_preserves_finding_order(tmp_path):
     # Linter findings (empty-file check won't trigger since there's content,
     # but required-sections will) come before security findings
     checks = [f.check for f in result.findings]
-    linter_checks = {"empty-file", "max-lines", "very-long-line", "required-sections", "file-not-found", "read-error"}
+    linter_checks = {
+        "empty-file",
+        "max-lines",
+        "very-long-line",
+        "required-sections",
+        "file-not-found",
+        "read-error",
+    }
     security_start = None
     linter_end = None
     for i, c in enumerate(checks):

@@ -92,7 +92,10 @@ def test_router_falls_back_to_defaults_when_stage_model_is_none(MockAdapter):
 
     # Should use default model/provider
     call_kwargs = MockAdapter.call_args
-    assert call_kwargs.kwargs.get("model") == "default-model" or call_kwargs[1].get("model") == "default-model"
+    assert (
+        call_kwargs.kwargs.get("model") == "default-model"
+        or call_kwargs[1].get("model") == "default-model"
+    )
 
 
 @patch("md_evals.pipeline.model_router.LLMAdapter")

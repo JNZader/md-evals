@@ -108,7 +108,10 @@ class TestRetryIntegration:
             defaults=Defaults(retry_attempts=3, retry_delay=0),
         )
         with patch("md_evals.llm.litellm.acompletion", new_callable=AsyncMock) as mocked_completion:
-            mocked_completion.side_effect = [TimeoutError("first timeout"), _mock_response("success")]
+            mocked_completion.side_effect = [
+                TimeoutError("first timeout"),
+                _mock_response("success"),
+            ]
             response = await adapter.complete(prompt="hello")
         assert response.content == "success"
         assert mocked_completion.await_count == 2

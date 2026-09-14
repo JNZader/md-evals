@@ -1,6 +1,5 @@
 """Tests for the SDD quality benchmark suite."""
 
-
 from md_evals.benchmarks.sdd_benchmark import (
     SDDArtifactType,
     SDDBenchmarkResult,
@@ -69,12 +68,9 @@ class TestGetSampleCases:
         assert all("good" in c.tags for c in good_cases)
 
     def test_combined_filter(self):
-        good_proposals = get_sample_cases(
-            artifact_type=SDDArtifactType.PROPOSAL, tags=["good"]
-        )
+        good_proposals = get_sample_cases(artifact_type=SDDArtifactType.PROPOSAL, tags=["good"])
         assert all(
-            c.artifact_type == SDDArtifactType.PROPOSAL and "good" in c.tags
-            for c in good_proposals
+            c.artifact_type == SDDArtifactType.PROPOSAL and "good" in c.tags for c in good_proposals
         )
 
     def test_each_case_has_required_fields(self):
@@ -236,7 +232,12 @@ class TestSDDBenchmarkSuite:
     def test_evaluate_custom_output(self):
         suite = SDDBenchmarkSuite()
         result = suite.evaluate(
-            output="## Intent\nMigrate auth. The goal is security.\n## Scope\nAll endpoints in scope.\n## Approach\nThe approach uses JWT. Tradeoff: complexity.\n## Risks\nRisk of breaking changes.",
+            output=(
+                "## Intent\nMigrate auth. The goal is security.\n## Scope\n"
+                "All endpoints in scope.\n"
+                "## Approach\nThe approach uses JWT. Tradeoff: complexity.\n## Risks\n"
+                "Risk of breaking changes."
+            ),
             artifact_type=SDDArtifactType.PROPOSAL,
         )
         assert isinstance(result, SDDBenchmarkResult)

@@ -12,9 +12,18 @@ from datetime import datetime, timezone
 from md_evals.engine import ExecutionEngine
 from md_evals.evaluator import EvaluatorEngine
 from md_evals.models import (
-    EvalConfig, ExecutionResult, Defaults, Task, Treatment,
-    RegexEvaluator, ExactMatchEvaluator, LLMJudgeEvaluator,
-    LLMResponse, EvaluatorResult, ExecutionConfig, OutputConfig
+    EvalConfig,
+    ExecutionResult,
+    Defaults,
+    Task,
+    Treatment,
+    RegexEvaluator,
+    ExactMatchEvaluator,
+    LLMJudgeEvaluator,
+    LLMResponse,
+    EvaluatorResult,
+    ExecutionConfig,
+    OutputConfig,
 )
 from md_evals.llm import LLMAdapter, LLMError
 
@@ -38,7 +47,7 @@ def mock_llm_response() -> LLMResponse:
         provider="openai",
         tokens=100,
         duration_ms=1000,
-        raw_response={}
+        raw_response={},
     )
 
 
@@ -58,15 +67,10 @@ def base_config() -> EvalConfig:
             "CONTROL": Treatment(skill_path=None),
         },
         tests=[
-            Task(
-                name="test_hello",
-                prompt="Say hello",
-                variables={},
-                evaluators=[]
-            ),
+            Task(name="test_hello", prompt="Say hello", variables={}, evaluators=[]),
         ],
         execution=ExecutionConfig(parallel_workers=1, repetitions=1),
-        output=OutputConfig()
+        output=OutputConfig(),
     )
 
 
@@ -85,14 +89,10 @@ def config_with_regex_evaluator() -> EvalConfig:
                 prompt="Greet the user",
                 variables={},
                 evaluators=[
-                    RegexEvaluator(
-                        name="has_hello",
-                        pattern=r"[Hh]ello|[Hh]i",
-                        pass_on_match=True
-                    )
-                ]
+                    RegexEvaluator(name="has_hello", pattern=r"[Hh]ello|[Hh]i", pass_on_match=True)
+                ],
             ),
-        ]
+        ],
     )
 
 
@@ -111,14 +111,10 @@ def config_with_exact_match() -> EvalConfig:
                 prompt="Say exactly: hello",
                 variables={},
                 evaluators=[
-                    ExactMatchEvaluator(
-                        name="exact_hello",
-                        expected="hello",
-                        case_sensitive=False
-                    )
-                ]
+                    ExactMatchEvaluator(name="exact_hello", expected="hello", case_sensitive=False)
+                ],
             ),
-        ]
+        ],
     )
 
 
@@ -138,9 +134,9 @@ def config_with_multiple_treatments() -> EvalConfig:
                 name="test_1",
                 prompt="Question 1: {question}",
                 variables={"question": "What is 2+2?"},
-                evaluators=[]
+                evaluators=[],
             ),
-        ]
+        ],
     )
 
 
@@ -159,7 +155,7 @@ def config_with_parallel_execution() -> EvalConfig:
             Task(name="test_2", prompt="Q2", variables={}, evaluators=[]),
             Task(name="test_3", prompt="Q3", variables={}, evaluators=[]),
         ],
-        execution=ExecutionConfig(parallel_workers=3, repetitions=1)
+        execution=ExecutionConfig(parallel_workers=3, repetitions=1),
     )
 
 
@@ -178,19 +174,11 @@ def config_with_multiple_evaluators() -> EvalConfig:
                 prompt="Generate output",
                 variables={},
                 evaluators=[
-                    RegexEvaluator(
-                        name="has_pattern_1",
-                        pattern=r"hello",
-                        pass_on_match=True
-                    ),
-                    ExactMatchEvaluator(
-                        name="has_word",
-                        expected="world",
-                        case_sensitive=False
-                    ),
-                ]
+                    RegexEvaluator(name="has_pattern_1", pattern=r"hello", pass_on_match=True),
+                    ExactMatchEvaluator(name="has_word", expected="world", case_sensitive=False),
+                ],
             ),
-        ]
+        ],
     )
 
 
@@ -219,9 +207,7 @@ class TestHappyPath:
         mock_llm_adapter.complete = AsyncMock(return_value=mock_llm_response)
         evaluator = EvaluatorEngine()
         engine = ExecutionEngine(
-            config=base_config,
-            llm_adapter=mock_llm_adapter,
-            evaluator_engine=evaluator
+            config=base_config, llm_adapter=mock_llm_adapter, evaluator_engine=evaluator
         )
 
         # Execute
@@ -258,8 +244,7 @@ class TestHappyPath:
         # Setup
         mock_llm_adapter.complete = AsyncMock(return_value=mock_llm_response)
         engine = ExecutionEngine(
-            config=config_with_multiple_treatments,
-            llm_adapter=mock_llm_adapter
+            config=config_with_multiple_treatments, llm_adapter=mock_llm_adapter
         )
 
         # Execute
@@ -294,7 +279,7 @@ class TestHappyPath:
             provider="openai",
             tokens=50,
             duration_ms=800,
-            raw_response={}
+            raw_response={},
         )
         mock_llm_adapter.complete = AsyncMock(return_value=success_response)
 
@@ -302,7 +287,7 @@ class TestHappyPath:
         engine = ExecutionEngine(
             config=config_with_regex_evaluator,
             llm_adapter=mock_llm_adapter,
-            evaluator_engine=evaluator
+            evaluator_engine=evaluator,
         )
 
         # Execute
@@ -344,7 +329,7 @@ class TestEngineEvaluatorIntegration:
             provider="openai",
             tokens=60,
             duration_ms=900,
-            raw_response={}
+            raw_response={},
         )
         mock_llm_adapter.complete = AsyncMock(return_value=success_response)
 
@@ -352,7 +337,7 @@ class TestEngineEvaluatorIntegration:
         engine = ExecutionEngine(
             config=config_with_multiple_evaluators,
             llm_adapter=mock_llm_adapter,
-            evaluator_engine=evaluator
+            evaluator_engine=evaluator,
         )
 
         # Execute
@@ -387,19 +372,12 @@ class TestEngineEvaluatorIntegration:
             name="Test",
             defaults=Defaults(model="gpt-4o"),
             treatments={
-                "WITH_MISSING_SKILL": Treatment(
-                    skill_path="/nonexistent/skill.md"
-                ),
+                "WITH_MISSING_SKILL": Treatment(skill_path="/nonexistent/skill.md"),
                 "CONTROL": Treatment(skill_path=None),  # Explicitly add CONTROL
             },
             tests=[
-                Task(
-                    name="test",
-                    prompt="Test prompt",
-                    variables={},
-                    evaluators=[]
-                ),
-            ]
+                Task(name="test", prompt="Test prompt", variables={}, evaluators=[]),
+            ],
         )
 
         mock_llm_adapter.complete = AsyncMock(return_value=mock_llm_response)
@@ -428,11 +406,7 @@ class TestEngineEvaluatorIntegration:
         - Config validation
         """
         # Setup - empty config
-        config = EvalConfig(
-            name="Empty",
-            treatments={},
-            tests=[]
-        )
+        config = EvalConfig(name="Empty", treatments={}, tests=[])
 
         engine = ExecutionEngine(config=config, llm_adapter=mock_llm_adapter)
 
@@ -464,13 +438,12 @@ class TestEngineEvaluatorIntegration:
                 provider="openai",
                 tokens=50,
                 duration_ms=100,
-                raw_response={}
+                raw_response={},
             )
         )
 
         engine = ExecutionEngine(
-            config=config_with_parallel_execution,
-            llm_adapter=mock_llm_adapter
+            config=config_with_parallel_execution, llm_adapter=mock_llm_adapter
         )
 
         # Execute
@@ -483,8 +456,12 @@ class TestEngineEvaluatorIntegration:
         # Verify all combinations are present
         treatment_test_pairs = {(r.treatment, r.test) for r in results}
         expected_pairs = {
-            ("CONTROL", "test_1"), ("CONTROL", "test_2"), ("CONTROL", "test_3"),
-            ("VARIANT", "test_1"), ("VARIANT", "test_2"), ("VARIANT", "test_3"),
+            ("CONTROL", "test_1"),
+            ("CONTROL", "test_2"),
+            ("CONTROL", "test_3"),
+            ("VARIANT", "test_1"),
+            ("VARIANT", "test_2"),
+            ("VARIANT", "test_3"),
         }
         assert treatment_test_pairs == expected_pairs
 
@@ -508,7 +485,7 @@ class TestEngineEvaluatorIntegration:
             provider="openai",
             tokens=20,
             duration_ms=500,
-            raw_response={}
+            raw_response={},
         )
 
         mock_llm_adapter.complete = AsyncMock(
@@ -516,8 +493,7 @@ class TestEngineEvaluatorIntegration:
         )
 
         engine = ExecutionEngine(
-            config=config_with_multiple_treatments,
-            llm_adapter=mock_llm_adapter
+            config=config_with_multiple_treatments, llm_adapter=mock_llm_adapter
         )
 
         # Execute
@@ -551,9 +527,7 @@ class TestErrorHandling:
         - Result status
         """
         # Setup
-        mock_llm_adapter.complete = AsyncMock(
-            side_effect=LLMError("API rate limited")
-        )
+        mock_llm_adapter.complete = AsyncMock(side_effect=LLMError("API rate limited"))
         engine = ExecutionEngine(config=base_config, llm_adapter=mock_llm_adapter)
 
         # Execute
@@ -579,9 +553,7 @@ class TestErrorHandling:
         - Graceful degradation
         """
         # Setup
-        mock_llm_adapter.complete = AsyncMock(
-            side_effect=LLMError("Request timeout after 60s")
-        )
+        mock_llm_adapter.complete = AsyncMock(side_effect=LLMError("Request timeout after 60s"))
         engine = ExecutionEngine(config=base_config, llm_adapter=mock_llm_adapter)
 
         # Execute
@@ -642,22 +614,16 @@ class TestErrorHandling:
                     name="test",
                     prompt="test",
                     evaluators=[
-                        RegexEvaluator(
-                            name="bad_regex",
-                            pattern="[invalid",
-                            pass_on_match=True
-                        )
-                    ]
+                        RegexEvaluator(name="bad_regex", pattern="[invalid", pass_on_match=True)
+                    ],
                 ),
-            ]
+            ],
         )
 
         mock_llm_adapter.complete = AsyncMock(return_value=mock_llm_response)
         evaluator = EvaluatorEngine()
         engine = ExecutionEngine(
-            config=config,
-            llm_adapter=mock_llm_adapter,
-            evaluator_engine=evaluator
+            config=config, llm_adapter=mock_llm_adapter, evaluator_engine=evaluator
         )
 
         # Execute
@@ -699,14 +665,10 @@ class TestEvaluatorIntegration:
                     name="test",
                     prompt="test",
                     evaluators=[
-                        RegexEvaluator(
-                            name="case_insensitive",
-                            pattern="HELLO",
-                            pass_on_match=True
-                        )
-                    ]
+                        RegexEvaluator(name="case_insensitive", pattern="HELLO", pass_on_match=True)
+                    ],
                 ),
-            ]
+            ],
         )
 
         response = LLMResponse(
@@ -715,14 +677,12 @@ class TestEvaluatorIntegration:
             provider="openai",
             tokens=20,
             duration_ms=500,
-            raw_response={}
+            raw_response={},
         )
         mock_llm_adapter.complete = AsyncMock(return_value=response)
         evaluator = EvaluatorEngine()
         engine = ExecutionEngine(
-            config=config,
-            llm_adapter=mock_llm_adapter,
-            evaluator_engine=evaluator
+            config=config, llm_adapter=mock_llm_adapter, evaluator_engine=evaluator
         )
 
         # Execute
@@ -753,14 +713,10 @@ class TestEvaluatorIntegration:
                     name="test",
                     prompt="test",
                     evaluators=[
-                        ExactMatchEvaluator(
-                            name="exact",
-                            expected="world",
-                            case_sensitive=False
-                        )
-                    ]
+                        ExactMatchEvaluator(name="exact", expected="world", case_sensitive=False)
+                    ],
                 ),
-            ]
+            ],
         )
 
         response = LLMResponse(
@@ -769,14 +725,12 @@ class TestEvaluatorIntegration:
             provider="openai",
             tokens=20,
             duration_ms=500,
-            raw_response={}
+            raw_response={},
         )
         mock_llm_adapter.complete = AsyncMock(return_value=response)
         evaluator = EvaluatorEngine()
         engine = ExecutionEngine(
-            config=config,
-            llm_adapter=mock_llm_adapter,
-            evaluator_engine=evaluator
+            config=config, llm_adapter=mock_llm_adapter, evaluator_engine=evaluator
         )
 
         # Execute
@@ -813,7 +767,7 @@ class TestRepetitionAndBatching:
             tests=[
                 Task(name="test_1", prompt="Q1", evaluators=[]),
             ],
-            execution=ExecutionConfig(parallel_workers=1, repetitions=3)
+            execution=ExecutionConfig(parallel_workers=1, repetitions=3),
         )
 
         response = LLMResponse(
@@ -822,7 +776,7 @@ class TestRepetitionAndBatching:
             provider="openai",
             tokens=20,
             duration_ms=500,
-            raw_response={}
+            raw_response={},
         )
         mock_llm_adapter.complete = AsyncMock(return_value=response)
         engine = ExecutionEngine(config=config, llm_adapter=mock_llm_adapter)
@@ -858,12 +812,11 @@ class TestRepetitionAndBatching:
             provider="openai",
             tokens=20,
             duration_ms=500,
-            raw_response={}
+            raw_response={},
         )
         mock_llm_adapter.complete = AsyncMock(return_value=response)
         engine = ExecutionEngine(
-            config=config_with_multiple_treatments,
-            llm_adapter=mock_llm_adapter
+            config=config_with_multiple_treatments, llm_adapter=mock_llm_adapter
         )
 
         # Execute
@@ -904,14 +857,10 @@ class TestVariableSubstitution:
                 Task(
                     name="test",
                     prompt="What is {a} + {b}? Also, who is {person}?",
-                    variables={
-                        "a": "2",
-                        "b": "3",
-                        "person": "Alice"
-                    },
-                    evaluators=[]
+                    variables={"a": "2", "b": "3", "person": "Alice"},
+                    evaluators=[],
                 ),
-            ]
+            ],
         )
 
         response = LLMResponse(
@@ -920,7 +869,7 @@ class TestVariableSubstitution:
             provider="openai",
             tokens=20,
             duration_ms=500,
-            raw_response={}
+            raw_response={},
         )
         mock_llm_adapter.complete = AsyncMock(return_value=response)
         engine = ExecutionEngine(config=config, llm_adapter=mock_llm_adapter)
@@ -958,12 +907,10 @@ class TestVariableSubstitution:
                 Task(
                     name="test",
                     prompt="Process: {text}",
-                    variables={
-                        "text": 'Special: [test] {value} "quoted" & < > | \\n'
-                    },
-                    evaluators=[]
+                    variables={"text": 'Special: [test] {value} "quoted" & < > | \\n'},
+                    evaluators=[],
                 ),
-            ]
+            ],
         )
 
         response = LLMResponse(
@@ -972,7 +919,7 @@ class TestVariableSubstitution:
             provider="openai",
             tokens=20,
             duration_ms=500,
-            raw_response={}
+            raw_response={},
         )
         mock_llm_adapter.complete = AsyncMock(return_value=response)
         engine = ExecutionEngine(config=config, llm_adapter=mock_llm_adapter)
@@ -1041,7 +988,7 @@ class TestMetadataTracking:
             provider="openai",
             tokens=123,
             duration_ms=2500,
-            raw_response={"id": "test-123"}
+            raw_response={"id": "test-123"},
         )
         mock_llm_adapter.complete = AsyncMock(return_value=response)
         engine = ExecutionEngine(config=base_config, llm_adapter=mock_llm_adapter)
@@ -1081,17 +1028,17 @@ class TestMultiEvaluatorPipeline:
                         RegexEvaluator(
                             name="contains_greeting",
                             pattern=r"(?i)(hello|hi|greetings)",
-                            pass_on_match=True
+                            pass_on_match=True,
                         ),
                         LLMJudgeEvaluator(
                             name="quality_assessment",
                             judge_model="gpt-4o",
                             criteria="Response is helpful and clear",
-                            pass_threshold=0.8
+                            pass_threshold=0.8,
                         ),
-                    ]
+                    ],
                 ),
-            ]
+            ],
         )
 
     @pytest.fixture
@@ -1110,23 +1057,17 @@ class TestMultiEvaluatorPipeline:
                     variables={},
                     evaluators=[
                         ExactMatchEvaluator(
-                            name="exact_greeting",
-                            expected="hello",
-                            case_sensitive=False
+                            name="exact_greeting", expected="hello", case_sensitive=False
                         ),
                         ExactMatchEvaluator(
-                            name="exact_world",
-                            expected="world",
-                            case_sensitive=False
+                            name="exact_world", expected="world", case_sensitive=False
                         ),
                         RegexEvaluator(
-                            name="pattern_check",
-                            pattern=r"^hello world$",
-                            pass_on_match=True
+                            name="pattern_check", pattern=r"^hello world$", pass_on_match=True
                         ),
-                    ]
+                    ],
                 ),
-            ]
+            ],
         )
 
     @pytest.mark.asyncio
@@ -1150,7 +1091,7 @@ class TestMultiEvaluatorPipeline:
             provider="openai",
             tokens=80,
             duration_ms=1200,
-            raw_response={}
+            raw_response={},
         )
         mock_llm_adapter.complete = AsyncMock(return_value=response)
 
@@ -1158,7 +1099,7 @@ class TestMultiEvaluatorPipeline:
         engine = ExecutionEngine(
             config=config_regex_and_llm_judge,
             llm_adapter=mock_llm_adapter,
-            evaluator_engine=evaluator
+            evaluator_engine=evaluator,
         )
 
         # Execute
@@ -1171,8 +1112,7 @@ class TestMultiEvaluatorPipeline:
 
         # Verify regex evaluator passed
         regex_result = next(
-            (r for r in result.evaluator_results if r.evaluator_name == "contains_greeting"),
-            None
+            (r for r in result.evaluator_results if r.evaluator_name == "contains_greeting"), None
         )
         assert regex_result is not None
         assert regex_result.passed is True
@@ -1180,8 +1120,7 @@ class TestMultiEvaluatorPipeline:
 
         # Verify LLM judge was attempted (mocked)
         llm_judge_result = next(
-            (r for r in result.evaluator_results if r.evaluator_name == "quality_assessment"),
-            None
+            (r for r in result.evaluator_results if r.evaluator_name == "quality_assessment"), None
         )
         assert llm_judge_result is not None
 
@@ -1206,7 +1145,7 @@ class TestMultiEvaluatorPipeline:
             provider="openai",
             tokens=50,
             duration_ms=800,
-            raw_response={}
+            raw_response={},
         )
         mock_llm_adapter.complete = AsyncMock(return_value=response)
 
@@ -1214,7 +1153,7 @@ class TestMultiEvaluatorPipeline:
         engine = ExecutionEngine(
             config=config_evaluator_chain_failure,
             llm_adapter=mock_llm_adapter,
-            evaluator_engine=evaluator
+            evaluator_engine=evaluator,
         )
 
         # Execute
@@ -1260,14 +1199,10 @@ class TestTreatmentExpansion:
                     prompt="Test {variant} variant",
                     variables={"variant": "unknown"},
                     evaluators=[
-                        RegexEvaluator(
-                            name="has_variant",
-                            pattern=r"variant",
-                            pass_on_match=True
-                        )
-                    ]
+                        RegexEvaluator(name="has_variant", pattern=r"variant", pass_on_match=True)
+                    ],
                 ),
-            ]
+            ],
         )
 
     @pytest.mark.asyncio
@@ -1293,7 +1228,7 @@ class TestTreatmentExpansion:
             provider="openai",
             tokens=100,
             duration_ms=1000,
-            raw_response={}
+            raw_response={},
         )
         mock_llm_adapter.complete = AsyncMock(return_value=response)
 
@@ -1301,13 +1236,12 @@ class TestTreatmentExpansion:
         engine = ExecutionEngine(
             config=config_wildcard_treatments,
             llm_adapter=mock_llm_adapter,
-            evaluator_engine=evaluator
+            evaluator_engine=evaluator,
         )
 
         # Manually expand wildcard patterns (as CLI does)
         treatments_to_run = ConfigLoader.expand_wildcards(
-            ["CONTROL", "VARIANT_A_*"],
-            config_wildcard_treatments.treatments
+            ["CONTROL", "VARIANT_A_*"], config_wildcard_treatments.treatments
         )
 
         # Execute with expanded treatments
@@ -1350,7 +1284,7 @@ class TestReporterFormatConsistency:
                     provider="openai",
                     tokens=10,
                     duration_ms=500,
-                    raw_response={"id": "1"}
+                    raw_response={"id": "1"},
                 ),
                 passed=True,
                 evaluator_results=[
@@ -1358,10 +1292,10 @@ class TestReporterFormatConsistency:
                         evaluator_name="exact_match",
                         passed=True,
                         score=1.0,
-                        details={"reason": "Matched exactly"}
+                        details={"reason": "Matched exactly"},
                     )
                 ],
-                timestamp="2024-01-01T12:00:00Z"
+                timestamp="2024-01-01T12:00:00Z",
             ),
             ExecutionResult(
                 treatment="VARIANT_A",
@@ -1373,7 +1307,7 @@ class TestReporterFormatConsistency:
                     provider="openai",
                     tokens=15,
                     duration_ms=600,
-                    raw_response={"id": "2"}
+                    raw_response={"id": "2"},
                 ),
                 passed=True,
                 evaluator_results=[
@@ -1381,10 +1315,10 @@ class TestReporterFormatConsistency:
                         evaluator_name="regex_match",
                         passed=True,
                         score=0.9,
-                        details={"reason": "Contains number 4"}
+                        details={"reason": "Contains number 4"},
                     )
                 ],
-                timestamp="2024-01-01T12:01:00Z"
+                timestamp="2024-01-01T12:01:00Z",
             ),
             ExecutionResult(
                 treatment="VARIANT_B",
@@ -1396,7 +1330,7 @@ class TestReporterFormatConsistency:
                     provider="openai",
                     tokens=8,
                     duration_ms=400,
-                    raw_response={"id": "3"}
+                    raw_response={"id": "3"},
                 ),
                 passed=False,
                 evaluator_results=[
@@ -1404,10 +1338,10 @@ class TestReporterFormatConsistency:
                         evaluator_name="exact_match",
                         passed=False,
                         score=0.0,
-                        details={"reason": "Did not match"}
+                        details={"reason": "Did not match"},
                     )
                 ],
-                timestamp="2024-01-01T12:02:00Z"
+                timestamp="2024-01-01T12:02:00Z",
             ),
         ]
 
@@ -1535,13 +1469,7 @@ class TestLargeBatchProcessing:
                 name=f"test_{i:03d}",
                 prompt=f"Question {i}: What is {i} + 1?",
                 variables={"num": str(i)},
-                evaluators=[
-                    RegexEvaluator(
-                        name=f"check_{i}",
-                        pattern=r"\d+",
-                        pass_on_match=True
-                    )
-                ]
+                evaluators=[RegexEvaluator(name=f"check_{i}", pattern=r"\d+", pass_on_match=True)],
             )
             for i in range(50)
         ]
@@ -1555,7 +1483,7 @@ class TestLargeBatchProcessing:
                 "VARIANT_2": Treatment(skill_path=None),
             },
             tests=tasks,
-            execution=ExecutionConfig(parallel_workers=5, repetitions=1)
+            execution=ExecutionConfig(parallel_workers=5, repetitions=1),
         )
 
     @pytest.mark.asyncio
@@ -1580,15 +1508,13 @@ class TestLargeBatchProcessing:
             provider="openai",
             tokens=5,
             duration_ms=100,
-            raw_response={}
+            raw_response={},
         )
         mock_llm_adapter.complete = AsyncMock(return_value=mock_response)
 
         evaluator = EvaluatorEngine()
         engine = ExecutionEngine(
-            config=config_large_batch,
-            llm_adapter=mock_llm_adapter,
-            evaluator_engine=evaluator
+            config=config_large_batch, llm_adapter=mock_llm_adapter, evaluator_engine=evaluator
         )
 
         # Execute all treatments
@@ -1614,9 +1540,7 @@ class TestLargeBatchProcessing:
             assert len(result.evaluator_results) > 0
 
         # Verify no duplicates
-        result_keys = [
-            (r.treatment, r.test) for r in results
-        ]
+        result_keys = [(r.treatment, r.test) for r in results]
         assert len(result_keys) == len(set(result_keys))
 
     @pytest.mark.asyncio
@@ -1651,16 +1575,14 @@ class TestLargeBatchProcessing:
                 provider="openai",
                 tokens=5,
                 duration_ms=100,
-                raw_response={}
+                raw_response={},
             )
 
         mock_llm_adapter.complete = AsyncMock(side_effect=mock_complete_with_failures)
 
         evaluator = EvaluatorEngine()
         engine = ExecutionEngine(
-            config=config_large_batch,
-            llm_adapter=mock_llm_adapter,
-            evaluator_engine=evaluator
+            config=config_large_batch, llm_adapter=mock_llm_adapter, evaluator_engine=evaluator
         )
 
         # Execute
@@ -1887,14 +1809,10 @@ class TestE2EUsageMetricsWorkflow:
             )
 
             # AC-05: headroom formula
-            assert ctx["headroom_tokens"] == max(
-                128000 - ctx["prompt_tokens_used"], 0
-            )
+            assert ctx["headroom_tokens"] == max(128000 - ctx["prompt_tokens_used"], 0)
 
             # AC-06: safe_headroom formula
-            assert ctx["safe_headroom_tokens"] == max(
-                128000 - ctx["prompt_tokens_used"] - 2048, 0
-            )
+            assert ctx["safe_headroom_tokens"] == max(128000 - ctx["prompt_tokens_used"] - 2048, 0)
 
             # AC-07: overflow = false (prompts are small)
             assert ctx["overflow"] is False
@@ -1910,9 +1828,7 @@ class TestE2EUsageMetricsWorkflow:
             assert len(variant["stage_breakdown"]) >= 1
 
             # AC-11: stage sum = total
-            stage_total = sum(
-                s["total_tokens"] for s in variant["stage_breakdown"]
-            )
+            stage_total = sum(s["total_tokens"] for s in variant["stage_breakdown"])
             assert stage_total == cost["total_tokens"]
 
             # AC-12: attribution_quality in each stage
@@ -1940,6 +1856,7 @@ class TestE2EUsageMetricsWorkflow:
 
         # ── AC-15: No Infinity or NaN in deltas ──
         import math
+
         for domain_name in ("cost_metrics", "context_metrics"):
             for metric_name, metric_data in comp[domain_name].items():
                 if metric_data["delta_pct"] is not None:

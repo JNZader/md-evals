@@ -15,7 +15,12 @@ from md_evals.graders.adversarial_eval import (
 
 class TestFindLoopholes:
     def test_detects_suspiciously_short_output(self):
-        cases = [{"input": "Explain Python", "expected": "Python is a high-level programming language with dynamic typing"}]
+        cases = [
+            {
+                "input": "Explain Python",
+                "expected": "Python is a high-level programming language with dynamic typing",
+            }
+        ]
         outputs = ["Yes"]  # way too short
         findings = find_loopholes(cases, outputs)
         assert len(findings) >= 1
@@ -118,7 +123,10 @@ class TestCreatePatch:
 class TestAdversarialLoop:
     def test_runs_and_produces_results(self):
         cases = [
-            {"input": "Explain X", "expected": "X is a complex concept with multiple facets and implications"},
+            {
+                "input": "Explain X",
+                "expected": "X is a complex concept with multiple facets and implications",
+            },
             {"input": "Is Y true?", "expected": "Y is generally considered true in most contexts"},
         ]
         outputs = ["Yes", "Y is true and well-established in academic literature"]
@@ -136,7 +144,15 @@ class TestAdversarialLoop:
 
     def test_max_rounds_respected(self):
         # Force findings every round
-        cases = [{"input": "test", "expected": "a very long expected answer that the model will not fully reproduce in its output"}]
+        cases = [
+            {
+                "input": "test",
+                "expected": (
+                    "a very long expected answer that the model will not fully reproduce "
+                    "in its output"
+                ),
+            }
+        ]
         outputs = ["x"]  # suspiciously short
         result = run_adversarial_loop(cases, outputs, [], max_rounds=2)
         assert len(result.rounds) <= 2

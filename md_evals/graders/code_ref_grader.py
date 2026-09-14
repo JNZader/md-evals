@@ -130,10 +130,7 @@ class CodeRefGrader:
 
         reason = None
         if not passed:
-            reason = (
-                f"{len(unresolved)}/{total} refs unresolved: "
-                + ", ".join(unresolved[:5])
-            )
+            reason = f"{len(unresolved)}/{total} refs unresolved: " + ", ".join(unresolved[:5])
 
         return EvaluatorResult(
             evaluator_name=self.name,
@@ -209,9 +206,7 @@ class CodeRefGrader:
             for ext in self.file_extensions:
                 for source_file in base.rglob(f"*{ext}"):
                     try:
-                        content = source_file.read_text(
-                            encoding="utf-8", errors="replace"
-                        )
+                        content = source_file.read_text(encoding="utf-8", errors="replace")
                         if ref in content:
                             return True
                     except (OSError, UnicodeDecodeError):

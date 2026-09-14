@@ -1,0 +1,30 @@
+# Offline mechanical ablation; no live retrieval or model-quality claim.
+name: ContextPack v0 offline contract
+version: "1.0"
+defaults:
+  model: fixture-replay
+  provider: offline
+  temperature: 0
+  max_tokens: 1
+  timeout: 1
+  retry_attempts: 0
+treatments:
+  CONTROL:
+    description: "A: no supplied context"
+    skill_path: null
+  B_STRUCTURE:
+    description: "B: structure only"
+    skill_path: null
+  C_MEMORY:
+    description: "C: memory only"
+    skill_path: null
+  D_UNION:
+    description: "D: mechanical union, not broker-selected fusion"
+    skill_path: null
+execution:
+  repetitions: 2
+  parallel_workers: 1
+  fail_fast: false
+output:
+  save_results: false
+tests: []

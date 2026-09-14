@@ -60,10 +60,11 @@ output:
   include_usage_metrics: false
 """)
 
-        with patch("md_evals.cli.LLMAdapter"), \
-             patch("md_evals.cli.ExecutionEngine") as mock_engine, \
-             patch("md_evals.cli.Reporter") as mock_reporter_class:
-
+        with (
+            patch("md_evals.cli.LLMAdapter"),
+            patch("md_evals.cli.ExecutionEngine") as mock_engine,
+            patch("md_evals.cli.Reporter") as mock_reporter_class,
+        ):
             mock_engine_instance = MagicMock()
             mock_engine_instance.run_all = AsyncMock(return_value=[_make_result()])
             mock_engine.return_value = mock_engine_instance
@@ -72,9 +73,7 @@ output:
             mock_reporter_class.return_value = mock_reporter
 
             runner = CliRunner()
-            runner.invoke(app, [
-                "run", "--config", str(eval_file), "--no-lint"
-            ])
+            runner.invoke(app, ["run", "--config", str(eval_file), "--no-lint"])
 
             # Verify the Reporter was created with config where flag is off
             config_used = mock_reporter_class.call_args[0][0]
@@ -98,10 +97,11 @@ tests:
     prompt: "test"
 """)
 
-        with patch("md_evals.cli.LLMAdapter"), \
-             patch("md_evals.cli.ExecutionEngine") as mock_engine, \
-             patch("md_evals.cli.Reporter") as mock_reporter_class:
-
+        with (
+            patch("md_evals.cli.LLMAdapter"),
+            patch("md_evals.cli.ExecutionEngine") as mock_engine,
+            patch("md_evals.cli.Reporter") as mock_reporter_class,
+        ):
             mock_engine_instance = MagicMock()
             mock_engine_instance.run_all = AsyncMock(return_value=[_make_result()])
             mock_engine.return_value = mock_engine_instance
@@ -110,9 +110,7 @@ tests:
             mock_reporter_class.return_value = mock_reporter
 
             runner = CliRunner()
-            runner.invoke(app, [
-                "run", "--config", str(eval_file), "--no-lint"
-            ])
+            runner.invoke(app, ["run", "--config", str(eval_file), "--no-lint"])
 
             config_used = mock_reporter_class.call_args[0][0]
             assert config_used.output.include_usage_metrics is False
@@ -137,10 +135,11 @@ output:
   include_usage_metrics: false
 """)
 
-        with patch("md_evals.cli.LLMAdapter"), \
-             patch("md_evals.cli.ExecutionEngine") as mock_engine, \
-             patch("md_evals.cli.Reporter") as mock_reporter_class:
-
+        with (
+            patch("md_evals.cli.LLMAdapter"),
+            patch("md_evals.cli.ExecutionEngine") as mock_engine,
+            patch("md_evals.cli.Reporter") as mock_reporter_class,
+        ):
             mock_engine_instance = MagicMock()
             mock_engine_instance.run_all = AsyncMock(return_value=[_make_result()])
             mock_engine.return_value = mock_engine_instance
@@ -149,11 +148,9 @@ output:
             mock_reporter_class.return_value = mock_reporter
 
             runner = CliRunner()
-            runner.invoke(app, [
-                "run", "--config", str(eval_file),
-                "--collect-usage-metrics",
-                "--no-lint"
-            ])
+            runner.invoke(
+                app, ["run", "--config", str(eval_file), "--collect-usage-metrics", "--no-lint"]
+            )
 
             config_used = mock_reporter_class.call_args[0][0]
             assert config_used.output.include_usage_metrics is True
@@ -178,10 +175,11 @@ output:
   include_usage_metrics: true
 """)
 
-        with patch("md_evals.cli.LLMAdapter"), \
-             patch("md_evals.cli.ExecutionEngine") as mock_engine, \
-             patch("md_evals.cli.Reporter") as mock_reporter_class:
-
+        with (
+            patch("md_evals.cli.LLMAdapter"),
+            patch("md_evals.cli.ExecutionEngine") as mock_engine,
+            patch("md_evals.cli.Reporter") as mock_reporter_class,
+        ):
             mock_engine_instance = MagicMock()
             mock_engine_instance.run_all = AsyncMock(return_value=[_make_result()])
             mock_engine.return_value = mock_engine_instance
@@ -190,9 +188,7 @@ output:
             mock_reporter_class.return_value = mock_reporter
 
             runner = CliRunner()
-            runner.invoke(app, [
-                "run", "--config", str(eval_file), "--no-lint"
-            ])
+            runner.invoke(app, ["run", "--config", str(eval_file), "--no-lint"])
 
             config_used = mock_reporter_class.call_args[0][0]
             assert config_used.output.include_usage_metrics is True
@@ -217,10 +213,11 @@ output:
   include_usage_metrics: true
 """)
 
-        with patch("md_evals.cli.LLMAdapter"), \
-             patch("md_evals.cli.ExecutionEngine") as mock_engine, \
-             patch("md_evals.cli.Reporter") as mock_reporter_class:
-
+        with (
+            patch("md_evals.cli.LLMAdapter"),
+            patch("md_evals.cli.ExecutionEngine") as mock_engine,
+            patch("md_evals.cli.Reporter") as mock_reporter_class,
+        ):
             mock_engine_instance = MagicMock()
             mock_engine_instance.run_all = AsyncMock(return_value=[_make_result()])
             mock_engine.return_value = mock_engine_instance
@@ -229,11 +226,9 @@ output:
             mock_reporter_class.return_value = mock_reporter
 
             runner = CliRunner()
-            runner.invoke(app, [
-                "run", "--config", str(eval_file),
-                "--no-collect-usage-metrics",
-                "--no-lint"
-            ])
+            runner.invoke(
+                app, ["run", "--config", str(eval_file), "--no-collect-usage-metrics", "--no-lint"]
+            )
 
             config_used = mock_reporter_class.call_args[0][0]
             assert config_used.output.include_usage_metrics is False
@@ -255,8 +250,8 @@ class TestCLIHelpShowsFlag:
         result = runner.invoke(app, ["run", "--help"])
 
         # Strip ANSI codes and normalize whitespace
-        clean = re.sub(r'\x1b\[[0-9;]*m', '', result.stdout)
-        condensed = re.sub(r'\s+', ' ', clean)
+        clean = re.sub(r"\x1b\[[0-9;]*m", "", result.stdout)
+        condensed = re.sub(r"\s+", " ", clean)
 
         # Typer may truncate to "--collect-usage-me…" in narrow terminal
         assert "collect-usage-me" in condensed, (

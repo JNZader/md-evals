@@ -239,9 +239,7 @@ class TestCascadeEvaluator:
             ],
         )
         # No JSON, partial keywords (1/3 = 0.33 — uncertain), LLM judge gets score
-        result = cascade.evaluate(
-            "Uses React for the UI", llm_score=0.85, llm_reason="Good output"
-        )
+        result = cascade.evaluate("Uses React for the UI", llm_score=0.85, llm_reason="Good output")
         assert result.passed is True
         assert result.decisive_step == "judge"
         assert result.steps_executed == 3

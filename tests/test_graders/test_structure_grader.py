@@ -28,7 +28,7 @@ class TestJSONValidGrader:
         assert "Invalid JSON" in result.reason
 
     def test_valid_json_content_passes(self, tmp_path: Path):
-        grader = JSONValidGrader(name="json_check", content='[1, 2, 3]')
+        grader = JSONValidGrader(name="json_check", content="[1, 2, 3]")
         result = grader.grade(tmp_path)
         assert result.passed is True
 
@@ -134,7 +134,7 @@ class TestRequiredFieldsGrader:
     def test_non_object_json_root(self, tmp_path: Path):
         grader = RequiredFieldsGrader(
             name="check",
-            content='[1, 2, 3]',
+            content="[1, 2, 3]",
             required_fields=["key"],
         )
         result = grader.grade(tmp_path)
@@ -162,9 +162,7 @@ class TestRequiredFieldsGrader:
         assert result.passed is True
 
     def test_empty_required_fields(self, tmp_path: Path):
-        grader = RequiredFieldsGrader(
-            name="check", content='{"key": 1}', required_fields=[]
-        )
+        grader = RequiredFieldsGrader(name="check", content='{"key": 1}', required_fields=[])
         result = grader.grade(tmp_path)
         assert result.passed is True
 

@@ -159,15 +159,11 @@ class ConstraintGrader:
         if self.max_words > 0:
             word_count = len(raw.split())
             if word_count > self.max_words:
-                violations.append(
-                    f"Word count {word_count} exceeds maximum {self.max_words}"
-                )
+                violations.append(f"Word count {word_count} exceeds maximum {self.max_words}")
 
         if self.max_chars > 0:
             if len(raw) > self.max_chars:
-                violations.append(
-                    f"Char count {len(raw)} exceeds maximum {self.max_chars}"
-                )
+                violations.append(f"Char count {len(raw)} exceeds maximum {self.max_chars}")
 
         for pattern in self.forbidden_patterns:
             try:

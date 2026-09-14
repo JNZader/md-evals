@@ -213,11 +213,7 @@ def test_security_detector_multiple_issues():
     """Multiple security issues accumulate penalties."""
     d = SecurityDetector()
     ctx = _make_context()
-    content = (
-        'api_key = "sk-1234567890abcdef"\n'
-        "chmod 777 /var/data\n"
-        "rm -rf / --no-preserve-root"
-    )
+    content = 'api_key = "sk-1234567890abcdef"\nchmod 777 /var/data\nrm -rf / --no-preserve-root'
 
     result = d.score(_make_scenario(), content, _make_skill(), ctx)
 
@@ -256,11 +252,13 @@ def test_llm_judge_detector_custom_dimension():
 
 def test_llm_judge_detector_parses_valid_json(monkeypatch):
     """LLMJudgeDetector parses valid JSON from judge response."""
-    judge_response = json.dumps({
-        "score": 0.85,
-        "rationale": "Good response",
-        "dimension": "correctness",
-    })
+    judge_response = json.dumps(
+        {
+            "score": 0.85,
+            "rationale": "Good response",
+            "dimension": "correctness",
+        }
+    )
     monkeypatch.setattr(
         "md_evals.pipeline.detectors._run_llm_complete",
         lambda adapter, prompt, **kwargs: judge_response,
@@ -350,11 +348,13 @@ def test_llm_judge_detector_includes_precheck_findings(monkeypatch):
 
 def test_llm_judge_detector_clamps_score(monkeypatch):
     """LLMJudgeDetector clamps scores outside [0.0, 1.0]."""
-    judge_response = json.dumps({
-        "score": 1.5,
-        "rationale": "Over 9000",
-        "dimension": "general",
-    })
+    judge_response = json.dumps(
+        {
+            "score": 1.5,
+            "rationale": "Over 9000",
+            "dimension": "general",
+        }
+    )
     monkeypatch.setattr(
         "md_evals.pipeline.detectors._run_llm_complete",
         lambda adapter, prompt, **kwargs: judge_response,
@@ -411,7 +411,10 @@ def test_aggregate_single_detector():
     """Single detector score passes through."""
     scores = [
         DimensionScore(
-            dimension="format", score=0.8, weight=0.0, grade="B",
+            dimension="format",
+            score=0.8,
+            weight=0.0,
+            grade="B",
             evidence=["detector:format", "Has headings: PASS"],
         ),
     ]
@@ -425,11 +428,17 @@ def test_aggregate_multiple_detectors_same_dimension():
     """Multiple detectors on same dimension → weighted average."""
     scores = [
         DimensionScore(
-            dimension="format", score=0.9, weight=0.0, grade="A",
+            dimension="format",
+            score=0.9,
+            weight=0.0,
+            grade="A",
             evidence=["detector:llm-judge"],
         ),
         DimensionScore(
-            dimension="format", score=0.6, weight=0.0, grade="C",
+            dimension="format",
+            score=0.6,
+            weight=0.0,
+            grade="C",
             evidence=["detector:format"],
         ),
     ]
@@ -445,11 +454,17 @@ def test_aggregate_different_dimensions():
     """Scores for different dimensions produce separate entries."""
     scores = [
         DimensionScore(
-            dimension="format", score=0.8, weight=0.0, grade="B",
+            dimension="format",
+            score=0.8,
+            weight=0.0,
+            grade="B",
             evidence=["detector:format"],
         ),
         DimensionScore(
-            dimension="safety", score=1.0, weight=0.0, grade="A",
+            dimension="safety",
+            score=1.0,
+            weight=0.0,
+            grade="A",
             evidence=["detector:security"],
         ),
     ]
@@ -463,11 +478,17 @@ def test_aggregate_merges_evidence():
     """Aggregation merges evidence from all detectors."""
     scores = [
         DimensionScore(
-            dimension="general", score=0.8, weight=0.0, grade="B",
+            dimension="general",
+            score=0.8,
+            weight=0.0,
+            grade="B",
             evidence=["detector:llm-judge", "rationale 1"],
         ),
         DimensionScore(
-            dimension="general", score=0.9, weight=0.0, grade="A",
+            dimension="general",
+            score=0.9,
+            weight=0.0,
+            grade="A",
             evidence=["detector:llm-judge", "rationale 2"],
         ),
     ]

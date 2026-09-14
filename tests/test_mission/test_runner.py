@@ -112,9 +112,7 @@ class TestMissionRunDeterministic:
                     name="check_hello",
                     prompt="Say hello",
                     pass_criteria=[
-                        MissionPassCriteria(
-                            type="regex", name="has_hello", pattern="[Hh]ello"
-                        )
+                        MissionPassCriteria(type="regex", name="has_hello", pattern="[Hh]ello")
                     ],
                 )
             ],
@@ -181,9 +179,7 @@ class TestMissionRunDeterministic:
         """Test case with no criteria should pass."""
         config = MissionConfig(
             name="no-criteria",
-            test_cases=[
-                MissionTestCase(name="empty", prompt="anything")
-            ],
+            test_cases=[MissionTestCase(name="empty", prompt="anything")],
         )
         runner = MissionRunner(llm_adapter=None)
         result = await runner.run(config)
@@ -274,9 +270,7 @@ class TestMissionSaveResult:
         config = MissionConfig(
             name="save-test",
             results_dir=str(tmp_path / "results"),
-            test_cases=[
-                MissionTestCase(name="t1", prompt="test")
-            ],
+            test_cases=[MissionTestCase(name="t1", prompt="test")],
         )
         runner = MissionRunner(llm_adapter=None)
         result = await runner.run(config)
@@ -359,9 +353,7 @@ class TestNarrowedExceptions:
     async def test_run_catches_llm_timeout_error(self):
         """LLMTimeoutError from the adapter is caught, test marked as failed."""
         adapter = AsyncMock()
-        adapter.complete = AsyncMock(
-            side_effect=LLMTimeoutError({"message": "timed out"})
-        )
+        adapter.complete = AsyncMock(side_effect=LLMTimeoutError({"message": "timed out"}))
         config = MissionConfig(
             name="timeout-err",
             test_cases=[

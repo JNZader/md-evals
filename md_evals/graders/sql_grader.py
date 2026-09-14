@@ -98,14 +98,10 @@ class SQLGrader:
             for sql in sql_blocks:
                 rows, columns, error = self._execute_query(conn, sql)
                 if error is not None:
-                    query_results.append(
-                        {"sql": sql, "passed": False, "error": error}
-                    )
+                    query_results.append({"sql": sql, "passed": False, "error": error})
                     continue
 
-                valid, validation_reason = self._validate_result(
-                    rows, columns
-                )
+                valid, validation_reason = self._validate_result(rows, columns)
                 query_results.append(
                     {
                         "sql": sql,
@@ -127,9 +123,8 @@ class SQLGrader:
         reason = None
         if not passed:
             failed = [q for q in query_results if not q["passed"]]
-            reason = (
-                f"{len(failed)}/{total} queries failed"
-                + (f": {failed[0].get('error', '')}" if failed else "")
+            reason = f"{len(failed)}/{total} queries failed" + (
+                f": {failed[0].get('error', '')}" if failed else ""
             )
 
         return EvaluatorResult(
@@ -206,8 +201,6 @@ class SQLGrader:
 
         if self.expect_columns is not None:
             if columns != self.expect_columns:
-                return False, (
-                    f"Expected columns {self.expect_columns}, got {columns}"
-                )
+                return False, (f"Expected columns {self.expect_columns}, got {columns}")
 
         return True, None

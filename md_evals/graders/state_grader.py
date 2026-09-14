@@ -35,7 +35,9 @@ class StateGrader:
 
     # ── internal state set by snapshot() ──
     _before_mtimes: dict[str, float] = field(
-        default_factory=dict, repr=False, compare=False,
+        default_factory=dict,
+        repr=False,
+        compare=False,
     )
 
     def snapshot(self, workspace: Path) -> None:

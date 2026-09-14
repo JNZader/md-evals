@@ -64,9 +64,7 @@ class TestOutputMatchGrader:
         assert "Excluded patterns found" in result.reason
 
     def test_empty_patterns(self, tmp_path: Path):
-        grader = OutputMatchGrader(
-            name="match_check", content="anything", patterns=[]
-        )
+        grader = OutputMatchGrader(name="match_check", content="anything", patterns=[])
         result = grader.grade(tmp_path)
         assert result.passed is True
 
@@ -100,9 +98,7 @@ class TestOutputMatchGrader:
         assert result.passed is True
 
     def test_file_not_found(self, tmp_path: Path):
-        grader = OutputMatchGrader(
-            name="match_check", path="missing.txt", patterns=[r"test"]
-        )
+        grader = OutputMatchGrader(name="match_check", path="missing.txt", patterns=[r"test"])
         result = grader.grade(tmp_path)
         assert result.passed is False
         assert "not found" in result.reason
@@ -166,9 +162,7 @@ class TestConstraintGrader:
         assert result.passed is True
 
     def test_no_constraints(self, tmp_path: Path):
-        grader = ConstraintGrader(
-            name="constraint_check", content="anything goes"
-        )
+        grader = ConstraintGrader(name="constraint_check", content="anything goes")
         result = grader.grade(tmp_path)
         assert result.passed is True
 
@@ -205,8 +199,6 @@ class TestConstraintGrader:
         assert result.passed is True
 
     def test_file_not_found(self, tmp_path: Path):
-        grader = ConstraintGrader(
-            name="constraint_check", path="missing.txt", max_words=10
-        )
+        grader = ConstraintGrader(name="constraint_check", path="missing.txt", max_words=10)
         result = grader.grade(tmp_path)
         assert result.passed is False

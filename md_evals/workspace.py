@@ -155,9 +155,7 @@ class WorkspaceRunner:
             # 5. Cleanup
             shutil.rmtree(workspace, ignore_errors=True)
 
-    def _setup_files(
-        self, workspace: Path, setup_files: list[SetupFile]
-    ) -> None:
+    def _setup_files(self, workspace: Path, setup_files: list[SetupFile]) -> None:
         """Create setup files in the workspace.
 
         Args:
@@ -168,8 +166,6 @@ class WorkspaceRunner:
         for sf in setup_files:
             target = (workspace / sf.path).resolve()
             if not str(target).startswith(str(resolved_workspace)):
-                raise ValueError(
-                    f"Path traversal detected: '{sf.path}' resolves outside workspace"
-                )
+                raise ValueError(f"Path traversal detected: '{sf.path}' resolves outside workspace")
             target.parent.mkdir(parents=True, exist_ok=True)
             target.write_text(sf.content, encoding="utf-8")

@@ -94,19 +94,103 @@ class SemanticDiff:
 
 # ── Stop words for key term extraction ──
 
-_STOP_WORDS: frozenset[str] = frozenset({
-    "a", "an", "the", "is", "are", "was", "were", "be", "been", "being",
-    "have", "has", "had", "do", "does", "did", "will", "would", "could",
-    "should", "may", "might", "shall", "can", "need", "must", "ought",
-    "i", "you", "he", "she", "it", "we", "they", "me", "him", "her",
-    "us", "them", "my", "your", "his", "its", "our", "their",
-    "this", "that", "these", "those", "and", "but", "or", "nor",
-    "not", "so", "if", "then", "than", "when", "where", "while",
-    "of", "in", "to", "for", "with", "on", "at", "from", "by",
-    "about", "as", "into", "through", "during", "before", "after",
-    "also", "very", "just", "more", "most", "other", "some", "such",
-    "no", "only", "same", "too", "each", "every", "all", "both",
-})
+_STOP_WORDS: frozenset[str] = frozenset(
+    {
+        "a",
+        "an",
+        "the",
+        "is",
+        "are",
+        "was",
+        "were",
+        "be",
+        "been",
+        "being",
+        "have",
+        "has",
+        "had",
+        "do",
+        "does",
+        "did",
+        "will",
+        "would",
+        "could",
+        "should",
+        "may",
+        "might",
+        "shall",
+        "can",
+        "need",
+        "must",
+        "ought",
+        "i",
+        "you",
+        "he",
+        "she",
+        "it",
+        "we",
+        "they",
+        "me",
+        "him",
+        "her",
+        "us",
+        "them",
+        "my",
+        "your",
+        "his",
+        "its",
+        "our",
+        "their",
+        "this",
+        "that",
+        "these",
+        "those",
+        "and",
+        "but",
+        "or",
+        "nor",
+        "not",
+        "so",
+        "if",
+        "then",
+        "than",
+        "when",
+        "where",
+        "while",
+        "of",
+        "in",
+        "to",
+        "for",
+        "with",
+        "on",
+        "at",
+        "from",
+        "by",
+        "about",
+        "as",
+        "into",
+        "through",
+        "during",
+        "before",
+        "after",
+        "also",
+        "very",
+        "just",
+        "more",
+        "most",
+        "other",
+        "some",
+        "such",
+        "no",
+        "only",
+        "same",
+        "too",
+        "each",
+        "every",
+        "all",
+        "both",
+    }
+)
 
 
 # ── Parsing ──
@@ -291,9 +375,7 @@ def compute_semantic_diff(
         SemanticDiff with matches, missing, and extra units.
     """
     if not expected and not actual:
-        return SemanticDiff(
-            matches=[], missing_units=[], extra_units=[], overall_similarity=1.0
-        )
+        return SemanticDiff(matches=[], missing_units=[], extra_units=[], overall_similarity=1.0)
 
     if not expected:
         return SemanticDiff(
@@ -478,9 +560,7 @@ class SemanticDiffGrader:
             },
         )
 
-    def _resolve(
-        self, content: str | None, path: str | None, workspace: Path
-    ) -> str | None:
+    def _resolve(self, content: str | None, path: str | None, workspace: Path) -> str | None:
         if content is not None:
             return content
         if path is not None:

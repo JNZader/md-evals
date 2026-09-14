@@ -12,9 +12,7 @@ def _create_db(workspace: Path, db_name: str = "test.db") -> None:
     """Create a simple SQLite database with a users table."""
     db_path = workspace / db_name
     conn = sqlite3.connect(str(db_path))
-    conn.execute(
-        "CREATE TABLE users (id INTEGER PRIMARY KEY, name TEXT, email TEXT)"
-    )
+    conn.execute("CREATE TABLE users (id INTEGER PRIMARY KEY, name TEXT, email TEXT)")
     conn.execute("INSERT INTO users VALUES (1, 'Alice', 'alice@test.com')")
     conn.execute("INSERT INTO users VALUES (2, 'Bob', 'bob@test.com')")
     conn.execute("INSERT INTO users VALUES (3, 'Carol', 'carol@test.com')")
@@ -80,12 +78,7 @@ class TestGradeAllPass:
     def test_all_pass(self, tmp_path: Path):
         _create_db(tmp_path)
         md = (
-            "```sql\n"
-            "SELECT * FROM users;\n"
-            "```\n"
-            "```sql\n"
-            "SELECT name FROM users WHERE id = 1;\n"
-            "```\n"
+            "```sql\nSELECT * FROM users;\n```\n```sql\nSELECT name FROM users WHERE id = 1;\n```\n"
         )
         (tmp_path / "output.md").write_text(md)
 
@@ -103,14 +96,7 @@ class TestGradePartial:
 
     def test_partial(self, tmp_path: Path):
         _create_db(tmp_path)
-        md = (
-            "```sql\n"
-            "SELECT * FROM users;\n"
-            "```\n"
-            "```sql\n"
-            "SELECT * FROM nonexistent_table;\n"
-            "```\n"
-        )
+        md = "```sql\nSELECT * FROM users;\n```\n```sql\nSELECT * FROM nonexistent_table;\n```\n"
         (tmp_path / "output.md").write_text(md)
 
         grader = SQLGrader(pass_threshold=1.0)

@@ -68,9 +68,7 @@ def _make_result(
         prompt="mock prompt",
         response=_make_response(**kwargs),
         passed=True,
-        evaluator_results=[
-            EvaluatorResult(evaluator_name="check", passed=True, score=1.0)
-        ],
+        evaluator_results=[EvaluatorResult(evaluator_name="check", passed=True, score=1.0)],
         timestamp="2026-03-15T14:30:25Z",
     )
 
@@ -322,7 +320,9 @@ class TestDataQualityInBothDomains:
         for variant in output["usage_metrics"]["variants"].values():
             assert "data_quality" in variant["cost_metrics"]
             assert variant["cost_metrics"]["data_quality"] in (
-                "measured", "estimated", "unavailable"
+                "measured",
+                "estimated",
+                "unavailable",
             )
 
     def test_data_quality_in_context(self, sample_results):
@@ -336,7 +336,9 @@ class TestDataQualityInBothDomains:
         for variant in output["usage_metrics"]["variants"].values():
             assert "data_quality" in variant["context_metrics"]
             assert variant["context_metrics"]["data_quality"] in (
-                "measured", "estimated", "unavailable"
+                "measured",
+                "estimated",
+                "unavailable",
             )
 
 
@@ -360,9 +362,7 @@ class TestStageBreakdownConsistency:
 
         for variant in output["usage_metrics"]["variants"].values():
             cost_total = variant["cost_metrics"]["total_tokens"]
-            stage_total = sum(
-                s["total_tokens"] for s in variant["stage_breakdown"]
-            )
+            stage_total = sum(s["total_tokens"] for s in variant["stage_breakdown"])
             assert stage_total == cost_total
 
 

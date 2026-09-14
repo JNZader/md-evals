@@ -21,12 +21,8 @@ class ModeDefaults:
 
 MODE_PRESETS: dict[str, ModeDefaults] = {
     "smoke": ModeDefaults(repetitions=1, fail_fast=True),
-    "reliable": ModeDefaults(
-        repetitions=5, fail_fast=False, save_baseline=True
-    ),
-    "regression": ModeDefaults(
-        repetitions=3, fail_fast=False, compare_baseline=True
-    ),
+    "reliable": ModeDefaults(repetitions=5, fail_fast=False, save_baseline=True),
+    "regression": ModeDefaults(repetitions=3, fail_fast=False, compare_baseline=True),
 }
 
 

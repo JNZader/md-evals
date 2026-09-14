@@ -1,0 +1,12 @@
+#1 [decision] Choose cbsmoke20260908q7 synthetic import policy
+**What**: Keep VALUE as a named export from src/base.ts for src/consumer.ts.
+**Why**: Preserve the synthetic fixture's documented import contract.
+**Where**: Synthetic RepoForge corpus only.
+**Scope**: Synthetic test decision; not a real team convention.
+cbsmoke20260908q7
+Session: manual-save-context-broker-synthetic
+Project: context-broker-synthetic
+Scope: project
+Duplicates: 1
+Revisions: 1
+Created: 2026-09-08 04:43:09

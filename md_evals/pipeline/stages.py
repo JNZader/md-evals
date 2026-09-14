@@ -251,11 +251,15 @@ class TargetStage:
             skill_content = getattr(context.skill, "raw_content", "")
 
         system_prompt = (
-            f"You are a helpful AI assistant.\n\n"
-            f"Below is a skill that provides guidelines for your responses:\n"
-            f"---\n{skill_content}\n---\n\n"
-            f"Follow the skill guidelines above when responding to the user."
-        ) if skill_content else None
+            (
+                f"You are a helpful AI assistant.\n\n"
+                f"Below is a skill that provides guidelines for your responses:\n"
+                f"---\n{skill_content}\n---\n\n"
+                f"Follow the skill guidelines above when responding to the user."
+            )
+            if skill_content
+            else None
+        )
 
         semaphore = asyncio.Semaphore(self._max_concurrent)
 
@@ -272,7 +276,9 @@ class TargetStage:
                 except Exception as exc:
                     short_id = scenario.id[:8]
                     logger.warning(
-                        "Scenario %s failed: %s", short_id, exc,
+                        "Scenario %s failed: %s",
+                        short_id,
+                        exc,
                     )
                     context.responses[scenario.id] = ""
                     context.errors.append(
@@ -352,11 +358,11 @@ class JudgeStage:
 
         # Store judge model metadata
         judge_config = self._router._get_stage_config("judge")
-        context.metadata["judge_model"] = (
-            judge_config.model or getattr(self._router.defaults, "model", "default")
+        context.metadata["judge_model"] = judge_config.model or getattr(
+            self._router.defaults, "model", "default"
         )
-        context.metadata["judge_provider"] = (
-            judge_config.provider or getattr(self._router.defaults, "provider", "default")
+        context.metadata["judge_provider"] = judge_config.provider or getattr(
+            self._router.defaults, "provider", "default"
         )
 
         # Collect all raw scores from detectors
@@ -388,15 +394,15 @@ class JudgeStage:
                             stage_name="judge",
                             error_type="detector_failure",
                             message=(
-                                f"Detector '{det_name}' failed on "
-                                f"scenario '{short_id}': {exc}"
+                                f"Detector '{det_name}' failed on scenario '{short_id}': {exc}"
                             ),
                         )
                     )
 
         # Aggregate scores per dimension (average within each dimension)
         context.scores = _aggregate_dimension_scores(
-            all_scores, self._rubric,
+            all_scores,
+            self._rubric,
         )
 
         elapsed = int((time.monotonic() - start) * 1000)

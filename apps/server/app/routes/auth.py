@@ -31,7 +31,7 @@ def _build_jwt(user: User) -> str:
     """Build a signed JWT for the given user."""
     now = int(time.time())
     payload = {
-        "sub": str(user.id),           # UUID — used as user_id in DB queries
+        "sub": str(user.id),  # UUID — used as user_id in DB queries
         "github_user_id": user.github_id,
         "login": user.github_login,
         "avatar_url": user.avatar_url or "",
@@ -45,16 +45,18 @@ def _build_jwt(user: User) -> str:
 async def login() -> RedirectResponse:
     """Redirect user to GitHub OAuth authorize page."""
     state = generate_state()
-    params = urlencode({
-        "client_id": settings.GITHUB_CLIENT_ID,
-        "redirect_uri": (
-            f"{settings.BACKEND_URL.rstrip('/')}/auth/callback"
-            if settings.BACKEND_URL
-            else f"{settings.FRONTEND_URL.rstrip('/')}/api/auth/callback"
-        ),
-        "scope": "read:user",
-        "state": state,
-    })
+    params = urlencode(
+        {
+            "client_id": settings.GITHUB_CLIENT_ID,
+            "redirect_uri": (
+                f"{settings.BACKEND_URL.rstrip('/')}/auth/callback"
+                if settings.BACKEND_URL
+                else f"{settings.FRONTEND_URL.rstrip('/')}/api/auth/callback"
+            ),
+            "scope": "read:user",
+            "state": state,
+        }
+    )
     redirect_url = f"{_GITHUB_AUTHORIZE_URL}?{params}"
     return RedirectResponse(url=redirect_url, status_code=status.HTTP_302_FOUND)
 
@@ -111,9 +113,7 @@ async def callback(
 
     # Upsert user in DB
     async with async_session_factory() as session:
-        result = await session.execute(
-            select(User).where(User.github_id == gh_user["id"])
-        )
+        result = await session.execute(select(User).where(User.github_id == gh_user["id"]))
         user = result.scalar_one_or_none()
 
         if user:

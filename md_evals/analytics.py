@@ -181,9 +181,7 @@ class AnalyticsEngine:
         # Extract citation stats from evidence
         for d in result.dimensions:
             record.citations_total += len(d.evidence)
-            record.citations_valid += sum(
-                1 for e in d.evidence if "[verified]" in e.lower()
-            )
+            record.citations_valid += sum(1 for e in d.evidence if "[verified]" in e.lower())
 
         self.store.append(record)
         return record
@@ -205,10 +203,7 @@ class AnalyticsEngine:
         records = self.store.query(skill_path=skill_path, days=days)
         records.sort(key=lambda r: r.timestamp)
 
-        points = [
-            TrendPoint(r.timestamp, r.overall_score, r.overall_grade)
-            for r in records
-        ]
+        points = [TrendPoint(r.timestamp, r.overall_score, r.overall_grade) for r in records]
 
         trend = SkillTrend(skill_path=skill_path, points=points)
         if points:
@@ -275,9 +270,7 @@ class AnalyticsEngine:
         for skill, record in latest.items():
             for dim, score in record.dimensions.items():
                 grade = score_to_grade(score, default_thresholds)
-                cells.append(
-                    HeatmapCell(skill=skill, dimension=dim, score=score, grade=grade)
-                )
+                cells.append(HeatmapCell(skill=skill, dimension=dim, score=score, grade=grade))
 
         return cells
 

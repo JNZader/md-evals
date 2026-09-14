@@ -29,11 +29,13 @@ class TestThreePhaseEvaluatorAllPass:
     """Tests where all phases pass."""
 
     def test_all_phases_pass(self, tmp_path: Path):
-        data = json.dumps({
-            "analysis": "The system uses React and TypeScript",
-            "score": 0.95,
-            "recommendations": ["Use caching", "Add tests"],
-        })
+        data = json.dumps(
+            {
+                "analysis": "The system uses React and TypeScript",
+                "score": 0.95,
+                "recommendations": ["Use caching", "Add tests"],
+            }
+        )
         (tmp_path / "output.json").write_text(data)
 
         evaluator = ThreePhaseEvaluator(
@@ -96,16 +98,12 @@ class TestThreePhaseEvaluatorFailFast:
             ),
             analyze=PhaseConfig(
                 graders=[
-                    KeywordCoverageGrader(
-                        name="kw", content="test", keywords=["test"]
-                    ),
+                    KeywordCoverageGrader(name="kw", content="test", keywords=["test"]),
                 ],
             ),
             generate=PhaseConfig(
                 graders=[
-                    OutputMatchGrader(
-                        name="out", content="test", patterns=[r"test"]
-                    ),
+                    OutputMatchGrader(name="out", content="test", patterns=[r"test"]),
                 ],
             ),
         )
@@ -138,9 +136,7 @@ class TestThreePhaseEvaluatorFailFast:
             ),
             generate=PhaseConfig(
                 graders=[
-                    OutputMatchGrader(
-                        name="out", content="test", patterns=[r"test"]
-                    ),
+                    OutputMatchGrader(name="out", content="test", patterns=[r"test"]),
                 ],
             ),
         )
@@ -168,9 +164,7 @@ class TestThreePhaseEvaluatorNonRequired:
             ),
             analyze=PhaseConfig(
                 graders=[
-                    MinLengthGrader(
-                        name="len", content="enough words here", min_words=2
-                    ),
+                    MinLengthGrader(name="len", content="enough words here", min_words=2),
                 ],
             ),
             generate=PhaseConfig(
@@ -320,19 +314,21 @@ class TestIntegrationFullPipeline:
 
     def test_skill_evaluation_output(self, tmp_path: Path):
         """Simulate evaluating a skill analysis output."""
-        output = json.dumps({
-            "skill_name": "react-19",
-            "analysis": {
-                "strengths": [
-                    "Clear component patterns",
-                    "Good TypeScript integration",
-                ],
-                "weaknesses": ["Missing error boundaries"],
-                "coverage": 0.85,
-            },
-            "recommendations": "Add error boundary patterns and testing guides.",
-            "score": 0.85,
-        })
+        output = json.dumps(
+            {
+                "skill_name": "react-19",
+                "analysis": {
+                    "strengths": [
+                        "Clear component patterns",
+                        "Good TypeScript integration",
+                    ],
+                    "weaknesses": ["Missing error boundaries"],
+                    "coverage": 0.85,
+                },
+                "recommendations": "Add error boundary patterns and testing guides.",
+                "score": 0.85,
+            }
+        )
         (tmp_path / "output.json").write_text(output)
 
         evaluator = ThreePhaseEvaluator(

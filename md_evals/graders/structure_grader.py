@@ -249,9 +249,7 @@ class FieldTypeGrader:
 
             expected = self._TYPE_MAP.get(expected_type_name)
             if expected is None:
-                type_errors.append(
-                    f"Unknown type '{expected_type_name}' for '{field_path}'"
-                )
+                type_errors.append(f"Unknown type '{expected_type_name}' for '{field_path}'")
                 continue
 
             if not isinstance(value, expected):

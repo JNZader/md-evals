@@ -17,22 +17,25 @@ logger = logging.getLogger(__name__)
 
 class GitHubModelsError(Exception):
     """Base exception for GitHub Models provider."""
+
     pass
 
 
 class AuthenticationError(GitHubModelsError):
     """Raised when GITHUB_TOKEN is missing or invalid."""
+
     pass
 
 
 class ModelNotSupportedError(GitHubModelsError):
     """Raised when an unsupported model is requested."""
+
     pass
 
 
 class RateLimitError(GitHubModelsError):
     """Raised when API rate limit is exceeded."""
-    
+
     def __init__(self, message: str, retry_after: Optional[int] = None):
         self.retry_after = retry_after
         super().__init__(message)
@@ -40,16 +43,19 @@ class RateLimitError(GitHubModelsError):
 
 class ContextWindowError(GitHubModelsError):
     """Raised when prompt exceeds model's context window."""
+
     pass
 
 
 class StreamingError(GitHubModelsError):
     """Raised when streaming is interrupted."""
+
     pass
 
 
 class APIError(GitHubModelsError):
     """Raised for generic API errors."""
+
     pass
 
 
@@ -59,6 +65,7 @@ class APIError(GitHubModelsError):
 @dataclass
 class ModelMetadata:
     """Metadata for a supported model."""
+
     name: str
     provider: str
     context_window: int
@@ -75,11 +82,11 @@ class ModelMetadata:
 class GitHubModelsProvider:
     """
     GitHub Models provider using Azure AI Inference SDK.
-    
+
     Provides async completion interface for models available via GitHub Models
     (Claude 3.5 Sonnet, GPT-4o, DeepSeek-R1, Grok-3).
     """
-    
+
     # Supported models with metadata
     SUPPORTED_MODELS = {
         "claude-3.5-sonnet": ModelMetadata(
@@ -90,7 +97,7 @@ class GitHubModelsProvider:
             rate_limit="15 req/min (free tier)",
             cost="free (free tier)",
             status="supported",
-            notes="Recommended for complex reasoning and analysis"
+            notes="Recommended for complex reasoning and analysis",
         ),
         "gpt-4o": ModelMetadata(
             name="GPT-4 Optimized",
@@ -100,7 +107,7 @@ class GitHubModelsProvider:
             rate_limit="15 req/min (free tier)",
             cost="free (free tier)",
             status="supported",
-            notes="Strong general-purpose capability"
+            notes="Strong general-purpose capability",
         ),
         "deepseek-r1": ModelMetadata(
             name="DeepSeek R1",
@@ -110,7 +117,7 @@ class GitHubModelsProvider:
             rate_limit="15 req/min (free tier)",
             cost="free (free tier)",
             status="supported",
-            notes="Lower cost, good for coding tasks"
+            notes="Lower cost, good for coding tasks",
         ),
         "grok-3": ModelMetadata(
             name="Grok-3",
@@ -120,10 +127,10 @@ class GitHubModelsProvider:
             rate_limit="15 req/min (free tier)",
             cost="free (free tier)",
             status="supported",
-            notes="Latest reasoning model from xAI"
+            notes="Latest reasoning model from xAI",
         ),
     }
-    
+
     def __init__(
         self,
         model_name: str,
@@ -133,13 +140,13 @@ class GitHubModelsProvider:
     ):
         """
         Initialize GitHub Models provider.
-        
+
         Args:
             model_name: One of 'claude-3.5-sonnet', 'gpt-4o', 'deepseek-r1', 'grok-3'
             github_token: GitHub PAT token (defaults to GITHUB_TOKEN env var)
             timeout_seconds: Request timeout in seconds
             max_retries: Retry count on transient errors
-            
+
         Raises:
             AuthenticationError: Token missing or invalid
             ModelNotSupportedError: Unknown model name
@@ -148,43 +155,43 @@ class GitHubModelsProvider:
         if model_name not in self.SUPPORTED_MODELS:
             available = ", ".join(self.SUPPORTED_MODELS.keys())
             raise ModelNotSupportedError(
-                f"Model '{model_name}' is not supported. "
-                f"Available models: {available}"
+                f"Model '{model_name}' is not supported. Available models: {available}"
             )
-        
+
         self.model_name = model_name
         self.timeout_seconds = timeout_seconds
         self.max_retries = max_retries
-        
+
         # Load GitHub token
         self.github_token = self._load_github_token(github_token)
-        
+
         # Initialize Azure SDK client
         self._client = self._initialize_client()
-        
+
         logger.info(f"GitHubModelsProvider initialized with model: {model_name}")
-    
+
     def _load_github_token(self, token: Optional[str] = None) -> str:
         """
         Load and validate GitHub token.
-        
+
         Args:
             token: Optional token to use (overrides env var)
-            
+
         Returns:
             Validated GitHub token
-            
+
         Raises:
             AuthenticationError: Token missing or invalid
         """
         github_token, token_source = self.resolve_token_source(token)
         if token_source == "gh":
             logger.debug("Using GitHub token from gh auth token fallback")
-        
+
         # Validate token
         if not github_token:
             raise AuthenticationError(
-                "GITHUB_TOKEN environment variable not set or invalid, and gh auth token fallback is unavailable.\n"
+                "GITHUB_TOKEN environment variable not set or invalid, and gh auth token "
+                "fallback is unavailable.\n"
                 "Auth lookup order:\n"
                 "  1) GITHUB_TOKEN (recommended)\n"
                 "  2) gh auth token (from gh login)\n"
@@ -197,7 +204,7 @@ class GitHubModelsProvider:
                 "  gh auth token\n"
                 "Generate a token at: https://github.com/settings/tokens"
             )
-        
+
         # Validate token format (GitHub PAT should start with github_pat_)
         if not isinstance(github_token, str) or len(github_token) < 10:
             raise AuthenticationError(
@@ -242,26 +249,26 @@ class GitHubModelsProvider:
 
         token = result.stdout.strip()
         return token if token else None
-    
+
     def _initialize_client(self):
         """
         Initialize Azure AI Inference client.
-        
+
         Returns:
             Initialized ChatCompletionsClient
-            
+
         Raises:
             AuthenticationError: If client initialization fails
         """
         try:
             from azure.ai.inference import ChatCompletionsClient
             from azure.core.credentials import AzureKeyCredential
-            
+
             client = ChatCompletionsClient(
                 endpoint="https://models.inference.ai.azure.com",
                 credential=AzureKeyCredential(self.github_token),
             )
-            
+
             return client
         except ImportError as e:
             raise GitHubModelsError(
@@ -270,7 +277,7 @@ class GitHubModelsProvider:
             ) from e
         except Exception as e:
             raise GitHubModelsError(f"Failed to initialize Azure client: {e}") from e
-    
+
     async def complete(
         self,
         prompt: str,
@@ -280,49 +287,49 @@ class GitHubModelsProvider:
     ) -> LLMResponse:
         """
         Complete a prompt using GitHub Models.
-        
+
         Args:
             prompt: User message
             system_prompt: Optional system message
             temperature: 0.0–2.0 (default: model-specific)
             max_tokens: Max response length
-            
+
         Returns:
             LLMResponse with content, tokens, duration_ms, model, provider
-            
+
         Raises:
             RateLimitError: API rate limit exceeded
             ContextWindowError: Prompt exceeds model context window
             StreamingError: Network disconnect during streaming
             APIError: Generic API error
         """
-        
+
         start_time = time.monotonic()
-        
+
         # Build message list
         messages = []
         if system_prompt:
             messages.append({"role": "system", "content": system_prompt})
         messages.append({"role": "user", "content": prompt})
-        
+
         # Set defaults for model-specific parameters
         if temperature is None:
             temperature = 0.7  # Default temperature
         if max_tokens is None:
             max_tokens = 2048  # Default max tokens
-        
+
         try:
             # Call Azure SDK with streaming
             response_content = ""
             token_count = 0
-            
+
             # Make the request
             response = await self._stream_completion(
                 messages=messages,
                 temperature=temperature,
                 max_tokens=max_tokens,
             )
-            
+
             # Handle streaming response
             (
                 response_content,
@@ -331,16 +338,16 @@ class GitHubModelsProvider:
                 completion_tokens_detail,
                 total_tokens,
             ) = await self._handle_stream(response)
-            
+
         except Exception as e:
             # Handle specific error types
             error_str = str(e).lower()
-            
+
             if "rate" in error_str or "429" in error_str:
                 raise RateLimitError(
                     "GitHub Models rate limit exceeded. Free tier: 15 requests/min. "
                     "Consider caching responses or upgrading to paid tier.",
-                    retry_after=60
+                    retry_after=60,
                 ) from e
             elif "context" in error_str or "token limit" in error_str:
                 raise ContextWindowError(
@@ -348,18 +355,16 @@ class GitHubModelsProvider:
                     "Try using a model with larger context or shorter prompts."
                 ) from e
             elif "timeout" in error_str or "connect" in error_str:
-                raise StreamingError(
-                    f"Network error during streaming: {e}"
-                ) from e
+                raise StreamingError(f"Network error during streaming: {e}") from e
             elif "authentication" in error_str or "401" in error_str:
                 raise AuthenticationError(
                     f"Authentication failed. Check your GITHUB_TOKEN: {e}"
                 ) from e
             else:
                 raise APIError(f"GitHub Models API error: {e}") from e
-        
+
         duration_ms = int((time.monotonic() - start_time) * 1000)
-        
+
         return LLMResponse(
             content=response_content,
             model=self.model_name,
@@ -371,7 +376,7 @@ class GitHubModelsProvider:
             completion_tokens_detail=completion_tokens_detail,
             total_tokens=total_tokens,
         )
-    
+
     async def _stream_completion(
         self,
         messages: list[dict[str, str]],
@@ -380,18 +385,18 @@ class GitHubModelsProvider:
     ):
         """
         Stream completion from Azure SDK.
-        
+
         Args:
             messages: List of message dicts
             temperature: Temperature setting
             max_tokens: Max tokens in response
-            
+
         Returns:
             Streaming response object
         """
         # Run the blocking SDK call in a thread pool
         loop = asyncio.get_event_loop()
-        
+
         def make_request():
             return self._client.complete(
                 messages=messages,
@@ -399,140 +404,137 @@ class GitHubModelsProvider:
                 temperature=temperature,
                 max_tokens=max_tokens,
             )
-        
+
         response = await loop.run_in_executor(None, make_request)
         return response
-    
-    async def _handle_stream(
-        self, response
-    ) -> tuple[str, int, int | None, int | None, int | None]:
+
+    async def _handle_stream(self, response) -> tuple[str, int, int | None, int | None, int | None]:
         """
         Handle streaming response and extract token counts.
-        
+
         Args:
             response: Response object from Azure SDK
-            
+
         Returns:
             Tuple of (content, legacy_token_count, prompt_tokens,
                        completion_tokens_detail, total_tokens)
         """
         try:
             # Extract content and token count from response
-            if hasattr(response, 'choices') and response.choices:
+            if hasattr(response, "choices") and response.choices:
                 choice = response.choices[0]
-                
+
                 # Get content
-                if hasattr(choice, 'message') and hasattr(choice.message, 'content'):
+                if hasattr(choice, "message") and hasattr(choice.message, "content"):
                     content = choice.message.content or ""
                 else:
                     content = ""
-                
+
                 # Get token counts from usage if available
                 token_count = 0
                 prompt_tokens = None
                 completion_tokens_detail = None
                 total_tokens = None
-                
-                if hasattr(response, 'usage') and response.usage:
+
+                if hasattr(response, "usage") and response.usage:
                     usage = response.usage
-                    raw_completion = getattr(usage, 'completion_tokens', None)
-                    raw_prompt = getattr(usage, 'prompt_tokens', None)
-                    
+                    raw_completion = getattr(usage, "completion_tokens", None)
+                    raw_prompt = getattr(usage, "prompt_tokens", None)
+
                     # Only accept integer values (guard against Mock objects)
                     if isinstance(raw_completion, int):
                         completion_tokens_detail = raw_completion
                     if isinstance(raw_prompt, int):
                         prompt_tokens = raw_prompt
-                    
+
                     token_count = completion_tokens_detail or 0
-                    
+
                     # Clamp negatives (EC-03 from spec)
                     if prompt_tokens is not None and prompt_tokens < 0:
                         prompt_tokens = 0
                     if completion_tokens_detail is not None and completion_tokens_detail < 0:
                         completion_tokens_detail = 0
                         token_count = 0
-                    
+
                     # Calculate total
                     if prompt_tokens is not None and completion_tokens_detail is not None:
                         total_tokens = prompt_tokens + completion_tokens_detail
-                
+
                 # Fallback: estimate tokens if not provided
                 if token_count == 0 and content:
                     token_count = self._estimate_tokens(content)
-                
+
                 return content, token_count, prompt_tokens, completion_tokens_detail, total_tokens
             else:
                 # Fallback for different response format
                 content = str(response) if response else ""
                 token_count = self._estimate_tokens(content)
                 return content, token_count, None, None, None
-                
+
         except Exception as e:
             logger.error(f"Error handling stream: {e}")
             raise StreamingError(f"Failed to process streaming response: {e}") from e
-    
+
     @staticmethod
     def _estimate_tokens(content: str) -> int:
         """
         Estimate token count using simple heuristic.
-        
+
         Fallback when metadata is unavailable. Uses ~4 chars per token
         as a rough approximation for English text.
-        
+
         Args:
             content: Text content to estimate
-            
+
         Returns:
             Estimated token count
         """
         if not content:
             return 0
-        
+
         # Rough estimation: ~4 characters per token
         # This gives ±15% accuracy for typical English text
         return max(1, len(content) // 4)
-    
+
     @classmethod
     def supported_models(cls) -> dict[str, ModelMetadata]:
         """
         Return dict of supported models with metadata.
-        
+
         Returns:
             Dict mapping model names to ModelMetadata objects
         """
         return cls.SUPPORTED_MODELS.copy()
-    
+
     def get_model_metadata(self, model_name: Optional[str] = None) -> ModelMetadata:
         """
         Get metadata for a supported model.
-        
+
         Args:
             model_name: Model name (defaults to current model)
-            
+
         Returns:
             ModelMetadata for the model
-            
+
         Raises:
             ModelNotSupportedError: If model not supported
         """
         model = model_name or self.model_name
-        
+
         if model not in self.SUPPORTED_MODELS:
-            raise ModelNotSupportedError(
-                f"Model '{model}' is not supported"
-            )
-        
+            raise ModelNotSupportedError(f"Model '{model}' is not supported")
+
         return self.SUPPORTED_MODELS[model]
 
 
 # ============== Provider Registry Integration ==============
 
+
 def register_github_models_provider():
     """Auto-register GitHub Models provider in global registry."""
     try:
         from md_evals.provider_registry import ProviderRegistry
-        
+
         ProviderRegistry.register("github-models", GitHubModelsProvider)
         logger.debug("GitHub Models provider registered")
     except ImportError:

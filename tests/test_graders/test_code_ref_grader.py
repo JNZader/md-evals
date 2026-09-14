@@ -11,13 +11,7 @@ class TestStripFencedBlocks:
     """_strip_fenced_blocks removes code blocks, keeps inline backticks."""
 
     def test_removes_fenced_block(self):
-        md = (
-            "Some text `inline_ref`\n"
-            "```python\n"
-            "not_a_ref.py\n"
-            "```\n"
-            "More text `another_ref`\n"
-        )
+        md = "Some text `inline_ref`\n```python\nnot_a_ref.py\n```\nMore text `another_ref`\n"
         grader = CodeRefGrader()
         result = grader._strip_fenced_blocks(md)
         assert "not_a_ref.py" not in result
@@ -25,11 +19,7 @@ class TestStripFencedBlocks:
         assert "`another_ref`" in result
 
     def test_removes_multiple_fenced_blocks(self):
-        md = (
-            "```js\ncode1\n```\n"
-            "middle `keep_this`\n"
-            "```\ncode2\n```\n"
-        )
+        md = "```js\ncode1\n```\nmiddle `keep_this`\n```\ncode2\n```\n"
         grader = CodeRefGrader()
         result = grader._strip_fenced_blocks(md)
         assert "code1" not in result
@@ -54,10 +44,7 @@ class TestExtractRefs:
         assert "EvaluatorResult" in refs
 
     def test_excludes_fenced_block_content(self):
-        md = (
-            "Ref `src/main.py` inline.\n"
-            "```python\nnot_a_ref.py\n```\n"
-        )
+        md = "Ref `src/main.py` inline.\n```python\nnot_a_ref.py\n```\n"
         grader = CodeRefGrader()
         refs = grader._extract_refs(md)
         assert "src/main.py" in refs
@@ -165,9 +152,7 @@ class TestGrade:
         md = "See `src/main.py` and `Foo` for details."
         (tmp_path / "output.md").write_text(md)
 
-        grader = CodeRefGrader(
-            search_dirs=["."], file_extensions=[".py"], pass_threshold=0.8
-        )
+        grader = CodeRefGrader(search_dirs=["."], file_extensions=[".py"], pass_threshold=0.8)
         result = grader.grade(tmp_path)
         assert result.passed is True
         assert result.score == 1.0
@@ -184,9 +169,7 @@ class TestGrade:
         md = "Refs: `src/main.py`, `Foo`, `missing.py`, `Bar`"
         (tmp_path / "output.md").write_text(md)
 
-        grader = CodeRefGrader(
-            search_dirs=["."], file_extensions=[".py"], pass_threshold=0.8
-        )
+        grader = CodeRefGrader(search_dirs=["."], file_extensions=[".py"], pass_threshold=0.8)
         result = grader.grade(tmp_path)
         assert result.score == pytest.approx(0.5)
         assert result.passed is False
@@ -232,12 +215,7 @@ class TestGrade:
         """Refs inside fenced blocks are not graded."""
         (tmp_path / "src").mkdir()
         (tmp_path / "src" / "real.py").write_text("x = 1")
-        md = (
-            "Valid: `src/real.py`\n"
-            "```python\n"
-            "fake_ref.py\n"
-            "```\n"
-        )
+        md = "Valid: `src/real.py`\n```python\nfake_ref.py\n```\n"
         (tmp_path / "output.md").write_text(md)
 
         grader = CodeRefGrader(search_dirs=["."], file_extensions=[".py"])
@@ -255,9 +233,7 @@ class TestGrade:
         md = "See `MySymbol` for details."
         (tmp_path / "output.md").write_text(md)
 
-        grader = CodeRefGrader(
-            search_dirs=["src/"], file_extensions=[".py"], pass_threshold=0.5
-        )
+        grader = CodeRefGrader(search_dirs=["src/"], file_extensions=[".py"], pass_threshold=0.5)
         result = grader.grade(tmp_path)
         assert result.passed is False
         assert "MySymbol" in result.details["unresolved"]

@@ -53,9 +53,7 @@ class TestWorkspaceRunner:
             ],
             task_command="bash -c 'cat marker.txt > result.txt'",
             graders=[
-                FileContentGrader(
-                    name="result_check", path="result.txt", expected="found_it"
-                ),
+                FileContentGrader(name="result_check", path="result.txt", expected="found_it"),
             ],
         )
         result = runner.run(config)
@@ -84,9 +82,7 @@ class TestWorkspaceRunner:
             graders=[
                 FileExistsGrader(name="input_ok", path="input.txt"),
                 FileExistsGrader(name="output_ok", path="output.txt"),
-                FileContentGrader(
-                    name="output_content", path="output.txt", expected="processed"
-                ),
+                FileContentGrader(name="output_content", path="output.txt", expected="processed"),
             ],
         )
         result = runner.run(config)

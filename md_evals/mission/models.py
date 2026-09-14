@@ -112,9 +112,7 @@ class MissionResult(BaseModel):
 
     mission_name: str
     version: str = "1.0"
-    timestamp: str = Field(
-        default_factory=lambda: datetime.now(timezone.utc).isoformat()
-    )
+    timestamp: str = Field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
     skill_under_test: str | None = None
     model: str = ""
     provider: str = ""

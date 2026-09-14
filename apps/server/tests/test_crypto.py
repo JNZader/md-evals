@@ -136,9 +136,7 @@ class TestEncryptDecryptRoundtrip:
         blob = encrypt_key(plaintext, user_key)
         assert decrypt_key(blob, user_key) == plaintext
 
-    def test_different_encryptions_produce_different_blobs(
-        self, master_key_bytes: bytes
-    ) -> None:
+    def test_different_encryptions_produce_different_blobs(self, master_key_bytes: bytes) -> None:
         """Each encrypt call uses a random nonce, producing a different blob."""
         user_key = derive_user_key(master_key_bytes, "user-1")
         plaintext = "sk-proj-abc123"

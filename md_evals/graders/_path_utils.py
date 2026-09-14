@@ -25,7 +25,5 @@ def validate_workspace_path(workspace: Path, relative_path: str) -> Path:
     target = (workspace / relative_path).resolve()
     resolved_workspace = workspace.resolve()
     if not str(target).startswith(str(resolved_workspace) + "/") and target != resolved_workspace:
-        raise ValueError(
-            f"Path traversal detected: '{relative_path}' resolves outside workspace"
-        )
+        raise ValueError(f"Path traversal detected: '{relative_path}' resolves outside workspace")
     return target

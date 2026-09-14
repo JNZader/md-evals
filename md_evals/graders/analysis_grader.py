@@ -231,17 +231,13 @@ class MinLengthGrader:
             word_count = len(raw.split())
             details["word_count"] = word_count
             if word_count < self.min_words:
-                failures.append(
-                    f"Word count {word_count} below minimum {self.min_words}"
-                )
+                failures.append(f"Word count {word_count} below minimum {self.min_words}")
 
         if self.min_chars > 0:
             char_count = len(raw)
             details["char_count"] = char_count
             if char_count < self.min_chars:
-                failures.append(
-                    f"Char count {char_count} below minimum {self.min_chars}"
-                )
+                failures.append(f"Char count {char_count} below minimum {self.min_chars}")
 
         passed = len(failures) == 0
         return EvaluatorResult(

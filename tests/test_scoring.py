@@ -226,12 +226,18 @@ def test_eval_result_pre_check_can_be_none():
         (1.0, "S"),
     ],
     ids=[
-        "0.00→F", "0.29→F",
-        "0.30→D", "0.49→D",
-        "0.50→C", "0.69→C",
-        "0.70→B", "0.84→B",
-        "0.85→A", "0.94→A",
-        "0.95→S", "1.00→S",
+        "0.00→F",
+        "0.29→F",
+        "0.30→D",
+        "0.49→D",
+        "0.50→C",
+        "0.69→C",
+        "0.70→B",
+        "0.84→B",
+        "0.85→A",
+        "0.94→A",
+        "0.95→S",
+        "1.00→S",
     ],
 )
 def test_score_to_grade_boundary(score: float, expected_grade: str):
@@ -647,8 +653,13 @@ def test_eval_result_to_dict_overall_score_rounded():
 def test_builtin_dimensions_content():
     """BUILTIN_DIMENSIONS contains the 7 known dimensions."""
     expected = {
-        "correctness", "completeness", "format",
-        "adherence", "safety", "efficiency", "robustness",
+        "correctness",
+        "completeness",
+        "format",
+        "adherence",
+        "safety",
+        "efficiency",
+        "robustness",
     }
     assert BUILTIN_DIMENSIONS == expected
 

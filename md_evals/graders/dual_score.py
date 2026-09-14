@@ -70,23 +70,50 @@ def assess_rubric_quality(
     """
     if criteria_keywords is None:
         criteria_keywords = [
-            "must", "should", "require", "criteria", "criterion",
-            "expected", "evaluate", "assess", "check",
+            "must",
+            "should",
+            "require",
+            "criteria",
+            "criterion",
+            "expected",
+            "evaluate",
+            "assess",
+            "check",
         ]
     if scoring_keywords is None:
         scoring_keywords = [
-            "score", "rating", "level", "grade", "points",
-            "1-5", "1-10", "0-1", "scale", "rubric",
+            "score",
+            "rating",
+            "level",
+            "grade",
+            "points",
+            "1-5",
+            "1-10",
+            "0-1",
+            "scale",
+            "rubric",
         ]
     if example_keywords is None:
         example_keywords = [
-            "example", "e.g.", "for instance", "such as",
-            "sample", "good:", "bad:", "ideal:",
+            "example",
+            "e.g.",
+            "for instance",
+            "such as",
+            "sample",
+            "good:",
+            "bad:",
+            "ideal:",
         ]
     if vague_words is None:
         vague_words = [
-            "good", "nice", "appropriate", "adequate", "reasonable",
-            "sufficient", "proper", "suitable",
+            "good",
+            "nice",
+            "appropriate",
+            "adequate",
+            "reasonable",
+            "sufficient",
+            "proper",
+            "suitable",
         ]
 
     rubric_lower = rubric_text.lower()
@@ -104,41 +131,26 @@ def assess_rubric_quality(
         )
 
     # --- Criteria clarity ---
-    criteria_hits = sum(
-        1 for kw in criteria_keywords if kw.lower() in rubric_lower
-    )
+    criteria_hits = sum(1 for kw in criteria_keywords if kw.lower() in rubric_lower)
     has_clear_criteria = criteria_hits >= 2
     if not has_clear_criteria:
-        issues.append(
-            "Rubric lacks explicit criteria language "
-            "(e.g., 'must', 'should', 'require')"
-        )
+        issues.append("Rubric lacks explicit criteria language (e.g., 'must', 'should', 'require')")
 
     # --- Scoring levels ---
-    scoring_hits = sum(
-        1 for kw in scoring_keywords if kw.lower() in rubric_lower
-    )
+    scoring_hits = sum(1 for kw in scoring_keywords if kw.lower() in rubric_lower)
     has_scoring_levels = scoring_hits >= 1
     if not has_scoring_levels:
-        issues.append(
-            "Rubric does not define scoring levels or a scale"
-        )
+        issues.append("Rubric does not define scoring levels or a scale")
 
     # --- Examples ---
-    example_hits = sum(
-        1 for kw in example_keywords if kw.lower() in rubric_lower
-    )
+    example_hits = sum(1 for kw in example_keywords if kw.lower() in rubric_lower)
     has_examples = example_hits >= 1
     if not has_examples:
-        issues.append(
-            "Rubric lacks concrete examples of good/bad output"
-        )
+        issues.append("Rubric lacks concrete examples of good/bad output")
 
     # --- Specificity (inverse of vagueness) ---
     word_count = max(len(rubric_text.split()), 1)
-    vague_hits = sum(
-        1 for kw in vague_words if kw.lower() in rubric_lower
-    )
+    vague_hits = sum(1 for kw in vague_words if kw.lower() in rubric_lower)
     vagueness_ratio = vague_hits / word_count
     # Higher ratio = more vague = lower specificity
     specificity_score = max(0.0, min(1.0, 1.0 - (vagueness_ratio * 20)))

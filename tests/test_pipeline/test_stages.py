@@ -294,7 +294,10 @@ def test_judge_stage_runs_detectors():
     detector = MagicMock()
     detector.name = "test-detector"
     detector.score.return_value = DimensionScore(
-        dimension="correctness", score=0.9, weight=0.5, grade="A",
+        dimension="correctness",
+        score=0.9,
+        weight=0.5,
+        grade="A",
     )
 
     s1 = Scenario(id="s1", probe_name="test", prompt="Hello")
@@ -322,7 +325,10 @@ def test_judge_stage_handles_detector_failure():
     good_detector = MagicMock()
     good_detector.name = "good-detector"
     good_detector.score.return_value = DimensionScore(
-        dimension="format", score=0.8, weight=0.5, grade="B",
+        dimension="format",
+        score=0.8,
+        weight=0.5,
+        grade="B",
     )
 
     s1 = Scenario(id="s1", probe_name="test", prompt="Hello")
@@ -366,7 +372,10 @@ def test_judge_stage_produces_valid_dimension_scores():
     detector = MagicMock()
     detector.name = "det"
     detector.score.return_value = DimensionScore(
-        dimension="correctness", score=0.85, weight=0.5, grade="A",
+        dimension="correctness",
+        score=0.85,
+        weight=0.5,
+        grade="A",
     )
 
     s1 = Scenario(id="s1", probe_name="test", prompt="Hello")
