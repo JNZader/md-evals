@@ -18,7 +18,7 @@ from hashlib import sha256
 from pathlib import Path
 from typing import Any, Awaitable, Callable, Mapping
 
-from md_evals.captured_run_record import FrozenCell, capture_cell
+from md_evals.captured_run_record import FrozenCell, capture_cell, plain_response
 from md_evals.models import Defaults, LLMResponse
 
 PROVIDER = "opencode-cli"
@@ -482,7 +482,7 @@ async def run_smoke_dev(
                     "provider_observed": observed_provider,
                     "model_observed": observed_model,
                     "smoke_only": True,
-                    "response": response.model_dump(mode="python"),
+                    "response": plain_response(response),
                 }
                 break
             except SmokeAbort:
