@@ -309,6 +309,24 @@ def test_writer_rejects_existing_canonical_target_before_writing_anything(tmp_pa
     assert existing.read_text(encoding="utf-8") == "sentinel"
 
 
+def test_writer_fails_closed_when_target_appears_before_atomic_publication(tmp_path, monkeypatch):
+    output_dir = tmp_path / "strict-artifacts"
+    original_publish = __import__(
+        "md_evals.strict_gate1_runner", fromlist=["_publish_new_directory"]
+    )._publish_new_directory
+
+    def race(stage_name, output_name, parent_fd):
+        output_dir.mkdir()
+        original_publish(stage_name, output_name, parent_fd)
+
+    monkeypatch.setattr("md_evals.strict_gate1_runner._publish_new_directory", race)
+
+    with pytest.raises(StrictGate1Error, match="appeared before publication"):
+        write_strict_gate1_artifacts(_artifacts(), output_dir)
+
+    assert list(output_dir.iterdir()) == []
+
+
 def test_writer_keeps_published_bundle_when_parent_fsync_fails_after_replace(tmp_path, monkeypatch):
     import os
 

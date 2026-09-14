@@ -472,6 +472,8 @@ async def run_smoke_dev(
                 record["tools"] = _tool_evidence_status(response)
                 fallback = _fallback_used(response)
                 record["fallback_used"] = fallback
+                if fallback:
+                    raise SmokeAbort("response reported unauthorized provider/model fallback")
                 record["state"] = "complete"
                 record["raw"] = {
                     "path": f"raw-responses/{cell.cell_id}-attempt-{attempts}.json",

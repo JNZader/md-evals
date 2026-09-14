@@ -7,6 +7,8 @@ boundary, so tests cannot accidentally reach a provider or gateway.
 
 from __future__ import annotations
 
+import ctypes
+import errno
 import inspect
 import hashlib
 import argparse
@@ -41,6 +43,37 @@ from md_evals.strict_run_packet import (
 
 class StrictGate1Error(ValueError):
     """A strict Gate 1 artifact or admission precondition is invalid."""
+
+
+def _publish_new_directory(stage_name: str, output_name: str, parent_fd: int) -> None:
+    """Atomically publish a previously absent directory without replacing a race winner."""
+    try:
+        renameat2 = ctypes.CDLL(None, use_errno=True).renameat2
+    except (AttributeError, OSError) as exc:
+        raise StrictGate1Error(
+            "strict Gate 1 no-clobber directory publication is unsupported"
+        ) from exc
+    renameat2.argtypes = [
+        ctypes.c_int,
+        ctypes.c_char_p,
+        ctypes.c_int,
+        ctypes.c_char_p,
+        ctypes.c_uint,
+    ]
+    renameat2.restype = ctypes.c_int
+    result = renameat2(
+        parent_fd,
+        os.fsencode(stage_name),
+        parent_fd,
+        os.fsencode(output_name),
+        1,  # RENAME_NOREPLACE
+    )
+    if result == 0:
+        return
+    error_number = ctypes.get_errno()
+    if error_number == errno.EEXIST:
+        raise StrictGate1Error("strict Gate 1 artifact target appeared before publication")
+    raise OSError(error_number, os.strerror(error_number))
 
 
 _STRICT_GATE1_INPUT_KEYS = frozenset(
@@ -227,7 +260,10 @@ def write_strict_gate1_artifacts(
                         if descriptor != -1:
                             os.close(descriptor)
                 os.fsync(stage_fd)
-                os.replace(stage_name, output_name, src_dir_fd=parent_fd, dst_dir_fd=parent_fd)
+                if output_fd is None:
+                    _publish_new_directory(stage_name, output_name, parent_fd)
+                else:
+                    os.replace(stage_name, output_name, src_dir_fd=parent_fd, dst_dir_fd=parent_fd)
                 published = True
                 stage_name = None
                 os.fsync(parent_fd)

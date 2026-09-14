@@ -369,18 +369,17 @@ def test_partial_rows_are_checkpointed_after_complete_and_failed_cells(tmp_path)
     assert result.manifest["status"] == "incomplete"
 
 
-def test_fallback_metadata_is_recorded_as_smoke_only_when_pins_match(tmp_path):
+def test_fallback_metadata_aborts_even_when_pins_match(tmp_path):
     async def completion(cell):
         return response(costEvidence=zero_cost_evidence(), fallbackUsed=True)
 
-    result = asyncio.run(
-        run_smoke_dev(completion=completion, run_id="TEST", output_dir=tmp_path / "run")
-    )
+    output_dir = tmp_path / "run"
+    with pytest.raises(RuntimeError, match="unauthorized provider/model fallback"):
+        asyncio.run(run_smoke_dev(completion=completion, run_id="TEST", output_dir=output_dir))
 
-    assert result.manifest["status"] == "complete"
     score_sheet = (tmp_path / "run" / "score-sheet.md").read_text()
-    assert "| T1-CONTROL | complete | 0 | True |" in score_sheet
-    assert "smoke-only/non-canonical" in score_sheet
+    assert "| T1-CONTROL | aborted | 0 | True |" in score_sheet
+    assert "| T1-CONTROL | complete |" not in score_sheet
 
 
 def test_output_manifest_is_smoke_only_and_tools_limitation_is_recorded(tmp_path):
