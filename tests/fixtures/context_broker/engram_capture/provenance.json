@@ -1,0 +1,93 @@
+{
+  "applicability_origin": "Explicit curated association for this synthetic fixture only; not inferred from project label.",
+  "citation": {
+    "line": 2,
+    "path": "observation-rendering.txt",
+    "quote": "**What**: Keep VALUE as a named export from src/base.ts for src/consumer.ts."
+  },
+  "claim": "policy:named-export:src/base.ts:VALUE:src/consumer.ts",
+  "files": {
+    "get-response.json": {
+      "bytes": 702,
+      "sha256": "58083296eb0e3cd421cfaf51a208b303a8e09c5bda7df51113aa3279116945fa"
+    },
+    "observation-rendering.txt": {
+      "bytes": 486,
+      "sha256": "2798f829e54c0147037aea7ca140a328d69a611f679310563cbc78ec0b492636"
+    },
+    "save-response.json": {
+      "bytes": 492,
+      "sha256": "96924941e2e470b677583e97de0fd31552844462c8e68ed0097d27cfeb47ed4b"
+    },
+    "search-response.json": {
+      "bytes": 948,
+      "sha256": "9be83ab6e6aea57f939e6b3d42696262f3dadf33b4794d93f3ad24961e655fd9"
+    }
+  },
+  "namespace_origin": "Assigned capture namespace; not a code repository or inferred DB project identity.",
+  "observation": {
+    "id": 1,
+    "project": "context-broker-synthetic",
+    "project_path": "",
+    "project_source": "process_override",
+    "review_after": "2027-03-08 04:43:09",
+    "scope": "project",
+    "state": "active",
+    "sync_id": "obs-41042f46a97da659",
+    "title": "Choose cbsmoke20260908q7 synthetic import policy",
+    "type": "decision"
+  },
+  "producer": {
+    "binary_sha256": "fa544f918db41c0a045c05f1621a8fd3050f5cc8ef1622884ea2eaa49fc21ed3",
+    "build": {
+      "go_version": "go1.25.10",
+      "vcs_modified": true,
+      "vcs_revision": "ba9e46ced152c37a7cb9e576153c41995873e2fc",
+      "version": "1.20.0+dirty"
+    },
+    "mcp": {
+      "name": "engram",
+      "version": "0.1.0"
+    },
+    "protocol_version": "2024-11-05"
+  },
+  "profile": "engram-isolated-synthetic-capture.v1",
+  "proof_reference": {
+    "provenance_sha256": "535cd5c8e6d6a27210e5922cacdb3fe9dd0f548a155144d50acee404ba776602",
+    "status": "recorded isolated synthetic capture; not reproduced by replay"
+  },
+  "source_namespace": "capture://engram/isolated-synthetic-GU44T1XB",
+  "target": {
+    "edge": {
+      "source": "src/consumer.ts",
+      "target": "src/base.ts"
+    },
+    "repository": "fixture://repoforge-file-graph",
+    "revision": "sha256:8310e290c2cec537b01450d720d4377fed2170c86e2888cb872abcd6cc31f519"
+  },
+  "transcript": {
+    "bytes": 11557,
+    "sha256": "b1d088931726f0eff165300350c39faed89d6337b3557ad0f46dc151e197e5e9",
+    "slices": {
+      "get-response.json": {
+        "end": 11557,
+        "line": 7,
+        "rpc_id": 7,
+        "start": 10855
+      },
+      "save-response.json": {
+        "end": 9907,
+        "line": 5,
+        "rpc_id": 5,
+        "start": 9415
+      },
+      "search-response.json": {
+        "end": 10855,
+        "line": 6,
+        "rpc_id": 6,
+        "start": 9907
+      }
+    }
+  },
+  "value": "keep"
+}

@@ -1,0 +1,108 @@
+[
+  {
+    "id": "alpha",
+    "repository": "fixture://alpha",
+    "revision": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "files": {
+      "src/shared.py": "CACHE_TTL = 30",
+      "notes/decision.md": "Prefer cache TTL 60."
+    },
+    "providers": [
+      {
+        "kind": "structure",
+        "instance": "graph-alpha",
+        "status": "ok",
+        "detail": ""
+      },
+      {
+        "kind": "memory",
+        "instance": "memory-alpha",
+        "status": "ok",
+        "detail": ""
+      }
+    ],
+    "records": [
+      {
+        "kind": "structure",
+        "repository": "fixture://alpha",
+        "revision": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "producer_instance": "graph-alpha",
+        "source_id": "7",
+        "path": "src/shared.py",
+        "line": 1,
+        "quote": "CACHE_TTL = 30",
+        "claim": "cache_ttl",
+        "value": "30",
+        "freshness": "fresh",
+        "git_state": "clean"
+      },
+      {
+        "kind": "memory",
+        "repository": "fixture://alpha",
+        "revision": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "producer_instance": "memory-alpha",
+        "source_id": "7",
+        "path": "notes/decision.md",
+        "line": 1,
+        "quote": "Prefer cache TTL 60.",
+        "claim": "cache_ttl",
+        "value": "60",
+        "freshness": "fresh",
+        "git_state": "clean"
+      }
+    ]
+  },
+  {
+    "id": "beta",
+    "repository": "fixture://beta",
+    "revision": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+    "files": {
+      "src/shared.py": "CACHE_TTL = 90",
+      "notes/decision.md": "Prefer cache TTL 120."
+    },
+    "providers": [
+      {
+        "kind": "structure",
+        "instance": "graph-beta",
+        "status": "ok",
+        "detail": ""
+      },
+      {
+        "kind": "memory",
+        "instance": "memory-beta",
+        "status": "ok",
+        "detail": ""
+      }
+    ],
+    "records": [
+      {
+        "kind": "structure",
+        "repository": "fixture://beta",
+        "revision": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+        "producer_instance": "graph-beta",
+        "source_id": "7",
+        "path": "src/shared.py",
+        "line": 1,
+        "quote": "CACHE_TTL = 90",
+        "claim": "cache_ttl",
+        "value": "90",
+        "freshness": "fresh",
+        "git_state": "clean"
+      },
+      {
+        "kind": "memory",
+        "repository": "fixture://beta",
+        "revision": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+        "producer_instance": "memory-beta",
+        "source_id": "7",
+        "path": "notes/decision.md",
+        "line": 1,
+        "quote": "Prefer cache TTL 120.",
+        "claim": "cache_ttl",
+        "value": "120",
+        "freshness": "fresh",
+        "git_state": "clean"
+      }
+    ]
+  }
+]

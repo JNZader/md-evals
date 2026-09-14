@@ -1,0 +1,55 @@
+{
+  "capture": {
+    "graph_bytes": 912,
+    "graph_sha256": "04484dc8fb1f36af77c3952fa00a1808f7e48dfacade1835075dbbc4cec18270",
+    "proof_reference": "graph-a/graph-a.proof.json",
+    "proof_sha256": "944aae3f5a91e925de329d5db1d6ce0d8d5d6b69da52ce8079bf1c8ed9a811d1",
+    "recorded_cli_exit_code": 0,
+    "recorded_status": "PASS"
+  },
+  "citations": [
+    {
+      "line": 1,
+      "quote": "import { VALUE } from \"./base\";",
+      "source": "src/consumer.ts",
+      "symbol": "VALUE",
+      "target": "src/base.ts",
+      "target_line": 1,
+      "target_quote": "export const VALUE = 1;"
+    },
+    {
+      "line": 1,
+      "quote": "import { current } from \"./consumer\";",
+      "source": "src/entry.js",
+      "symbol": "current",
+      "target": "src/consumer.ts",
+      "target_line": 2,
+      "target_quote": "export const current = VALUE;"
+    }
+  ],
+  "corpus_files": [
+    {
+      "bytes": 24,
+      "path": "src/base.ts",
+      "sha256": "4074552a29564124d8b46925f9a3e68e417a5599d5f85072c782abd4456724f0"
+    },
+    {
+      "bytes": 62,
+      "path": "src/consumer.ts",
+      "sha256": "329568e3c7789fdd4692f0f3823497c9832cea137a7a4af1e7b407c5ef8fb3d5"
+    },
+    {
+      "bytes": 80,
+      "path": "src/entry.js",
+      "sha256": "6c8f3ee35354eb282a554e401751ec94350302a740559abda5cd14b7647c1cae"
+    }
+  ],
+  "corpus_identity_sha256": "8310e290c2cec537b01450d720d4377fed2170c86e2888cb872abcd6cc31f519",
+  "producer": {
+    "commit": "40255f5f952795f98c207f6bf2e3006e0354f4ae",
+    "name": "repoforge-ai",
+    "version": "0.6.0"
+  },
+  "profile": "repoforge-static-import-capture.v1",
+  "repository": "fixture://repoforge-file-graph"
+}

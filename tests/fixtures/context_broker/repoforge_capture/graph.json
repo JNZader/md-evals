@@ -1,0 +1,51 @@
+{
+  "nodes": [
+    {
+      "id": "src/base.ts",
+      "name": "base",
+      "type": "module",
+      "layer": "",
+      "file_path": "src/base.ts",
+      "exports": [
+        "VALUE"
+      ],
+      "community": ""
+    },
+    {
+      "id": "src/consumer.ts",
+      "name": "consumer",
+      "type": "module",
+      "layer": "",
+      "file_path": "src/consumer.ts",
+      "exports": [
+        "current"
+      ],
+      "community": ""
+    },
+    {
+      "id": "src/entry.js",
+      "name": "entry",
+      "type": "module",
+      "layer": "",
+      "file_path": "src/entry.js",
+      "exports": [
+        "run"
+      ],
+      "community": ""
+    }
+  ],
+  "edges": [
+    {
+      "source": "src/consumer.ts",
+      "target": "src/base.ts",
+      "type": "imports",
+      "weight": 1
+    },
+    {
+      "source": "src/entry.js",
+      "target": "src/consumer.ts",
+      "type": "imports",
+      "weight": 1
+    }
+  ]
+}
