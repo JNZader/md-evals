@@ -152,6 +152,10 @@ class EvalConfig(BaseModel):
 # ============== Runtime Models ==============
 
 
+UsageProvenanceValue = str | int
+UsageProvenance = dict[str, UsageProvenanceValue]
+
+
 class LLMResponse(BaseModel):
     """LLM response model."""
     content: str
@@ -165,6 +169,7 @@ class LLMResponse(BaseModel):
     completion_tokens_detail: int | None = None  # Output tokens (explicit, separate from legacy)
     total_tokens: int | None = None           # prompt + completion
     stage_type: str = "single_pass"           # Stage label for orchestrator support
+    usage_provenance: UsageProvenance | None = None  # Validated bridge usage metadata, separate from legacy tokens
 
 
 class EvaluatorResult(BaseModel):
