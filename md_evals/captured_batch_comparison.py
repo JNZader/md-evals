@@ -191,8 +191,7 @@ def _validated_row(
         _require(digest is not None, "E_PAIRED requires a rendered context digest")
     else:
         _require(
-            (not selected_ids and digest is None)
-            or (bool(selected_ids) and digest is not None),
+            (not selected_ids and digest is None) or (bool(selected_ids) and digest is not None),
             "selected IDs and rendered context digest must agree",
         )
     return (task, repetition, arm), row
@@ -271,7 +270,9 @@ def _arm_summaries(
 
 
 def _cohort_summaries(
-    cells: tuple[CellAssessment, ...], expected: dict[str, dict[str, object]], complete: bool,
+    cells: tuple[CellAssessment, ...],
+    expected: dict[str, dict[str, object]],
+    complete: bool,
     arms: tuple[str, ...],
 ) -> tuple[CohortSummary, ...]:
     summaries = []
@@ -363,7 +364,8 @@ def _sum_known(values: list[int]) -> int | None:
 
 
 def _usage_summaries(
-    cells: tuple[CellAssessment, ...], rows_by_key: dict[tuple[str, int, str], object],
+    cells: tuple[CellAssessment, ...],
+    rows_by_key: dict[tuple[str, int, str], object],
     arms: tuple[str, ...],
 ) -> tuple[ArmUsageSummary, ...]:
     """Summarize only normalized provenance from already validated completed rows."""

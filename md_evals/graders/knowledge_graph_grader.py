@@ -86,19 +86,103 @@ class Fact:
 
 # ── Stop words (shared with semantic_diff for consistency) ──
 
-_STOP_WORDS: frozenset[str] = frozenset({
-    "a", "an", "the", "is", "are", "was", "were", "be", "been", "being",
-    "have", "has", "had", "do", "does", "did", "will", "would", "could",
-    "should", "may", "might", "shall", "can", "need", "must", "ought",
-    "i", "you", "he", "she", "it", "we", "they", "me", "him", "her",
-    "us", "them", "my", "your", "his", "its", "our", "their",
-    "this", "that", "these", "those", "and", "but", "or", "nor",
-    "not", "so", "if", "then", "than", "when", "where", "while",
-    "of", "in", "to", "for", "with", "on", "at", "from", "by",
-    "about", "as", "into", "through", "during", "before", "after",
-    "also", "very", "just", "more", "most", "other", "some", "such",
-    "no", "only", "same", "too", "each", "every", "all", "both",
-})
+_STOP_WORDS: frozenset[str] = frozenset(
+    {
+        "a",
+        "an",
+        "the",
+        "is",
+        "are",
+        "was",
+        "were",
+        "be",
+        "been",
+        "being",
+        "have",
+        "has",
+        "had",
+        "do",
+        "does",
+        "did",
+        "will",
+        "would",
+        "could",
+        "should",
+        "may",
+        "might",
+        "shall",
+        "can",
+        "need",
+        "must",
+        "ought",
+        "i",
+        "you",
+        "he",
+        "she",
+        "it",
+        "we",
+        "they",
+        "me",
+        "him",
+        "her",
+        "us",
+        "them",
+        "my",
+        "your",
+        "his",
+        "its",
+        "our",
+        "their",
+        "this",
+        "that",
+        "these",
+        "those",
+        "and",
+        "but",
+        "or",
+        "nor",
+        "not",
+        "so",
+        "if",
+        "then",
+        "than",
+        "when",
+        "where",
+        "while",
+        "of",
+        "in",
+        "to",
+        "for",
+        "with",
+        "on",
+        "at",
+        "from",
+        "by",
+        "about",
+        "as",
+        "into",
+        "through",
+        "during",
+        "before",
+        "after",
+        "also",
+        "very",
+        "just",
+        "more",
+        "most",
+        "other",
+        "some",
+        "such",
+        "no",
+        "only",
+        "same",
+        "too",
+        "each",
+        "every",
+        "all",
+        "both",
+    }
+)
 
 
 def _extract_terms(text: str) -> frozenset[str]:
@@ -253,9 +337,7 @@ class KnowledgeGraph:
         """
         return self._alias_map.get(name.lower())
 
-    def get_relations_for(
-        self, entity: str, *, relation_type: str | None = None
-    ) -> list[Relation]:
+    def get_relations_for(self, entity: str, *, relation_type: str | None = None) -> list[Relation]:
         """Get all relations involving an entity (as source or target).
 
         Args:
@@ -269,11 +351,7 @@ class KnowledgeGraph:
         if canonical is None:
             return []
 
-        results = [
-            r
-            for r in self._relations
-            if r.source == canonical or r.target == canonical
-        ]
+        results = [r for r in self._relations if r.source == canonical or r.target == canonical]
 
         if relation_type:
             results = [r for r in results if r.relation_type == relation_type]
@@ -387,10 +465,7 @@ class KnowledgeGraph:
                 }
                 for r in self._relations
             ],
-            "facts": [
-                {"entity": f.entity, "statement": f.statement}
-                for f in self._facts
-            ],
+            "facts": [{"entity": f.entity, "statement": f.statement} for f in self._facts],
         }
 
 
@@ -416,9 +491,7 @@ class FactCheck:
     confidence: float
 
 
-def check_claim_against_graph(
-    claim: str, graph: KnowledgeGraph
-) -> FactCheck:
+def check_claim_against_graph(claim: str, graph: KnowledgeGraph) -> FactCheck:
     """Check whether a claim is grounded in the knowledge graph.
 
     Strategy:

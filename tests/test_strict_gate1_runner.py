@@ -26,19 +26,42 @@ REVISION = "sha256:" + "b" * 64
 
 
 def _record(kind: str, identifier: str):
-    return {"id": identifier, "kind": kind, "repository": "repo", "revision": REVISION,
-            "producer_instance": "producer", "source_id": "source", "path": "x.py",
-            "quote": "quote", "claim": "claim", "value": "value", "freshness": "fresh",
-            "git_state": "clean", "line": 1}
+    return {
+        "id": identifier,
+        "kind": kind,
+        "repository": "repo",
+        "revision": REVISION,
+        "producer_instance": "producer",
+        "source_id": "source",
+        "path": "x.py",
+        "quote": "quote",
+        "claim": "claim",
+        "value": "value",
+        "freshness": "fresh",
+        "git_state": "clean",
+        "line": 1,
+    }
 
 
 def _pack(record):
-    return {"schema_version": "ContextPack.capture.union.v1", "repository": "repo",
-            "revision": REVISION, "freshness": "fresh", "git_state": "clean", "producer": {},
-            "providers": [], "evidence": [record], "conflicts": [],
-            "budget": {"limit": 1, "measurement": "estimate",
-                       "algorithm": "utf8_quote_bytes_div4_ceil_v0", "scope": "evidence_quotes"},
-            "trace": {}}
+    return {
+        "schema_version": "ContextPack.capture.union.v1",
+        "repository": "repo",
+        "revision": REVISION,
+        "freshness": "fresh",
+        "git_state": "clean",
+        "producer": {},
+        "providers": [],
+        "evidence": [record],
+        "conflicts": [],
+        "budget": {
+            "limit": 1,
+            "measurement": "estimate",
+            "algorithm": "utf8_quote_bytes_div4_ceil_v0",
+            "scope": "evidence_quotes",
+        },
+        "trace": {},
+    }
 
 
 def _valid_cases():
@@ -46,11 +69,19 @@ def _valid_cases():
     for number, name in enumerate(("one", "two", "three")):
         structure = _pack(_record("structure", f"{number + 1:x}".zfill(64)))
         memory = _pack(_record("memory", f"{number + 10:x}".zfill(64)))
-        cases.append({"name": name, "prompt": f"Explain the strict evaluation policy for case {name}",
-                      "expected": {"answer": "VALUE", "citations": [], "abstain": False},
-                      "packs": {"CONTROL": None, "B_STRUCTURE": structure,
-                                "C_MEMORY": memory,
-                                "E_PAIRED": compose_paired_context(structure, memory)}})
+        cases.append(
+            {
+                "name": name,
+                "prompt": f"Explain the strict evaluation policy for case {name}",
+                "expected": {"answer": "VALUE", "citations": [], "abstain": False},
+                "packs": {
+                    "CONTROL": None,
+                    "B_STRUCTURE": structure,
+                    "C_MEMORY": memory,
+                    "E_PAIRED": compose_paired_context(structure, memory),
+                },
+            }
+        )
     return cases
 
 
@@ -58,44 +89,80 @@ def _artifacts():
     from tests.test_strict_run_assembly import assemble
 
     candidate_plan = prepare_captured_pilot(
-        cases=_valid_cases(), provider="provider", model="model", backend_config_sha256="c" * 64,
-        limits={"max_primary_calls": 12, "per_call_timeout_seconds": 2, "total_timeout_seconds": 20},
+        cases=_valid_cases(),
+        provider="provider",
+        model="model",
+        backend_config_sha256="c" * 64,
+        limits={
+            "max_primary_calls": 12,
+            "per_call_timeout_seconds": 2,
+            "total_timeout_seconds": 20,
+        },
     )
     assembly = assemble()
-    billing_scaffold = __import__("md_evals.strict_billing_evidence", fromlist=["build_billing_scaffold"]).build_billing_scaffold(
-        plan=candidate_plan, created_at="2026-09-13T00:00:00Z"
-    )
+    billing_scaffold = __import__(
+        "md_evals.strict_billing_evidence", fromlist=["build_billing_scaffold"]
+    ).build_billing_scaffold(plan=candidate_plan, created_at="2026-09-13T00:00:00Z")
     return build_strict_gate1_artifacts(
-        cases=_valid_cases(), provider="provider", model="model", backend_config_sha256="c" * 64,
-        limits={"max_primary_calls": 12, "per_call_timeout_seconds": 2, "total_timeout_seconds": 20},
-         checklist=checklist(assembly), billing_scaffold=billing_scaffold,
-         generated_at="2026-09-13T00:00:00Z", **{key: value for key, value in declarations().items() if key != "billing_attestation"})
+        cases=_valid_cases(),
+        provider="provider",
+        model="model",
+        backend_config_sha256="c" * 64,
+        limits={
+            "max_primary_calls": 12,
+            "per_call_timeout_seconds": 2,
+            "total_timeout_seconds": 20,
+        },
+        checklist=checklist(assembly),
+        billing_scaffold=billing_scaffold,
+        generated_at="2026-09-13T00:00:00Z",
+        **{key: value for key, value in declarations().items() if key != "billing_attestation"},
+    )
 
 
 def _input_bundle():
     assembly = assemble()
     values = {
-        "cases": _valid_cases(), "provider": "provider", "model": "model",
+        "cases": _valid_cases(),
+        "provider": "provider",
+        "model": "model",
         "backend_config_sha256": "c" * 64,
-        "limits": {"max_primary_calls": 12, "per_call_timeout_seconds": 2,
-                   "total_timeout_seconds": 20},
-        "checklist": checklist(assembly), "generated_at": "2026-09-13T00:00:00Z",
-         **declarations(),
+        "limits": {
+            "max_primary_calls": 12,
+            "per_call_timeout_seconds": 2,
+            "total_timeout_seconds": 20,
+        },
+        "checklist": checklist(assembly),
+        "generated_at": "2026-09-13T00:00:00Z",
+        **declarations(),
     }
     candidate_plan = prepare_captured_pilot(
-        cases=_valid_cases(), provider="provider", model="model", backend_config_sha256="c" * 64,
-        limits={"max_primary_calls": 12, "per_call_timeout_seconds": 2, "total_timeout_seconds": 20},
+        cases=_valid_cases(),
+        provider="provider",
+        model="model",
+        backend_config_sha256="c" * 64,
+        limits={
+            "max_primary_calls": 12,
+            "per_call_timeout_seconds": 2,
+            "total_timeout_seconds": 20,
+        },
     )
-    values["billing_scaffold"] = __import__("md_evals.strict_billing_evidence", fromlist=["build_billing_scaffold"]).build_billing_scaffold(
-        plan=candidate_plan, created_at="2026-09-13T00:00:00Z"
-    )
+    values["billing_scaffold"] = __import__(
+        "md_evals.strict_billing_evidence", fromlist=["build_billing_scaffold"]
+    ).build_billing_scaffold(plan=candidate_plan, created_at="2026-09-13T00:00:00Z")
     values.pop("billing_attestation")
     return values
 
 
 def test_preflight_is_secret_safe_and_fail_closed():
-    report = preflight_strict_gate1(bearer_present=False, retry_attempts=0, fallbacks=False,
-                                    tools="none", tools_enforced=True, planned_cells=12)
+    report = preflight_strict_gate1(
+        bearer_present=False,
+        retry_attempts=0,
+        fallbacks=False,
+        tools="none",
+        tools_enforced=True,
+        planned_cells=12,
+    )
     assert report["status"] == "blocked"
     assert report["network_called"] is False
     assert report["execution_authorized"] is False
@@ -103,12 +170,24 @@ def test_preflight_is_secret_safe_and_fail_closed():
     assert "secret" not in json.dumps(report).lower()
 
 
-@pytest.mark.parametrize("kwargs", [
-    {"retry_attempts": 1}, {"fallbacks": True}, {"planned_cells": 8}, {"smoke_runner": True},
-])
+@pytest.mark.parametrize(
+    "kwargs",
+    [
+        {"retry_attempts": 1},
+        {"fallbacks": True},
+        {"planned_cells": 8},
+        {"smoke_runner": True},
+    ],
+)
 def test_strict_preflight_rejects_non_strict_policy(kwargs):
-    values = {"bearer_present": True, "retry_attempts": 0, "fallbacks": False,
-              "tools": "none", "tools_enforced": True, "planned_cells": 12}
+    values = {
+        "bearer_present": True,
+        "retry_attempts": 0,
+        "fallbacks": False,
+        "tools": "none",
+        "tools_enforced": True,
+        "planned_cells": 12,
+    }
     values.update(kwargs)
     assert preflight_strict_gate1(**values)["status"] == "blocked"
 
@@ -116,8 +195,10 @@ def test_strict_preflight_rejects_non_strict_policy(kwargs):
 def test_artifact_generator_builds_bound_non_authorizing_artifacts():
     artifacts = _artifacts()
     assert artifacts.plan.to_dict()["planned_calls"] == 12
-    assert all(item.to_dict()["execution_authorized"] is False
-               for item in (artifacts.assembly, artifacts.packet, artifacts.authorization_request))
+    assert all(
+        item.to_dict()["execution_authorized"] is False
+        for item in (artifacts.assembly, artifacts.packet, artifacts.authorization_request)
+    )
     assert artifacts.to_dict()["live_execution_requested"] is False
 
 
@@ -128,16 +209,28 @@ def test_loader_accepts_valid_frozen_input_bundle(tmp_path):
     loaded = load_strict_gate1_input(path)
 
     assert set(loaded) == {
-        "cases", "provider", "model", "backend_config_sha256", "limits",
-        "gold_reference", "reviewer_metadata", "billing_scaffold",
-        "repository_state", "cleanup_declaration", "checklist", "generated_at",
+        "cases",
+        "provider",
+        "model",
+        "backend_config_sha256",
+        "limits",
+        "gold_reference",
+        "reviewer_metadata",
+        "billing_scaffold",
+        "repository_state",
+        "cleanup_declaration",
+        "checklist",
+        "generated_at",
     }
 
 
-@pytest.mark.parametrize("mutation", [
-    lambda payload: payload.pop("cases"),
-    lambda payload: payload.update({"unexpected": "must not be accepted"}),
-])
+@pytest.mark.parametrize(
+    "mutation",
+    [
+        lambda payload: payload.pop("cases"),
+        lambda payload: payload.update({"unexpected": "must not be accepted"}),
+    ],
+)
 def test_loader_rejects_invalid_top_level_keys_without_printing_payload(tmp_path, capsys, mutation):
     payload = _input_bundle()
     mutation(payload)
@@ -154,11 +247,16 @@ def test_writer_keeps_private_manifests_out_of_public_index(tmp_path):
     index = write_strict_gate1_artifacts(_artifacts(), tmp_path)
 
     assert {path.name for path in tmp_path.iterdir()} == {
-        "plan.private.json", "assembly.private.json", "packet.json",
-        "authorization-request.json", "index.json",
+        "plan.private.json",
+        "assembly.private.json",
+        "packet.json",
+        "authorization-request.json",
+        "index.json",
     }
     public = json.dumps(index).lower()
-    assert all(term not in public for term in ("prompt", "rendered_context", "context", "raw_response"))
+    assert all(
+        term not in public for term in ("prompt", "rendered_context", "context", "raw_response")
+    )
     assert index["files"]["plan"] == "plan.private.json"
     assert index["status"] == "prepared"
     assert json.loads((tmp_path / "plan.private.json").read_text())
@@ -236,8 +334,11 @@ def test_writer_keeps_published_bundle_when_parent_fsync_fails_after_replace(tmp
         write_strict_gate1_artifacts(_artifacts(), tmp_path)
 
     assert {path.name for path in tmp_path.iterdir()} == {
-        "plan.private.json", "assembly.private.json", "packet.json",
-        "authorization-request.json", "index.json",
+        "plan.private.json",
+        "assembly.private.json",
+        "packet.json",
+        "authorization-request.json",
+        "index.json",
     }
     assert all(path.stat().st_size > 0 for path in tmp_path.iterdir())
 
@@ -268,19 +369,35 @@ def test_module_command_is_offline_and_prints_public_index_only(tmp_path, capsys
 def test_artifact_projection_is_public_safe():
     projection = _artifacts().to_dict()
     serialized = json.dumps(projection).lower()
-    assert all(term not in serialized for term in ("prompt", "rendered_context", "context", "raw_response"))
+    assert all(
+        term not in serialized for term in ("prompt", "rendered_context", "context", "raw_response")
+    )
     assert set(projection) == {
-        "plan_sha256", "assembly_sha256", "packet_sha256", "authorization_request_sha256",
-        "planned_calls", "execution_authorized", "live_execution_requested",
+        "plan_sha256",
+        "assembly_sha256",
+        "packet_sha256",
+        "authorization_request_sha256",
+        "planned_calls",
+        "execution_authorized",
+        "live_execution_requested",
     }
 
 
 def test_runner_requires_authorization_and_validated_artifacts_before_call():
     calls = []
     with pytest.raises(StrictGate1Error, match="validated strict artifacts"):
-        asyncio.run(run_strict_gate1(artifacts=object(), bearer_present=True, retry_attempts=0,
-                                     fallbacks=False, tools="none", tools_enforced=True,
-                                     authorize=False, adapter=lambda cell: calls.append(cell)))
+        asyncio.run(
+            run_strict_gate1(
+                artifacts=object(),
+                bearer_present=True,
+                retry_attempts=0,
+                fallbacks=False,
+                tools="none",
+                tools_enforced=True,
+                authorize=False,
+                adapter=lambda cell: calls.append(cell),
+            )
+        )
     assert calls == []
 
 
@@ -291,14 +408,25 @@ def test_runner_uses_injected_adapter_for_exactly_twelve_cells_without_retry_or_
     async def fake_adapter(cell):
         calls.append(cell)
         return StrictGate1CellResult(
-            case_name=cell.case_name, arm=cell.arm, status="completed",
+            case_name=cell.case_name,
+            arm=cell.arm,
+            status="completed",
             answer={"answer": "VALUE", "citations": [], "abstain": False},
             raw_response_digest="d" * 64,
         )
 
-    results = asyncio.run(run_strict_gate1(
-        artifacts=artifacts, bearer_present=True, retry_attempts=0, fallbacks=False,
-        tools="none", tools_enforced=True, authorize=True, adapter=fake_adapter))
+    results = asyncio.run(
+        run_strict_gate1(
+            artifacts=artifacts,
+            bearer_present=True,
+            retry_attempts=0,
+            fallbacks=False,
+            tools="none",
+            tools_enforced=True,
+            authorize=True,
+            adapter=fake_adapter,
+        )
+    )
     assert len(calls) == len(results) == 12
     assert {cell.arm for cell in calls} == {"CONTROL", "B_STRUCTURE", "C_MEMORY", "E_PAIRED"}
 
@@ -312,31 +440,48 @@ def test_runner_rejects_prompt_and_context_echoes_and_continues_after_adapter_ex
         if len(calls) == 1:
             answer = cell.prompt
             return StrictGate1CellResult(
-                case_name=cell.case_name, arm=cell.arm, status="completed",
+                case_name=cell.case_name,
+                arm=cell.arm,
+                status="completed",
                 answer={"answer": answer, "citations": [], "abstain": False},
                 raw_response_digest="d" * 64,
             )
         if len(calls) == 2:
             return StrictGate1CellResult(
-                case_name=cell.case_name, arm=cell.arm, status="completed",
+                case_name=cell.case_name,
+                arm=cell.arm,
+                status="completed",
                 answer={"answer": cell.rendered_context, "citations": [], "abstain": False},
                 raw_response_digest="d" * 64,
             )
         if len(calls) == 3:
             raise RuntimeError("prompt and token=sk-secret must never be exposed")
         return StrictGate1CellResult(
-            case_name=cell.case_name, arm=cell.arm, status="completed",
+            case_name=cell.case_name,
+            arm=cell.arm,
+            status="completed",
             answer={"answer": "VALUE", "citations": [], "abstain": False},
             raw_response_digest="d" * 64,
         )
 
-    results = asyncio.run(run_strict_gate1(
-        artifacts=artifacts, bearer_present=True, retry_attempts=0, fallbacks=False,
-        tools="none", tools_enforced=True, authorize=True, adapter=adapter))
+    results = asyncio.run(
+        run_strict_gate1(
+            artifacts=artifacts,
+            bearer_present=True,
+            retry_attempts=0,
+            fallbacks=False,
+            tools="none",
+            tools_enforced=True,
+            authorize=True,
+            adapter=adapter,
+        )
+    )
 
     assert len(results) == 12
     assert [result.error_code for result in results[:3]] == [
-        "public_material", "public_material", "adapter_exception"
+        "public_material",
+        "public_material",
+        "adapter_exception",
     ]
     assert all(result.status == "completed" for result in results[3:])
     assert all("sk-secret" not in json.dumps(result.to_dict()) for result in results)
@@ -348,14 +493,25 @@ def test_runner_rejects_interleaved_prompt_echo():
     def adapter(cell):
         answer = cell.prompt.replace(" ", " filler ")
         return StrictGate1CellResult(
-            case_name=cell.case_name, arm=cell.arm, status="completed",
+            case_name=cell.case_name,
+            arm=cell.arm,
+            status="completed",
             answer={"answer": answer, "citations": [], "abstain": False},
             raw_response_digest="d" * 64,
         )
 
-    results = asyncio.run(run_strict_gate1(
-        artifacts=artifacts, bearer_present=True, retry_attempts=0, fallbacks=False,
-        tools="none", tools_enforced=True, authorize=True, adapter=adapter))
+    results = asyncio.run(
+        run_strict_gate1(
+            artifacts=artifacts,
+            bearer_present=True,
+            retry_attempts=0,
+            fallbacks=False,
+            tools="none",
+            tools_enforced=True,
+            authorize=True,
+            adapter=adapter,
+        )
+    )
 
     assert len(results) == 12
     assert all(result.error_code == "public_material" for result in results)
@@ -370,9 +526,18 @@ def test_runner_rejects_malformed_adapter_output():
         return {"case": cell.case_name, "arm": cell.arm}
 
     with pytest.raises(StrictGate1Error, match="strict cell result"):
-        asyncio.run(run_strict_gate1(
-            artifacts=artifacts, bearer_present=True, retry_attempts=0, fallbacks=False,
-            tools="none", tools_enforced=True, authorize=True, adapter=bad_adapter))
+        asyncio.run(
+            run_strict_gate1(
+                artifacts=artifacts,
+                bearer_present=True,
+                retry_attempts=0,
+                fallbacks=False,
+                tools="none",
+                tools_enforced=True,
+                authorize=True,
+                adapter=bad_adapter,
+            )
+        )
     assert len(calls) == 1
 
 
@@ -381,19 +546,39 @@ def test_runner_rejects_stale_authorization_request_before_adapter_call():
     object.__setattr__(artifacts.authorization_request, "sha256", "0" * 64)
     calls = []
     with pytest.raises(StrictGate1Error, match="self-hash"):
-        asyncio.run(run_strict_gate1(
-            artifacts=artifacts, bearer_present=True, retry_attempts=0, fallbacks=False,
-            tools="none", tools_enforced=True, authorize=True,
-            adapter=lambda cell: calls.append(cell)))
+        asyncio.run(
+            run_strict_gate1(
+                artifacts=artifacts,
+                bearer_present=True,
+                retry_attempts=0,
+                fallbacks=False,
+                tools="none",
+                tools_enforced=True,
+                authorize=True,
+                adapter=lambda cell: calls.append(cell),
+            )
+        )
     assert calls == []
 
 
-@pytest.mark.parametrize("field,value", [("prompt", "private prompt"), ("rendered_context", "private context"), ("private_key", "-----BEGIN PRIVATE KEY-----")])
+@pytest.mark.parametrize(
+    "field,value",
+    [
+        ("prompt", "private prompt"),
+        ("rendered_context", "private context"),
+        ("private_key", "-----BEGIN PRIVATE KEY-----"),
+    ],
+)
 def test_cell_result_rejects_private_material(field, value):
     payload = {
-        "schema_version": "strict-gate1-cell-result/v1", "case_name": "one", "arm": "CONTROL",
-        "status": "completed", "answer": {"answer": "VALUE", "citations": [], "abstain": False},
-        "raw_response_digest": "d" * 64, "error_code": None, "error_message": None,
+        "schema_version": "strict-gate1-cell-result/v1",
+        "case_name": "one",
+        "arm": "CONTROL",
+        "status": "completed",
+        "answer": {"answer": "VALUE", "citations": [], "abstain": False},
+        "raw_response_digest": "d" * 64,
+        "error_code": None,
+        "error_message": None,
     }
     payload[field] = value
     with pytest.raises(StrictGate1Error):
@@ -402,17 +587,25 @@ def test_cell_result_rejects_private_material(field, value):
 
 def _completed_cell_result_payload(answer):
     return {
-        "schema_version": "strict-gate1-cell-result/v1", "case_name": "one", "arm": "CONTROL",
-        "status": "completed", "answer": answer, "raw_response_digest": "d" * 64,
-        "error_code": None, "error_message": None,
+        "schema_version": "strict-gate1-cell-result/v1",
+        "case_name": "one",
+        "arm": "CONTROL",
+        "status": "completed",
+        "answer": answer,
+        "raw_response_digest": "d" * 64,
+        "error_code": None,
+        "error_message": None,
     }
 
 
-@pytest.mark.parametrize("credential", [
-    "ghp_" + "a" * 36,
-    "AKIA" + "A" * 16,
-    "ASIA" + "B" * 16,
-])
+@pytest.mark.parametrize(
+    "credential",
+    [
+        "ghp_" + "a" * 36,
+        "AKIA" + "A" * 16,
+        "ASIA" + "B" * 16,
+    ],
+)
 def test_completed_cell_result_rejects_common_credential_formats(credential):
     payload = _completed_cell_result_payload(
         {"answer": f"Explanation: {credential}", "citations": [], "abstain": False}
@@ -423,26 +616,40 @@ def test_completed_cell_result_rejects_common_credential_formats(credential):
 
 
 def test_completed_cell_result_allows_benign_bearer_explanation():
-    result = StrictGate1CellResult.from_value(_completed_cell_result_payload(
-        {"answer": "Bearer token is sent in the Authorization header.", "citations": [], "abstain": False}
-    ))
+    result = StrictGate1CellResult.from_value(
+        _completed_cell_result_payload(
+            {
+                "answer": "Bearer token is sent in the Authorization header.",
+                "citations": [],
+                "abstain": False,
+            }
+        )
+    )
 
-    assert result.to_dict()["answer"]["answer"] == "Bearer token is sent in the Authorization header."
+    assert (
+        result.to_dict()["answer"]["answer"] == "Bearer token is sent in the Authorization header."
+    )
 
 
 def test_cell_result_snapshots_original_answer_payload():
     answer = {"answer": "VALUE", "citations": [], "abstain": False}
     result = StrictGate1CellResult(**_completed_cell_result_payload(answer))
 
-    answer.update({"prompt": "private prompt", "secret": "token", "private_key": "-----BEGIN PRIVATE KEY-----"})
+    answer.update(
+        {
+            "prompt": "private prompt",
+            "secret": "token",
+            "private_key": "-----BEGIN PRIVATE KEY-----",
+        }
+    )
 
     assert result.to_dict()["answer"] == {"answer": "VALUE", "citations": [], "abstain": False}
 
 
 def test_cell_result_to_dict_returns_an_independent_answer_copy():
-    result = StrictGate1CellResult(**_completed_cell_result_payload(
-        {"answer": "VALUE", "citations": [], "abstain": False}
-    ))
+    result = StrictGate1CellResult(
+        **_completed_cell_result_payload({"answer": "VALUE", "citations": [], "abstain": False})
+    )
     projection = result.to_dict()
     projection["answer"].update({"raw_response": "private", "token": "secret"})
 
@@ -460,11 +667,17 @@ def test_cell_result_from_value_snapshots_payload_dict():
     assert result.to_dict()["answer"] == {"answer": "VALUE", "citations": [], "abstain": False}
 
 
-@pytest.mark.parametrize("key,value", [
-    ("prompt", "private prompt"), ("rendered_context", "private context"),
-    ("raw_response", "private response"), ("secret", "secret value"),
-    ("token", "token value"), ("private_key", "-----BEGIN PRIVATE KEY-----"),
-])
+@pytest.mark.parametrize(
+    "key,value",
+    [
+        ("prompt", "private prompt"),
+        ("rendered_context", "private context"),
+        ("raw_response", "private response"),
+        ("secret", "secret value"),
+        ("token", "token value"),
+        ("private_key", "-----BEGIN PRIVATE KEY-----"),
+    ],
+)
 def test_post_validation_answer_mutation_cannot_leak_private_fields(key, value):
     answer = {"answer": "VALUE", "citations": [], "abstain": False}
     result = StrictGate1CellResult(**_completed_cell_result_payload(answer))
@@ -472,8 +685,10 @@ def test_post_validation_answer_mutation_cannot_leak_private_fields(key, value):
 
     projection = result.to_dict()
     assert key not in projection["answer"]
-    assert not any(term in json.dumps(projection["answer"]).lower()
-                   for term in ("prompt", "rendered_context", "raw_response", "secret", "token", "private_key"))
+    assert not any(
+        term in json.dumps(projection["answer"]).lower()
+        for term in ("prompt", "rendered_context", "raw_response", "secret", "token", "private_key")
+    )
 
 
 def test_malformed_explicit_evidence_blocks_before_adapter():
@@ -481,6 +696,16 @@ def test_malformed_explicit_evidence_blocks_before_adapter():
     cases[0]["expected"] = {"answer": "", "citations": [], "abstain": False}
     with pytest.raises(Exception):
         build_strict_gate1_artifacts(
-            cases=cases, provider="provider", model="model", backend_config_sha256="c" * 64,
-            limits={"max_primary_calls": 12, "per_call_timeout_seconds": 2, "total_timeout_seconds": 20},
-            checklist={}, generated_at="2026-09-13T00:00:00Z", **declarations())
+            cases=cases,
+            provider="provider",
+            model="model",
+            backend_config_sha256="c" * 64,
+            limits={
+                "max_primary_calls": 12,
+                "per_call_timeout_seconds": 2,
+                "total_timeout_seconds": 20,
+            },
+            checklist={},
+            generated_at="2026-09-13T00:00:00Z",
+            **declarations(),
+        )

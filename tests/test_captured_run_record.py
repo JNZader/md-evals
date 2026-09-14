@@ -18,17 +18,39 @@ def anyio_backend():
 
 def cell(arm="CONTROL", **changes):
     values = dict(
-        cell_id=f"cell-{arm}", task_id="task-bound", prompt="frozen prompt",
-        case_id="case-bound", capture_number=1, arm_id=arm,
+        cell_id=f"cell-{arm}",
+        task_id="task-bound",
+        prompt="frozen prompt",
+        case_id="case-bound",
+        capture_number=1,
+        arm_id=arm,
         prompt_digest=__import__("hashlib").sha256(b"frozen prompt").hexdigest(),
-        context_bytes=b"", context_digest=__import__("hashlib").sha256(b"").hexdigest(),
-        selected_ids=(), tools="none", tool_configuration="none", provider_pin="pinned-provider",
-        model_pin="pinned-model", endpoint_pin="approved-endpoint", model_config_digest="config",
-        code_revision="revision", budget="approved", timeout="approved", operator="operator",
-        reviewer="reviewer", arm_mapping_decision_id="decision", fixture_id="fixture",
-        fixture_revision="fixture-revision", context_size=0, started_at="unknown", finished_at="unknown",
-        request_id="unknown", raw_output_ref="raw-ref", state="missing", factual_failure_reason="not_applicable",
-        route_label="route-label", identity_attestation="attested-input-provenance",
+        context_bytes=b"",
+        context_digest=__import__("hashlib").sha256(b"").hexdigest(),
+        selected_ids=(),
+        tools="none",
+        tool_configuration="none",
+        provider_pin="pinned-provider",
+        model_pin="pinned-model",
+        endpoint_pin="approved-endpoint",
+        model_config_digest="config",
+        code_revision="revision",
+        budget="approved",
+        timeout="approved",
+        operator="operator",
+        reviewer="reviewer",
+        arm_mapping_decision_id="decision",
+        fixture_id="fixture",
+        fixture_revision="fixture-revision",
+        context_size=0,
+        started_at="unknown",
+        finished_at="unknown",
+        request_id="unknown",
+        raw_output_ref="raw-ref",
+        state="missing",
+        factual_failure_reason="not_applicable",
+        route_label="route-label",
+        identity_attestation="attested-input-provenance",
     )
     values.update(changes)
     return FrozenCell(**values)
@@ -40,7 +62,12 @@ async def test_one_call_and_private_public_split():
 
     async def complete(prompt, system_prompt=None):
         calls.append((prompt, system_prompt))
-        return LLMResponse(content="sample answer", model="model-alpha", provider="provider-alpha", raw_response={"channel": "sample-wire"})
+        return LLMResponse(
+            content="sample answer",
+            model="model-alpha",
+            provider="provider-alpha",
+            raw_response={"channel": "sample-wire"},
+        )
 
     record = (await capture_bound_cells((cell(),), complete))[0]
     assert calls == [("frozen prompt", None)]
@@ -49,7 +76,12 @@ async def test_one_call_and_private_public_split():
     assert record.response.model == "model-alpha"
     assert record.response.provider == "provider-alpha"
     assert record.response.raw_response["channel"] == "sample-wire"
-    assert record.raw_wire_payload == '{"completion_tokens_detail":null,"content":"sample answer","duration_ms":0,"model":"model-alpha","prompt_tokens":null,"provider":"provider-alpha","raw_response":{"channel":"sample-wire"},"stage_type":"single_pass","tokens":0,"total_tokens":null,"usage_provenance":null}'
+    assert record.raw_wire_payload == (
+        '{"completion_tokens_detail":null,"content":"sample answer","duration_ms":0,'
+        '"model":"model-alpha","prompt_tokens":null,"provider":"provider-alpha",'
+        '"raw_response":{"channel":"sample-wire"},"stage_type":"single_pass",'
+        '"tokens":0,"total_tokens":null,"usage_provenance":null}'
+    )
     assert "secret" not in repr(public)
     assert public.denominator_eligible is True
     assert public.planned_denominator == 12
@@ -144,7 +176,11 @@ def test_summary_never_uses_observed_count_as_denominator():
 
 def test_all_run_statuses_are_supported_without_inventing_gate_decisions():
     for status in ("complete", "incomplete", "inconclusive", "failed", "aborted", "missing"):
-        reason = "factually recorded" if status in ("inconclusive", "failed", "aborted") else "not_applicable"
+        reason = (
+            "factually recorded"
+            if status in ("inconclusive", "failed", "aborted")
+            else "not_applicable"
+        )
         summary = summarize_run((), run_status=status, factual_reason=reason)
         assert summary.status == status
         assert summary.gate1_decision is None
@@ -153,10 +189,20 @@ def test_all_run_statuses_are_supported_without_inventing_gate_decisions():
             summarize_run((), run_status=status)
 
 
-@pytest.mark.parametrize("field", [
-    "provider_pin", "model_pin", "endpoint_pin", "model_config_digest", "budget",
-    "timeout", "operator", "reviewer", "identity_attestation",
-])
+@pytest.mark.parametrize(
+    "field",
+    [
+        "provider_pin",
+        "model_pin",
+        "endpoint_pin",
+        "model_config_digest",
+        "budget",
+        "timeout",
+        "operator",
+        "reviewer",
+        "identity_attestation",
+    ],
+)
 def test_rejects_empty_or_unknown_required_frozen_fields(field):
     with pytest.raises(CaptureRecordError):
         cell(**{field: ""})
@@ -169,13 +215,20 @@ async def test_private_raw_response_is_deeply_snapshotted_and_frozen():
     raw = {"nested": {"items": ["original"]}}
 
     async def complete(prompt, system_prompt=None):
-        return LLMResponse(content="answer", model="model-alpha", provider="provider-alpha", raw_response=raw)
+        return LLMResponse(
+            content="answer", model="model-alpha", provider="provider-alpha", raw_response=raw
+        )
 
     record = (await capture_bound_cells((cell(),), complete))[0]
-    assert record.raw_wire_payload == '{"completion_tokens_detail":null,"content":"answer","duration_ms":0,"model":"model-alpha","prompt_tokens":null,"provider":"provider-alpha","raw_response":{"nested":{"items":["original"]}},"stage_type":"single_pass","tokens":0,"total_tokens":null,"usage_provenance":null}'
+    assert record.raw_wire_payload == (
+        '{"completion_tokens_detail":null,"content":"answer","duration_ms":0,'
+        '"model":"model-alpha","prompt_tokens":null,"provider":"provider-alpha",'
+        '"raw_response":{"nested":{"items":["original"]}},"stage_type":"single_pass",'
+        '"tokens":0,"total_tokens":null,"usage_provenance":null}'
+    )
     raw["nested"]["items"].append("caller mutation")
     assert record.response.raw_response["nested"]["items"] == ("original",)
-    assert 'caller mutation' not in record.raw_wire_payload
+    assert "caller mutation" not in record.raw_wire_payload
     with pytest.raises(TypeError):
         record.response.raw_response["nested"]["new"] = "blocked"
     with pytest.raises(TypeError):
@@ -188,7 +241,13 @@ async def test_all_retained_container_fields_are_detached_and_frozen():
     provenance = {"source": "usage", "attempts": 1}
 
     async def complete(prompt, system_prompt=None):
-        return LLMResponse(content="answer", model="model-alpha", provider="provider-alpha", raw_response=raw, usage_provenance=provenance)
+        return LLMResponse(
+            content="answer",
+            model="model-alpha",
+            provider="provider-alpha",
+            raw_response=raw,
+            usage_provenance=provenance,
+        )
 
     record = (await capture_bound_cells((cell(),), complete))[0]
     raw["nested"]["items"].append("caller mutation")
@@ -202,7 +261,12 @@ async def test_all_retained_container_fields_are_detached_and_frozen():
 @pytest.mark.anyio
 async def test_serialization_and_schema_errors_propagate_instead_of_becoming_failed_records():
     async def unserializable(prompt, system_prompt=None):
-        return LLMResponse(content="answer", model="model-alpha", provider="provider-alpha", raw_response={"bad": object()})
+        return LLMResponse(
+            content="answer",
+            model="model-alpha",
+            provider="provider-alpha",
+            raw_response={"bad": object()},
+        )
 
     with pytest.raises(TypeError):
         await capture_bound_cells((cell(),), unserializable)
@@ -217,7 +281,12 @@ async def test_serialization_and_schema_errors_propagate_instead_of_becoming_fai
 @pytest.mark.anyio
 async def test_secret_raw_response_is_rejected_without_retention():
     async def complete(prompt, system_prompt=None):
-        return LLMResponse(content="answer", model="model-alpha", provider="provider-alpha", raw_response={"api_key": "sk-secret-value-123456"})
+        return LLMResponse(
+            content="answer",
+            model="model-alpha",
+            provider="provider-alpha",
+            raw_response={"api_key": "sk-secret-value-123456"},
+        )
 
     record = (await capture_bound_cells((cell(),), complete))[0]
     assert record.state == "failed"
@@ -227,13 +296,27 @@ async def test_secret_raw_response_is_rejected_without_retention():
 
 
 @pytest.mark.anyio
-@pytest.mark.parametrize("secret_key", [
-    "token", "api_key", "authorization", "credential",
-    "access_token", "refresh_token", "client_secret", "private_key",
-])
+@pytest.mark.parametrize(
+    "secret_key",
+    [
+        "token",
+        "api_key",
+        "authorization",
+        "credential",
+        "access_token",
+        "refresh_token",
+        "client_secret",
+        "private_key",
+    ],
+)
 async def test_secret_key_forms_are_rejected_without_retention(secret_key):
     async def complete(prompt, system_prompt=None):
-        return LLMResponse(content="answer", model="model-alpha", provider="provider-alpha", raw_response={secret_key: "ordinary value"})
+        return LLMResponse(
+            content="answer",
+            model="model-alpha",
+            provider="provider-alpha",
+            raw_response={secret_key: "ordinary value"},
+        )
 
     record = (await capture_bound_cells((cell(),), complete))[0]
     assert record.state == "failed"
@@ -242,13 +325,16 @@ async def test_secret_key_forms_are_rejected_without_retention(secret_key):
 
 
 @pytest.mark.anyio
-@pytest.mark.parametrize("field,value", [
-    ("content", "Bearer content-secret"),
-    ("model", "sk-model-secret"),
-    ("provider", "ghp_providersecret"),
-    ("raw_response", {"nested": [{"credential": "not echoed"}]}),
-    ("usage_provenance", {"access_token": "not echoed"}),
-])
+@pytest.mark.parametrize(
+    "field,value",
+    [
+        ("content", "Bearer content-secret"),
+        ("model", "sk-model-secret"),
+        ("provider", "ghp_providersecret"),
+        ("raw_response", {"nested": [{"credential": "not echoed"}]}),
+        ("usage_provenance", {"access_token": "not echoed"}),
+    ],
+)
 async def test_secrets_are_rejected_across_the_complete_response_surface(field, value):
     async def complete(prompt, system_prompt=None):
         values = {"content": "answer", "model": "model-alpha", "provider": "provider-alpha"}
@@ -264,10 +350,15 @@ async def test_secrets_are_rejected_across_the_complete_response_surface(field, 
 @pytest.mark.anyio
 async def test_public_reference_exposes_only_comparable_denominator_eligibility():
     async def complete(prompt, system_prompt=None):
-        return LLMResponse(content="private prompt response", model="model-alpha", provider="provider-alpha")
+        return LLMResponse(
+            content="private prompt response", model="model-alpha", provider="provider-alpha"
+        )
 
     public = (await capture_bound_cells((cell(),), complete))[0].public_reference()
     rendered = repr(public)
     assert public.denominator_eligible is True
     assert public.planned_denominator == 12
-    assert all(term not in rendered for term in ("private prompt", "raw_response", "digest", "wire", "secret"))
+    assert all(
+        term not in rendered
+        for term in ("private prompt", "raw_response", "digest", "wire", "secret")
+    )

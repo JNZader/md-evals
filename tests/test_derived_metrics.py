@@ -812,10 +812,18 @@ class TestBuildStageBreakdown:
     def test_mixed_stage_types_ordering(self):
         """Mixed stage types all appear in result."""
         stages = [
-            StageMetrics(stage_type="planner", prompt_tokens=100, completion_tokens=50, total_tokens=150),
-            StageMetrics(stage_type="router", prompt_tokens=200, completion_tokens=100, total_tokens=300),
-            StageMetrics(stage_type="tool_call", prompt_tokens=300, completion_tokens=150, total_tokens=450),
-            StageMetrics(stage_type="synthesis", prompt_tokens=400, completion_tokens=200, total_tokens=600),
+            StageMetrics(
+                stage_type="planner", prompt_tokens=100, completion_tokens=50, total_tokens=150
+            ),
+            StageMetrics(
+                stage_type="router", prompt_tokens=200, completion_tokens=100, total_tokens=300
+            ),
+            StageMetrics(
+                stage_type="tool_call", prompt_tokens=300, completion_tokens=150, total_tokens=450
+            ),
+            StageMetrics(
+                stage_type="synthesis", prompt_tokens=400, completion_tokens=200, total_tokens=600
+            ),
         ]
 
         result = build_stage_breakdown(stages)

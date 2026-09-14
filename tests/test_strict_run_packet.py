@@ -13,37 +13,60 @@ from md_evals.strict_run_packet import (
     parse_strict_run_packet,
     validate_strict_run_packet_binding,
 )
-from tests.test_strict_run_assembly import assemble, final_billing_attestation, scoped_dirty_repository
+from tests.test_strict_run_assembly import (
+    assemble,
+    final_billing_attestation,
+    scoped_dirty_repository,
+)
 
 
 def evidence(payload):
-    return {"status": "provided", "evidence_payload": payload,
-            "evidence_digest": hashlib.sha256(json.dumps(
-                payload, sort_keys=True, separators=(",", ":"), ensure_ascii=True
-            ).encode()).hexdigest()}
+    return {
+        "status": "provided",
+        "evidence_payload": payload,
+        "evidence_digest": hashlib.sha256(
+            json.dumps(payload, sort_keys=True, separators=(",", ":"), ensure_ascii=True).encode()
+        ).hexdigest(),
+    }
 
 
 def checklist(candidate):
-    result = {item_id: {"status": "pending", "evidence_payload": None, "evidence_digest": None}
-              for item_id in CHECKLIST_IDS}
-    result.update({
-        "retry_policy": evidence({"adapter_retries": 0}),
-        "fallback_policy": evidence({"fallbacks": False}),
-        "tools_none_local_evidence": evidence({"tools": "none", "mode": "none", "enforced": True,
-                                                "source": "local-policy", "evidence_digest": "1" * 64}),
-        "independent_reviewer": evidence({"reviewer_identity": "independent"}),
-    })
+    result = {
+        item_id: {"status": "pending", "evidence_payload": None, "evidence_digest": None}
+        for item_id in CHECKLIST_IDS
+    }
+    result.update(
+        {
+            "retry_policy": evidence({"adapter_retries": 0}),
+            "fallback_policy": evidence({"fallbacks": False}),
+            "tools_none_local_evidence": evidence(
+                {
+                    "tools": "none",
+                    "mode": "none",
+                    "enforced": True,
+                    "source": "local-policy",
+                    "evidence_digest": "1" * 64,
+                }
+            ),
+            "independent_reviewer": evidence({"reviewer_identity": "independent"}),
+        }
+    )
     if candidate.to_dict()["state"] == "finalized":
-        result["final_strict_consent"] = evidence({
-            "subject_manifest_sha256": candidate.to_dict()["consent"]["subject_manifest_sha256"]
-        })
+        result["final_strict_consent"] = evidence(
+            {"subject_manifest_sha256": candidate.to_dict()["consent"]["subject_manifest_sha256"]}
+        )
         billing = candidate.to_dict()["provider_billing_attestation"]["evidence_payload"]
-        result["provider_billing"] = evidence({
-            "provider": billing["provider"], "model": billing["model"],
-            "kind": "provider_billing_evidence_recorded", "source": billing["source"],
-            "observed_at": billing["observed_at"], "charge_assertion": billing["charge_assertion"],
-            "authenticity_unproven_by_validator": billing["authenticity_unproven_by_validator"],
-        })
+        result["provider_billing"] = evidence(
+            {
+                "provider": billing["provider"],
+                "model": billing["model"],
+                "kind": "provider_billing_evidence_recorded",
+                "source": billing["source"],
+                "observed_at": billing["observed_at"],
+                "charge_assertion": billing["charge_assertion"],
+                "authenticity_unproven_by_validator": billing["authenticity_unproven_by_validator"],
+            }
+        )
     return result
 
 
@@ -63,16 +86,27 @@ def test_candidate_packet_is_deterministic_hash_addressed_and_never_authorized()
 def test_pending_live_only_blockers_are_explicit_but_request_readiness_is_structural():
     packet = build_strict_run_packet(assembly=assemble(), checklist=checklist(assemble()))
     manifest = packet.to_dict()
-    assert [item for item in ("provider_authenticity", "provider_billing", "cleanup_deletion",
-                              "repository_state", "strict_live_execution")
-            if manifest["checklist"][item]["status"] == "pending"]
+    assert [
+        item
+        for item in (
+            "provider_authenticity",
+            "provider_billing",
+            "cleanup_deletion",
+            "repository_state",
+            "strict_live_execution",
+        )
+        if manifest["checklist"][item]["status"] == "pending"
+    ]
     assert manifest["ready_for_live_request"] is True
 
 
-@pytest.mark.parametrize("mutation", [
-    lambda c: c.pop("retry_policy"),
-    lambda c: c.update({"unexpected": c["retry_policy"]}),
-])
+@pytest.mark.parametrize(
+    "mutation",
+    [
+        lambda c: c.pop("retry_policy"),
+        lambda c: c.update({"unexpected": c["retry_policy"]}),
+    ],
+)
 def test_checklist_must_match_closed_catalog(mutation):
     values = checklist(assemble())
     mutation(values)
@@ -82,7 +116,9 @@ def test_checklist_must_match_closed_catalog(mutation):
 
 def test_consent_must_match_finalized_assembly_subject():
     candidate = assemble()
-    final = finalize_strict_run_assembly(candidate, candidate.sha256, provider_billing_attestation=final_billing_attestation())
+    final = finalize_strict_run_assembly(
+        candidate, candidate.sha256, provider_billing_attestation=final_billing_attestation()
+    )
     values = checklist(final)
     values["final_strict_consent"] = evidence({"subject_manifest_sha256": "0" * 64})
     with pytest.raises(StrictRunPacketError, match="exact assembly subject"):
@@ -96,10 +132,13 @@ def test_reviewer_collision_is_rejected():
         build_strict_run_packet(assembly=assemble(), checklist=values)
 
 
-@pytest.mark.parametrize("reviewer_identity", [
-    "-----BEGIN RSA PRIVATE KEY-----",
-    "-----BEGIN OPENSSH PRIVATE KEY-----",
-])
+@pytest.mark.parametrize(
+    "reviewer_identity",
+    [
+        "-----BEGIN RSA PRIVATE KEY-----",
+        "-----BEGIN OPENSSH PRIVATE KEY-----",
+    ],
+)
 def test_reviewer_private_key_content_is_rejected(reviewer_identity):
     values = checklist(assemble())
     values["independent_reviewer"] = evidence({"reviewer_identity": reviewer_identity})
@@ -116,12 +155,14 @@ def test_destructive_command_content_is_rejected():
 
 def test_provided_repository_state_is_validated_without_type_error():
     values = checklist(assemble())
-    values["repository_state"] = evidence({
-        "clean": True,
-        "revision": "a" * 40,
-        "digest": "b" * 64,
-        "captured_at": "2026-09-13T00:00:00Z",
-    })
+    values["repository_state"] = evidence(
+        {
+            "clean": True,
+            "revision": "a" * 40,
+            "digest": "b" * 64,
+            "captured_at": "2026-09-13T00:00:00Z",
+        }
+    )
 
     packet = build_strict_run_packet(assembly=assemble(), checklist=values)
 
@@ -130,16 +171,21 @@ def test_provided_repository_state_is_validated_without_type_error():
 
 def test_packet_accepts_legacy_prefixed_clean_repository_digest():
     values = checklist(assemble())
-    values["repository_state"] = evidence({
-        "clean": True,
-        "revision": "a" * 40,
-        "digest": "sha256:" + "b" * 64,
-        "captured_at": "2026-09-13T00:00:00Z",
-    })
+    values["repository_state"] = evidence(
+        {
+            "clean": True,
+            "revision": "a" * 40,
+            "digest": "sha256:" + "b" * 64,
+            "captured_at": "2026-09-13T00:00:00Z",
+        }
+    )
 
     packet = build_strict_run_packet(assembly=assemble(), checklist=values)
 
-    assert packet.to_dict()["checklist"]["repository_state"]["evidence_payload"]["digest"] == "sha256:" + "b" * 64
+    assert (
+        packet.to_dict()["checklist"]["repository_state"]["evidence_payload"]["digest"]
+        == "sha256:" + "b" * 64
+    )
 
 
 def test_scoped_dirty_repository_state_evidence_is_accepted():
@@ -169,19 +215,37 @@ def test_scoped_dirty_repository_state_evidence_rejects_stale_digest():
         build_strict_run_packet(assembly=assemble(), checklist=values)
 
 
-@pytest.mark.parametrize("path", [
-    "foo\\bar", "foo\\..\\secret.txt", "C:relative", "C:\\x", "foo/./bar",
-    ".env", ".env.local", "config/token.txt", "config/api_key.txt", "config/privatekey", "key",
-    "secret.pem", "id_rsa", "keys/private.key",
-])
+@pytest.mark.parametrize(
+    "path",
+    [
+        "foo\\bar",
+        "foo\\..\\secret.txt",
+        "C:relative",
+        "C:\\x",
+        "foo/./bar",
+        ".env",
+        ".env.local",
+        "config/token.txt",
+        "config/api_key.txt",
+        "config/privatekey",
+        "key",
+        "secret.pem",
+        "id_rsa",
+        "keys/private.key",
+    ],
+)
 def test_packet_rejects_non_normalized_or_sensitive_repository_paths(path):
     values = checklist(assemble())
     repository = scoped_dirty_repository()
     repository["relevant_files"][0]["path"] = path
-    repository["digest"] = hashlib.sha256(json.dumps(
-        {key: value for key, value in repository.items() if key != "digest"},
-        sort_keys=True, separators=(",", ":"), ensure_ascii=True,
-    ).encode()).hexdigest()
+    repository["digest"] = hashlib.sha256(
+        json.dumps(
+            {key: value for key, value in repository.items() if key != "digest"},
+            sort_keys=True,
+            separators=(",", ":"),
+            ensure_ascii=True,
+        ).encode()
+    ).hexdigest()
     values["repository_state"] = evidence(repository)
     with pytest.raises(StrictRunPacketError):
         build_strict_run_packet(assembly=assemble(), checklist=values)
@@ -190,12 +254,14 @@ def test_packet_rejects_non_normalized_or_sensitive_repository_paths(path):
 @pytest.mark.parametrize("digest", ["b" * 63, "g" * 64, "B" * 64])
 def test_repository_state_rejects_invalid_digest(digest):
     values = checklist(assemble())
-    values["repository_state"] = evidence({
-        "clean": True,
-        "revision": "a" * 40,
-        "digest": digest,
-        "captured_at": "2026-09-13T00:00:00Z",
-    })
+    values["repository_state"] = evidence(
+        {
+            "clean": True,
+            "revision": "a" * 40,
+            "digest": digest,
+            "captured_at": "2026-09-13T00:00:00Z",
+        }
+    )
 
     with pytest.raises(StrictRunPacketError, match="repository digest"):
         build_strict_run_packet(assembly=assemble(), checklist=values)
@@ -204,12 +270,14 @@ def test_repository_state_rejects_invalid_digest(digest):
 @pytest.mark.parametrize("clean", [1, 0, "true", "clean"])
 def test_repository_state_rejects_clean_lookalikes(clean):
     values = checklist(assemble())
-    values["repository_state"] = evidence({
-        "clean": clean,
-        "revision": "a" * 40,
-        "digest": "b" * 64,
-        "captured_at": "2026-09-13T00:00:00Z",
-    })
+    values["repository_state"] = evidence(
+        {
+            "clean": clean,
+            "revision": "a" * 40,
+            "digest": "b" * 64,
+            "captured_at": "2026-09-13T00:00:00Z",
+        }
+    )
 
     with pytest.raises(StrictRunPacketError, match="clean"):
         build_strict_run_packet(assembly=assemble(), checklist=values)
@@ -225,11 +293,17 @@ def test_provided_provider_evidence_requires_payload_and_digest(item_id):
 
 def test_catalog_billing_evidence_is_not_provider_billing():
     values = checklist(assemble())
-    values["provider_billing"] = evidence({"provider": "provider", "model": "model",
-                                            "kind": "provider_charge_attestation",
-                                            "source": "catalog estimate",
-                                            "observed_at": "2026-09-13T00:00:00Z",
-                                            "charge_assertion": "zero_charge", "evidence_digest": "2" * 64})
+    values["provider_billing"] = evidence(
+        {
+            "provider": "provider",
+            "model": "model",
+            "kind": "provider_charge_attestation",
+            "source": "catalog estimate",
+            "observed_at": "2026-09-13T00:00:00Z",
+            "charge_assertion": "zero_charge",
+            "evidence_digest": "2" * 64,
+        }
+    )
     with pytest.raises(StrictRunPacketError, match="catalog or estimated"):
         build_strict_run_packet(assembly=assemble(), checklist=values)
 
@@ -241,15 +315,26 @@ def test_pre_run_packet_rejects_run_result():
         build_strict_run_packet(assembly=assemble(), checklist=values)
 
 
-@pytest.mark.parametrize(("item_id", "payload"), [
-    ("retry_policy", {"adapter_retries": 1}),
-    ("retry_policy", {"adapter_retries": 0.0}),
-    ("retry_policy", {"adapter_retries": False}),
-    ("fallback_policy", {"fallbacks": True}),
-    ("fallback_policy", {"fallbacks": 0}),
-    ("tools_none_local_evidence", {"tools": "shell", "mode": "none", "enforced": True,
-                                    "source": "local-policy", "evidence_digest": "1" * 64}),
-])
+@pytest.mark.parametrize(
+    ("item_id", "payload"),
+    [
+        ("retry_policy", {"adapter_retries": 1}),
+        ("retry_policy", {"adapter_retries": 0.0}),
+        ("retry_policy", {"adapter_retries": False}),
+        ("fallback_policy", {"fallbacks": True}),
+        ("fallback_policy", {"fallbacks": 0}),
+        (
+            "tools_none_local_evidence",
+            {
+                "tools": "shell",
+                "mode": "none",
+                "enforced": True,
+                "source": "local-policy",
+                "evidence_digest": "1" * 64,
+            },
+        ),
+    ],
+)
 def test_required_control_payloads_are_semantically_bound(item_id, payload):
     values = checklist(assemble())
     values[item_id] = evidence(payload)
@@ -257,12 +342,18 @@ def test_required_control_payloads_are_semantically_bound(item_id, payload):
         build_strict_run_packet(assembly=assemble(), checklist=values)
 
 
-@pytest.mark.parametrize("item_id", [item for item in CHECKLIST_IDS if item != "strict_live_execution"])
+@pytest.mark.parametrize(
+    "item_id", [item for item in CHECKLIST_IDS if item != "strict_live_execution"]
+)
 def test_provided_items_are_closed_and_reject_public_context_fields(item_id):
     values = checklist(assemble())
     payload = values[item_id]["evidence_payload"]
     if payload is None:
-        payload = {"reviewer_identity": "independent"} if item_id == "independent_reviewer" else {"subject_manifest_sha256": "0" * 64}
+        payload = (
+            {"reviewer_identity": "independent"}
+            if item_id == "independent_reviewer"
+            else {"subject_manifest_sha256": "0" * 64}
+        )
     payload["rendered_context"] = "private prompt"
     values[item_id] = evidence(payload)
     with pytest.raises(StrictRunPacketError):
@@ -276,11 +367,18 @@ def test_tuple_contained_secret_or_billing_terms_are_rejected():
         build_strict_run_packet(assembly=assemble(), checklist=values)
 
     values = checklist(assemble())
-    values["provider_billing"] = evidence({"provider": "provider", "model": "model",
-                                            "kind": "provider_charge_attestation", "source": "offline",
-                                            "observed_at": "2026-09-13T00:00:00Z",
-                                            "charge_assertion": "zero_charge", "evidence_digest": "2" * 64,
-                                            "extra": ("catalog",)})
+    values["provider_billing"] = evidence(
+        {
+            "provider": "provider",
+            "model": "model",
+            "kind": "provider_charge_attestation",
+            "source": "offline",
+            "observed_at": "2026-09-13T00:00:00Z",
+            "charge_assertion": "zero_charge",
+            "evidence_digest": "2" * 64,
+            "extra": ("catalog",),
+        }
+    )
     with pytest.raises(StrictRunPacketError):
         build_strict_run_packet(assembly=assemble(), checklist=values)
 
@@ -292,10 +390,15 @@ def test_assembly_binding_and_mutation_safety():
     values["retry_policy"]["evidence_payload"]["adapter_retries"] = 4
     assert packet.to_dict()["checklist"]["retry_policy"]["evidence_payload"]["adapter_retries"] == 0
     with pytest.raises(StrictRunPacketError, match="assembly object digest"):
-        build_strict_run_packet(assembly=type(candidate)(candidate.manifest_json, "0" * 64,
-                                                         candidate.plan_sha256,
-                                                         _token=type(candidate)._TOKEN),
-                                checklist=checklist(candidate))
+        build_strict_run_packet(
+            assembly=type(candidate)(
+                candidate.manifest_json,
+                "0" * 64,
+                candidate.plan_sha256,
+                _token=type(candidate)._TOKEN,
+            ),
+            checklist=checklist(candidate),
+        )
 
 
 def test_parser_validates_complete_packet_schema_and_canonical_json():
@@ -311,8 +414,9 @@ def test_binding_rejects_packet_with_stale_manifest_digest():
     assembly = assemble()
     packet = build_strict_run_packet(assembly=assembly, checklist=checklist(assembly))
     wrong_sha256 = "0" * 64 if packet.sha256 != "0" * 64 else "1" * 64
-    forged = type(packet)(packet.manifest_json, wrong_sha256, packet.assembly_sha256,
-                          _token=type(packet)._TOKEN)
+    forged = type(packet)(
+        packet.manifest_json, wrong_sha256, packet.assembly_sha256, _token=type(packet)._TOKEN
+    )
 
     with pytest.raises(StrictRunPacketError, match="digest does not match"):
         validate_strict_run_packet_binding(forged, assembly)
@@ -320,17 +424,26 @@ def test_binding_rejects_packet_with_stale_manifest_digest():
 
 def test_finalized_packet_requires_explicit_assembly_binding():
     candidate = assemble()
-    final = finalize_strict_run_assembly(candidate, candidate.sha256, provider_billing_attestation=final_billing_attestation())
+    final = finalize_strict_run_assembly(
+        candidate, candidate.sha256, provider_billing_attestation=final_billing_attestation()
+    )
     packet = build_strict_run_packet(assembly=final, checklist=checklist(final))
     parsed = parse_strict_run_packet(packet.manifest_json)
     assert parsed == packet
     assert parsed.to_dict()["ready_for_live_request"] is True
     with pytest.raises(StrictRunPacketError, match="not bound"):
         forged = json.loads(packet.manifest_json)
-        forged["checklist"]["final_strict_consent"]["evidence_payload"]["subject_manifest_sha256"] = "f" * 64
+        forged["checklist"]["final_strict_consent"]["evidence_payload"][
+            "subject_manifest_sha256"
+        ] = "f" * 64
         forged["checklist"]["final_strict_consent"]["evidence_digest"] = hashlib.sha256(
-            json.dumps(forged["checklist"]["final_strict_consent"]["evidence_payload"], sort_keys=True,
-                       separators=(",", ":"), ensure_ascii=True).encode()).hexdigest()
+            json.dumps(
+                forged["checklist"]["final_strict_consent"]["evidence_payload"],
+                sort_keys=True,
+                separators=(",", ":"),
+                ensure_ascii=True,
+            ).encode()
+        ).hexdigest()
         raw = json.dumps(forged, sort_keys=True, separators=(",", ":"), ensure_ascii=True)
         validate_strict_run_packet_binding(parse_strict_run_packet(raw), final)
     assert validate_strict_run_packet_binding(parsed, final) == packet
@@ -345,9 +458,15 @@ def test_packet_manifest_contains_no_raw_assembly_context_or_execution_route():
 
 def test_finalized_packet_with_pending_provider_billing_is_not_ready():
     candidate = assemble()
-    final = finalize_strict_run_assembly(candidate, candidate.sha256, provider_billing_attestation=final_billing_attestation())
+    final = finalize_strict_run_assembly(
+        candidate, candidate.sha256, provider_billing_attestation=final_billing_attestation()
+    )
     values = checklist(final)
-    values["provider_billing"] = {"status": "pending", "evidence_payload": None, "evidence_digest": None}
+    values["provider_billing"] = {
+        "status": "pending",
+        "evidence_payload": None,
+        "evidence_digest": None,
+    }
 
     packet = build_strict_run_packet(assembly=final, checklist=values)
 

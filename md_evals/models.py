@@ -14,6 +14,7 @@ TestingMode = Literal["smoke", "reliable", "regression"]
 
 class Defaults(BaseModel):
     """Default configuration values."""
+
     model: str = "gpt-4o"
     provider: str = "openai"
     temperature: float = 0.7
@@ -25,11 +26,13 @@ class Defaults(BaseModel):
 
 class TreatmentEnv(BaseModel):
     """Environment variables for treatment."""
+
     pass  # Allows arbitrary key-value pairs
 
 
 class Treatment(BaseModel):
     """Treatment definition."""
+
     description: str | None = None
     skill_path: str | None = None
     env: dict[str, str] = Field(default_factory=dict)
@@ -37,6 +40,7 @@ class Treatment(BaseModel):
 
 class ModelConfig(BaseModel):
     """Model configuration."""
+
     name: str
     provider: str
     api_base: str | None = None
@@ -48,6 +52,7 @@ class ModelConfig(BaseModel):
 
 class LinterRule(BaseModel):
     """Linter rule configuration."""
+
     type: str
     limit: int | None = None
     sections: list[str] | None = None
@@ -55,6 +60,7 @@ class LinterRule(BaseModel):
 
 class LinterConfig(BaseModel):
     """Linter configuration."""
+
     max_lines: int = 400
     fail_on_violation: bool = True
     rules: list[LinterRule] = Field(default_factory=list)
@@ -65,6 +71,7 @@ class LinterConfig(BaseModel):
 
 class OutputConfig(BaseModel):
     """Output configuration."""
+
     format: Literal["table", "json", "markdown"] = "table"
     save_results: bool = True
     results_dir: str = "./results"
@@ -77,6 +84,7 @@ class OutputConfig(BaseModel):
 
 class ExecutionConfig(BaseModel):
     """Execution configuration."""
+
     parallel_workers: int = 1
     repetitions: int = 1
     fail_fast: bool = False
@@ -87,6 +95,7 @@ class ExecutionConfig(BaseModel):
 
 class RegexEvaluator(BaseModel):
     """Regex evaluator configuration."""
+
     type: Literal["regex"] = "regex"
     name: str
     pattern: str
@@ -96,6 +105,7 @@ class RegexEvaluator(BaseModel):
 
 class ExactMatchEvaluator(BaseModel):
     """Exact match evaluator configuration."""
+
     type: Literal["exact-match"] = "exact-match"
     name: str
     expected: str
@@ -104,6 +114,7 @@ class ExactMatchEvaluator(BaseModel):
 
 class LLMJudgeEvaluator(BaseModel):
     """LLM Judge evaluator configuration."""
+
     type: Literal["llm-judge"] = "llm-judge"
     name: str
     judge_model: str
@@ -122,6 +133,7 @@ Evaluator = RegexEvaluator | ExactMatchEvaluator | LLMJudgeEvaluator
 
 class Task(BaseModel):
     """Test task configuration."""
+
     name: str
     description: str | None = None
     prompt: str
@@ -134,6 +146,7 @@ class Task(BaseModel):
 
 class EvalConfig(BaseModel):
     """Top-level evaluation configuration."""
+
     name: str
     version: str = "1.0"
     description: str | None = None
@@ -158,22 +171,26 @@ UsageProvenance = dict[str, UsageProvenanceValue]
 
 class LLMResponse(BaseModel):
     """LLM response model."""
+
     content: str
     model: str
     provider: str
-    tokens: int = 0                           # LEGACY — completion_tokens, do not rename
+    tokens: int = 0  # LEGACY — completion_tokens, do not rename
     duration_ms: int = 0
     raw_response: dict[str, Any] = Field(default_factory=dict)
     # ─── New fields (additive, optional with defaults) ───
-    prompt_tokens: int | None = None          # Input tokens from provider telemetry
+    prompt_tokens: int | None = None  # Input tokens from provider telemetry
     completion_tokens_detail: int | None = None  # Output tokens (explicit, separate from legacy)
-    total_tokens: int | None = None           # prompt + completion
-    stage_type: str = "single_pass"           # Stage label for orchestrator support
-    usage_provenance: UsageProvenance | None = None  # Validated bridge usage metadata, separate from legacy tokens
+    total_tokens: int | None = None  # prompt + completion
+    stage_type: str = "single_pass"  # Stage label for orchestrator support
+    usage_provenance: UsageProvenance | None = (
+        None  # Validated bridge usage metadata, separate from legacy tokens
+    )
 
 
 class EvaluatorResult(BaseModel):
     """Evaluator result."""
+
     evaluator_name: str
     passed: bool
     score: float = 0.0
@@ -183,6 +200,7 @@ class EvaluatorResult(BaseModel):
 
 class ExecutionResult(BaseModel):
     """Execution result for a single run."""
+
     treatment: str
     test: str
     prompt: str
@@ -197,6 +215,7 @@ class ExecutionResult(BaseModel):
 
 class LinterViolation(BaseModel):
     """Linter violation."""
+
     rule: str
     message: str
     line: int | None = None
@@ -205,6 +224,7 @@ class LinterViolation(BaseModel):
 
 class LinterReport(BaseModel):
     """Linter report."""
+
     skill_path: str
     passed: bool
     violations: list[LinterViolation] = Field(default_factory=list)

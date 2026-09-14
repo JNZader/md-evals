@@ -126,17 +126,13 @@ class TestFindPreviousResult:
     """Tests for RegressionTracker.find_previous_result()."""
 
     def test_no_results_dir(self, tmp_path):
-        result = RegressionTracker.find_previous_result(
-            str(tmp_path / "nonexistent"), "test"
-        )
+        result = RegressionTracker.find_previous_result(str(tmp_path / "nonexistent"), "test")
         assert result is None
 
     def test_empty_results_dir(self, tmp_path):
         results_dir = tmp_path / "results"
         results_dir.mkdir()
-        result = RegressionTracker.find_previous_result(
-            str(results_dir), "test"
-        )
+        result = RegressionTracker.find_previous_result(str(results_dir), "test")
         assert result is None
 
     def test_finds_latest(self, tmp_path):
@@ -156,9 +152,7 @@ class TestFindPreviousResult:
             }
             (results_dir / fname).write_text(json.dumps(data))
 
-        result = RegressionTracker.find_previous_result(
-            str(results_dir), "test"
-        )
+        result = RegressionTracker.find_previous_result(str(results_dir), "test")
         assert result is not None
         assert "2026-03-31" in result["timestamp"]
 
@@ -191,9 +185,7 @@ class TestFindPreviousResult:
         }
         (results_dir / "test_2026-03-31.json").write_text(json.dumps(data))
 
-        result = RegressionTracker.find_previous_result(
-            str(results_dir), "test"
-        )
+        result = RegressionTracker.find_previous_result(str(results_dir), "test")
         assert result is None
 
 

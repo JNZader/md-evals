@@ -20,7 +20,9 @@ def answer(value="VALUE"):
 
 
 def test_valid_completed_output_is_accepted_without_private_data_in_public_result():
-    result = run_offline_worker(request(), lambda frozen: {"schema_version": OUTPUT_SCHEMA, "answer": answer()})
+    result = run_offline_worker(
+        request(), lambda frozen: {"schema_version": OUTPUT_SCHEMA, "answer": answer()}
+    )
     assert result.status == "completed"
     assert result.to_dict() == {
         "schema_version": OUTPUT_SCHEMA,
@@ -66,13 +68,25 @@ def test_to_dict_returns_a_fresh_answer_projection():
 
 def test_input_and_output_extra_fields_are_rejected_fail_closed():
     with pytest.raises(ValueError):
-        OfflineWorkerInput.from_dict({"schema_version": INPUT_SCHEMA, "prompt": "p", "context": None, "extra": 1})
-    result = run_offline_worker(request(), lambda frozen: {"schema_version": OUTPUT_SCHEMA, "answer": answer(), "extra": 1})
+        OfflineWorkerInput.from_dict(
+            {"schema_version": INPUT_SCHEMA, "prompt": "p", "context": None, "extra": 1}
+        )
+    result = run_offline_worker(
+        request(), lambda frozen: {"schema_version": OUTPUT_SCHEMA, "answer": answer(), "extra": 1}
+    )
     assert result.status == "malformed_output"
     assert result.error_code == "invalid_output_schema"
 
 
-@pytest.mark.parametrize("raw", [None, {}, {"schema_version": OUTPUT_SCHEMA, "answer": {}}, {"schema_version": "other", "answer": answer()}])
+@pytest.mark.parametrize(
+    "raw",
+    [
+        None,
+        {},
+        {"schema_version": OUTPUT_SCHEMA, "answer": {}},
+        {"schema_version": "other", "answer": answer()},
+    ],
+)
 def test_malformed_worker_output_is_never_success(raw):
     result = run_offline_worker(request(), lambda frozen: raw)
     assert result.status == "malformed_output"
@@ -82,13 +96,17 @@ def test_malformed_worker_output_is_never_success(raw):
 def test_timeout_and_cancellation_are_explicit_states():
     timeout = run_offline_worker(request(), lambda frozen: (_ for _ in ()).throw(TimeoutError()))
     assert timeout.status == "timeout" and timeout.error_code == "timeout"
-    cancelled = run_offline_worker(request(), lambda frozen: (_ for _ in ()).throw(asyncio.CancelledError()))
+    cancelled = run_offline_worker(
+        request(), lambda frozen: (_ for _ in ()).throw(asyncio.CancelledError())
+    )
     assert cancelled.status == "cancelled" and cancelled.error_code == "cancelled"
 
 
 def test_operational_failure_is_bounded_and_redacted():
     def fail(frozen):
-        raise RuntimeError(f"{frozen.prompt} {frozen.context} token=sk-secret-value-123456 and " + "x" * 1000)
+        raise RuntimeError(
+            f"{frozen.prompt} {frozen.context} token=sk-secret-value-123456 and " + "x" * 1000
+        )
 
     result = run_offline_worker(request(), fail)
     assert result.status == "failed"
@@ -100,16 +118,24 @@ def test_operational_failure_is_bounded_and_redacted():
 
 
 @pytest.mark.parametrize("field", ["error_code", "error_message"])
-@pytest.mark.parametrize("value", ["sk_live_123456789", "glpat-123456789", "xoxb-123456789", "x" * 161])
+@pytest.mark.parametrize(
+    "value", ["sk_live_123456789", "glpat-123456789", "xoxb-123456789", "x" * 161]
+)
 def test_direct_result_construction_rejects_secret_or_overlong_errors(field, value):
     with pytest.raises(ValueError):
-        OfflineWorkerResult("failed", **{field: value, "error_message" if field == "error_code" else "error_code": "failure"})
+        OfflineWorkerResult(
+            "failed",
+            **{field: value, "error_message" if field == "error_code" else "error_code": "failure"},
+        )
 
 
 @pytest.mark.parametrize("field", ["error_code", "error_message"])
 def test_direct_result_construction_rejects_non_string_errors(field):
     with pytest.raises(ValueError):
-        OfflineWorkerResult("failed", **{field: 1, "error_message" if field == "error_code" else "error_code": "failure"})
+        OfflineWorkerResult(
+            "failed",
+            **{field: 1, "error_message" if field == "error_code" else "error_code": "failure"},
+        )
 
 
 @pytest.mark.parametrize(
@@ -140,6 +166,8 @@ def test_worker_receives_only_frozen_explicit_inputs():
         observed.append((frozen.prompt, frozen.context))
         return {"schema_version": OUTPUT_SCHEMA, "answer": answer()}
 
-    result = run_offline_worker({"schema_version": INPUT_SCHEMA, "prompt": "p", "context": "c"}, worker)
+    result = run_offline_worker(
+        {"schema_version": INPUT_SCHEMA, "prompt": "p", "context": "c"}, worker
+    )
     assert result.status == "completed"
     assert observed == [("p", "c")]

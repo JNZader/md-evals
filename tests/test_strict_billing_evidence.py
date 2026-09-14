@@ -18,12 +18,14 @@ from md_evals.strict_billing_evidence import (
 
 
 CELLS = [(f"case-{case}", f"arm-{arm}") for case in range(3) for arm in range(4)]
-BASE = dict(provider="provider", model="model", plan_sha256="a" * 64, planned_cells=CELLS,
-            created_at="2026-09-13T00:00:00Z")
-APPROVED_CELLS = [
-    ("strict-readiness-vs-authorization", f"arm-{arm}")
-    for arm in range(4)
-] + [
+BASE = dict(
+    provider="provider",
+    model="model",
+    plan_sha256="a" * 64,
+    planned_cells=CELLS,
+    created_at="2026-09-13T00:00:00Z",
+)
+APPROVED_CELLS = [("strict-readiness-vs-authorization", f"arm-{arm}") for arm in range(4)] + [
     (case_id, f"arm-{arm}")
     for case_id in ("strict-readiness-vs-recovery", "strict-readiness-vs-determinism")
     for arm in range(4)
@@ -47,24 +49,34 @@ def test_approved_authorization_case_materializes_four_arms_and_twelve_slots():
 
     assert validated == scaffold
     assert len(validated["ledger"]) == 12
-    assert sum(
-        slot["case_id"] == "strict-readiness-vs-authorization"
-        for slot in validated["ledger"]
-    ) == 4
+    assert (
+        sum(slot["case_id"] == "strict-readiness-vs-authorization" for slot in validated["ledger"])
+        == 4
+    )
 
 
-@pytest.mark.parametrize("bad", [
-    {"charged": True}, {"catalog": "estimate"}, {"raw_response": "x"},
-    {"private_context": "x"}, {"command": "curl https://example.test"},
-    {"api_key": "sk-test"},
-])
+@pytest.mark.parametrize(
+    "bad",
+    [
+        {"charged": True},
+        {"catalog": "estimate"},
+        {"raw_response": "x"},
+        {"private_context": "x"},
+        {"command": "curl https://example.test"},
+        {"api_key": "sk-test"},
+    ],
+)
 def test_scaffold_rejects_unsafe_fields_and_values(bad):
     manifest = build_billing_scaffold(**BASE)
     manifest["ledger"][0][next(iter(bad))] = next(iter(bad.values()))
-    manifest["sha256"] = hashlib.sha256(json.dumps(
-        {key: manifest[key] for key in manifest if key != "sha256"},
-        sort_keys=True, separators=(",", ":"), ensure_ascii=True,
-    ).encode()).hexdigest()
+    manifest["sha256"] = hashlib.sha256(
+        json.dumps(
+            {key: manifest[key] for key in manifest if key != "sha256"},
+            sort_keys=True,
+            separators=(",", ":"),
+            ensure_ascii=True,
+        ).encode()
+    ).hexdigest()
     with pytest.raises(StrictBillingEvidenceError):
         validate_billing_scaffold(manifest)
 
@@ -78,11 +90,25 @@ def test_duplicate_missing_and_tampered_cells_are_rejected():
         validate_billing_scaffold(manifest)
 
 
-@pytest.mark.parametrize("bad_id", [
-    "../case", "case/escape", "case\\escape", "token", "case;rm",
-    "ghp_test", "gho_test", "github_pat_test", "AKIA1234567890ABCDEF",
-    "raw", "private", "secret", "authorization", "git status",
-])
+@pytest.mark.parametrize(
+    "bad_id",
+    [
+        "../case",
+        "case/escape",
+        "case\\escape",
+        "token",
+        "case;rm",
+        "ghp_test",
+        "gho_test",
+        "github_pat_test",
+        "AKIA1234567890ABCDEF",
+        "raw",
+        "private",
+        "secret",
+        "authorization",
+        "git status",
+    ],
+)
 def test_unsafe_ids_are_rejected_from_explicit_cells(bad_id):
     cells = [*CELLS]
     cells[0] = (bad_id, "arm-0")
@@ -99,11 +125,27 @@ def test_response_digest_returns_digest_only_and_rejects_secrets():
     assert digest == hashlib.sha256(b'{"answer":"ok"}').hexdigest()
     assert len(digest) == 64
     for payload in [
-        "raw", "private", "secret", "authorization", "headers", "raw response", "raw_response",
-        "private context", "private_context", "password", "token", "api key",
-        "Bearer abc", "sk-test", "ghp_test", "gho_test", "github_pat_test",
+        "raw",
+        "private",
+        "secret",
+        "authorization",
+        "headers",
+        "raw response",
+        "raw_response",
+        "private context",
+        "private_context",
+        "password",
+        "token",
+        "api key",
+        "Bearer abc",
+        "sk-test",
+        "ghp_test",
+        "gho_test",
+        "github_pat_test",
         "AKIA1234567890ABCDEF",
-        {"raw": "x"}, {"headers": {"authorization": "x"}}, {"nested": {"private": "x"}},
+        {"raw": "x"},
+        {"headers": {"authorization": "x"}},
+        {"nested": {"private": "x"}},
         {"nested": {"value": "private_context"}},
     ]:
         with pytest.raises(StrictBillingEvidenceError):
@@ -136,9 +178,18 @@ def live_record(**overrides):
 def test_provider_attestation_matches_strict_assembly_shape_and_digest():
     record = validate_live_billing_evidence_record(live_record())
     attestation = build_provider_billing_attestation(record)
-    assert set(attestation) == {"provider_charge_attested", "provider_identity", "attestation_kind",
-                                "attestation_id", "attested_at", "evidence_payload", "evidence_digest"}
-    evidence_json = json.dumps(attestation["evidence_payload"], sort_keys=True, separators=(",", ":"), ensure_ascii=True)
+    assert set(attestation) == {
+        "provider_charge_attested",
+        "provider_identity",
+        "attestation_kind",
+        "attestation_id",
+        "attested_at",
+        "evidence_payload",
+        "evidence_digest",
+    }
+    evidence_json = json.dumps(
+        attestation["evidence_payload"], sort_keys=True, separators=(",", ":"), ensure_ascii=True
+    )
     assert attestation["evidence_digest"] == hashlib.sha256(evidence_json.encode()).hexdigest()
     assert attestation["evidence_payload"]["external_evidence_digest"] == "b" * 64
     assert attestation["evidence_payload"]["local_ledger_digest"] == "c" * 64

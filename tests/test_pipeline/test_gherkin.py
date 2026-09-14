@@ -47,7 +47,9 @@ class TestGherkinScenario:
 
     def test_create_scenario(self):
         """GherkinScenario can be created with required fields."""
-        s = GherkinScenario(given="a React component", when="skill is applied", then="no useMemo", raw="raw")
+        s = GherkinScenario(
+            given="a React component", when="skill is applied", then="no useMemo", raw="raw"
+        )
         assert s.given == "a React component"
         assert s.when == "skill is applied"
         assert s.then == "no useMemo"
@@ -234,6 +236,7 @@ class TestGherkinProbe:
     def test_probe_satisfies_protocol(self):
         """GherkinProbe satisfies the Probe protocol."""
         from md_evals.pipeline.protocols import Probe
+
         assert isinstance(self.probe, Probe)
 
     def test_generate_scenarios_from_sections(self):
@@ -246,7 +249,10 @@ class TestGherkinProbe:
                     "  Then use hooks correctly"
                 ),
             },
-            raw_content="# Skill\n## Scenarios\n- Given a React component\n  When the skill is applied\n  Then use hooks correctly",
+            raw_content=(
+                "# Skill\n## Scenarios\n- Given a React component\n  When the skill is applied\n"
+                "  Then use hooks correctly"
+            ),
         )
         context = _make_context()
         scenarios = self.probe.generate_scenarios(skill, context)
@@ -259,9 +265,7 @@ class TestGherkinProbe:
         skill = _make_skill(
             sections={
                 "acceptance criteria": (
-                    "- Given a user input\n"
-                    "  When validated\n"
-                    "  Then return success"
+                    "- Given a user input\n  When validated\n  Then return success"
                 ),
             },
         )
@@ -271,12 +275,7 @@ class TestGherkinProbe:
 
     def test_generate_scenarios_fallback_to_raw(self):
         """Probe falls back to raw_content if no section found."""
-        raw = (
-            "# Skill\n\n## Scenarios\n"
-            "- Given raw content\n"
-            "  When parsed\n"
-            "  Then succeed"
-        )
+        raw = "# Skill\n\n## Scenarios\n- Given raw content\n  When parsed\n  Then succeed"
         skill = _make_skill(sections={}, raw_content=raw)
         context = _make_context()
         scenarios = self.probe.generate_scenarios(skill, context)
@@ -293,11 +292,7 @@ class TestGherkinProbe:
         """Generated scenarios include gherkin metadata."""
         skill = _make_skill(
             sections={
-                "scenarios": (
-                    "- Given context\n"
-                    "  When action\n"
-                    "  Then result"
-                ),
+                "scenarios": ("- Given context\n  When action\n  Then result"),
             },
         )
         context = _make_context()
@@ -312,11 +307,7 @@ class TestGherkinProbe:
         """Gherkin scenarios have empty dimension (span multiple)."""
         skill = _make_skill(
             sections={
-                "scenarios": (
-                    "- Given test\n"
-                    "  When applied\n"
-                    "  Then succeed"
-                ),
+                "scenarios": ("- Given test\n  When applied\n  Then succeed"),
             },
         )
         context = _make_context()
@@ -327,11 +318,7 @@ class TestGherkinProbe:
         """Scenario prompt combines Given and When clauses."""
         skill = _make_skill(
             sections={
-                "scenarios": (
-                    "- Given a form input\n"
-                    "  When submitted\n"
-                    "  Then validate"
-                ),
+                "scenarios": ("- Given a form input\n  When submitted\n  Then validate"),
             },
         )
         context = _make_context()

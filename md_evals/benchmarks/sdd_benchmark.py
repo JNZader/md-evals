@@ -269,7 +269,10 @@ _SAMPLE_CASES: list[SDDBenchmarkCase] = [
         case_id="proposal-auth-refactor",
         artifact_type=SDDArtifactType.PROPOSAL,
         description="Good proposal: authentication system refactor",
-        input_context="The current auth system uses session cookies and needs migration to JWT. The codebase is a Node.js monorepo with Express.",
+        input_context=(
+            "The current auth system uses session cookies and needs migration to JWT. "
+            "The codebase is a Node.js monorepo with Express."
+        ),
         expected_output="""\
 ## Intent
 
@@ -314,7 +317,10 @@ a feature flag, migrate endpoint-by-endpoint.
         case_id="proposal-search-feature",
         artifact_type=SDDArtifactType.PROPOSAL,
         description="Good proposal: semantic search over historical reviews",
-        input_context="Add the ability to search over past review comments to find patterns. The tool is a TypeScript monorepo for code review.",
+        input_context=(
+            "Add the ability to search over past review comments to find patterns. "
+            "The tool is a TypeScript monorepo for code review."
+        ),
         expected_output="""\
 ## Intent
 
@@ -576,9 +582,7 @@ def _score_criterion(criterion: SDDRubricCriterion, output: str) -> float:
 
     # Section coverage (look for ## headers)
     if criterion.required_sections:
-        found = sum(
-            1 for section in criterion.required_sections if f"## {section}" in output
-        )
+        found = sum(1 for section in criterion.required_sections if f"## {section}" in output)
         scores.append(found / len(criterion.required_sections))
 
     if not scores:

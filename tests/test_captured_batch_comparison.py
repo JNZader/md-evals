@@ -127,7 +127,10 @@ def test_legacy_d_union_rows_remain_accepted_without_becoming_paired_comparisons
     result = compare_captured_batch(rows, expected_by_task=expected, repetitions=1)
     legacy = next(item for item in result.arm_summaries if item.arm == "D_UNION")
     assert legacy.passes == 1 and legacy.contract_pass_rate == 1.0
-    assert all(item.candidate_arm != "D_UNION" and item.baseline_arm != "D_UNION" for item in result.paired_comparisons)
+    assert all(
+        item.candidate_arm != "D_UNION" and item.baseline_arm != "D_UNION"
+        for item in result.paired_comparisons
+    )
 
 
 def test_invalid_json_is_a_completed_malformed_answer_in_denominator():

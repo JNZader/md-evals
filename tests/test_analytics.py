@@ -330,9 +330,7 @@ class TestAnalyticsEngine:
         assert trend.latest_grade == "A"
         assert trend.trend_direction == "stable"
 
-    def test_get_skill_trends_improving(
-        self, engine: AnalyticsEngine, tmp_store: AnalyticsStore
-    ):
+    def test_get_skill_trends_improving(self, engine: AnalyticsEngine, tmp_store: AnalyticsStore):
         """Improving scores detected when recent > older + 0.05."""
         # Older scores (low)
         for i in range(3):
@@ -346,9 +344,7 @@ class TestAnalyticsEngine:
         trend = engine.get_skill_trends("improving.md")
         assert trend.trend_direction == "improving"
 
-    def test_get_skill_trends_declining(
-        self, engine: AnalyticsEngine, tmp_store: AnalyticsStore
-    ):
+    def test_get_skill_trends_declining(self, engine: AnalyticsEngine, tmp_store: AnalyticsStore):
         """Declining scores detected when recent < older - 0.05."""
         for i in range(3):
             ts = (datetime.utcnow() - timedelta(days=20 - i)).isoformat() + "Z"
@@ -368,19 +364,11 @@ class TestAnalyticsEngine:
         assert cost.avg_cost_per_eval == 0.0
         assert cost.cost_by_model == {}
 
-    def test_get_cost_summary_with_data(
-        self, engine: AnalyticsEngine, tmp_store: AnalyticsStore
-    ):
+    def test_get_cost_summary_with_data(self, engine: AnalyticsEngine, tmp_store: AnalyticsStore):
         """Cost summary aggregates correctly."""
-        tmp_store.append(
-            _make_record(model="gpt-4o", cost_usd=0.01, tokens_in=100, tokens_out=50)
-        )
-        tmp_store.append(
-            _make_record(model="gpt-4o", cost_usd=0.02, tokens_in=200, tokens_out=100)
-        )
-        tmp_store.append(
-            _make_record(model="claude", cost_usd=0.015, tokens_in=150, tokens_out=75)
-        )
+        tmp_store.append(_make_record(model="gpt-4o", cost_usd=0.01, tokens_in=100, tokens_out=50))
+        tmp_store.append(_make_record(model="gpt-4o", cost_usd=0.02, tokens_in=200, tokens_out=100))
+        tmp_store.append(_make_record(model="claude", cost_usd=0.015, tokens_in=150, tokens_out=75))
 
         cost = engine.get_cost_summary()
         assert abs(cost.total_cost_usd - 0.045) < 1e-9
@@ -405,9 +393,7 @@ class TestAnalyticsEngine:
         cells = engine.get_heatmap()
         assert cells == []
 
-    def test_get_heatmap_uses_latest(
-        self, engine: AnalyticsEngine, tmp_store: AnalyticsStore
-    ):
+    def test_get_heatmap_uses_latest(self, engine: AnalyticsEngine, tmp_store: AnalyticsStore):
         """Heatmap uses latest record per skill."""
         old_ts = (datetime.utcnow() - timedelta(days=5)).isoformat() + "Z"
         new_ts = datetime.utcnow().isoformat() + "Z"
@@ -425,9 +411,7 @@ class TestAnalyticsEngine:
         assert cells[0].score == 0.95
         assert cells[0].grade == "S"  # 0.95 >= S threshold
 
-    def test_get_heatmap_multiple_skills(
-        self, engine: AnalyticsEngine, tmp_store: AnalyticsStore
-    ):
+    def test_get_heatmap_multiple_skills(self, engine: AnalyticsEngine, tmp_store: AnalyticsStore):
         """Heatmap includes cells for all skills and dimensions."""
         r1 = _make_record(skill="react.md")
         r1.dimensions = {"correctness": 0.9, "format": 0.8}
@@ -461,9 +445,7 @@ class TestAnalyticsEngine:
         result = engine.get_model_comparison("nonexistent.md")
         assert result == {}
 
-    def test_get_model_comparison(
-        self, engine: AnalyticsEngine, tmp_store: AnalyticsStore
-    ):
+    def test_get_model_comparison(self, engine: AnalyticsEngine, tmp_store: AnalyticsStore):
         """Model comparison groups by model correctly."""
         tmp_store.append(_make_record(skill="skill.md", model="gpt-4o"))
         tmp_store.append(_make_record(skill="skill.md", model="gpt-4o"))
@@ -482,9 +464,7 @@ class TestAnalyticsEngine:
         assert stats["avg_score"] == 0.0
         assert stats["grade_distribution"] == {}
 
-    def test_get_summary_stats_with_data(
-        self, engine: AnalyticsEngine, tmp_store: AnalyticsStore
-    ):
+    def test_get_summary_stats_with_data(self, engine: AnalyticsEngine, tmp_store: AnalyticsStore):
         """Summary stats computed correctly."""
         tmp_store.append(_make_record(skill="a.md", grade="A", score=0.90))
         tmp_store.append(_make_record(skill="b.md", grade="B", score=0.78))

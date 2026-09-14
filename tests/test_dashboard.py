@@ -64,7 +64,9 @@ def _make_record(
 class TestExportToSqlite:
     def test_empty_records_creates_table(self):
         conn = export_to_sqlite([])
-        cursor = conn.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='eval_records'")
+        cursor = conn.execute(
+            "SELECT name FROM sqlite_master WHERE type='table' AND name='eval_records'"
+        )
         assert cursor.fetchone() is not None
         conn.close()
 
@@ -84,7 +86,8 @@ class TestExportToSqlite:
         conn = export_to_sqlite([r])
         # Check the dimension columns exist by querying them
         row = conn.execute(
-            "SELECT dimension_correctness, dimension_completeness, dimension_format FROM eval_records"
+            "SELECT dimension_correctness, dimension_completeness, "
+            "dimension_format FROM eval_records"
         ).fetchone()
         assert abs(row[0] - 0.9) < 1e-6
         assert abs(row[1] - 0.7) < 1e-6
@@ -229,7 +232,9 @@ class TestRowsToMdTable:
 
 class TestExecuteSqlBlocks:
     def _conn_with_data(self) -> sqlite3.Connection:
-        records = [_make_record(skill=f"skill-{i}.md", score=0.5 + i * 0.1, idx=i) for i in range(3)]
+        records = [
+            _make_record(skill=f"skill-{i}.md", score=0.5 + i * 0.1, idx=i) for i in range(3)
+        ]
         return export_to_sqlite(records)
 
     def test_replaces_block_with_table(self):
@@ -286,6 +291,7 @@ class TestExecuteSqlBlocks:
 class TestRenderDashboard:
     def _write_store(self, path: Path, records: list[EvalRecord]) -> None:
         from dataclasses import asdict
+
         with open(path, "w") as f:
             for r in records:
                 f.write(json.dumps(asdict(r)) + "\n")
@@ -335,6 +341,7 @@ class TestDashboardCLI:
 
     def _write_store(self, path: Path, records: list[EvalRecord]) -> None:
         from dataclasses import asdict
+
         with open(path, "w") as f:
             for r in records:
                 f.write(json.dumps(asdict(r)) + "\n")

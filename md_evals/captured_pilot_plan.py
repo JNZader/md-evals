@@ -129,8 +129,11 @@ def _arm_snapshot(pack: object, arm: str, seen: dict[str, dict[str, object]]) ->
     }[arm]
     if arm == "E_PAIRED":
         _require(
-            all(record["kind"] == kind for kind, source in zip(("structure", "memory"), source_packs)
-                for record in source["evidence"]),
+            all(
+                record["kind"] == kind
+                for kind, source in zip(("structure", "memory"), source_packs)
+                for record in source["evidence"]
+            ),
             "invalid paired evidence kinds",
         )
     else:

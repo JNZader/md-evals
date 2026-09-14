@@ -36,29 +36,94 @@ _PRIVATE_FIELD = re.compile(
     re.IGNORECASE,
 )
 
-_TOP = {"schema_version", "status", "canonical_status", "run_id", "created_at",
-        "source_db_digest", "provider", "model", "authorization", "safety",
-        "billing", "summary", "results"}
-_AUTH = {"selected_path", "raw_db_read_authorized",
-         "execution_authorized_for_noncanonical_capture", "strict_input_created"}
-_SAFETY = {"token_generated_ephemerally", "token_printed", "raw_prompts_stored",
-           "raw_contexts_stored", "raw_response_bodies_stored", "provider_fallback_allowed",
-           "raw_prompts_exported", "raw_contexts_exported", "raw_responses_exported"}
+_TOP = {
+    "schema_version",
+    "status",
+    "canonical_status",
+    "run_id",
+    "created_at",
+    "source_db_digest",
+    "provider",
+    "model",
+    "authorization",
+    "safety",
+    "billing",
+    "summary",
+    "results",
+}
+_AUTH = {
+    "selected_path",
+    "raw_db_read_authorized",
+    "execution_authorized_for_noncanonical_capture",
+    "strict_input_created",
+}
+_SAFETY = {
+    "token_generated_ephemerally",
+    "token_printed",
+    "raw_prompts_stored",
+    "raw_contexts_stored",
+    "raw_response_bodies_stored",
+    "provider_fallback_allowed",
+    "raw_prompts_exported",
+    "raw_contexts_exported",
+    "raw_responses_exported",
+}
 _BILLING = {"attestation_created", "reason"}
-_SUMMARY = {"request_logs_read", "usage_logs_read", "completed_cells", "failed_cells",
-            "redacted_cells", "attempted_calls", "planned_calls"}
-_RESULT = {"db_request_log_id", "cell_index", "case_name", "arm", "status", "started_at",
-           "duration_ms", "request_digest", "response_digest", "selected_evidence_ids",
-           "answer", "error_code", "error_message", "usage", "tool_evidence"}
+_SUMMARY = {
+    "request_logs_read",
+    "usage_logs_read",
+    "completed_cells",
+    "failed_cells",
+    "redacted_cells",
+    "attempted_calls",
+    "planned_calls",
+}
+_RESULT = {
+    "db_request_log_id",
+    "cell_index",
+    "case_name",
+    "arm",
+    "status",
+    "started_at",
+    "duration_ms",
+    "request_digest",
+    "response_digest",
+    "selected_evidence_ids",
+    "answer",
+    "error_code",
+    "error_message",
+    "usage",
+    "tool_evidence",
+}
 _DIGESTS = {"request_digest", "response_digest", "evidence_digest", "local_ledger_digest"}
-_SAFE_AGGREGATES = {"prompt_tokens", "completion_tokens", "input_tokens", "output_tokens",
-                     "total_tokens", "token_count", "tokens_used", "tokensused", "tool_calls",
-                     "latency_ms", "attempts", "request_count", "response_count", "request_logs_read",
-                     "usage_logs_read", "redacted_cells", "request_id",
-                     "response_id", "request_status", "response_status", "db_request_log_id"}
+_SAFE_AGGREGATES = {
+    "prompt_tokens",
+    "completion_tokens",
+    "input_tokens",
+    "output_tokens",
+    "total_tokens",
+    "token_count",
+    "tokens_used",
+    "tokensused",
+    "tool_calls",
+    "latency_ms",
+    "attempts",
+    "request_count",
+    "response_count",
+    "request_logs_read",
+    "usage_logs_read",
+    "redacted_cells",
+    "request_id",
+    "response_id",
+    "request_status",
+    "response_status",
+    "db_request_log_id",
+}
 _USAGE_NESTED = {"tool_evidence", "usage_provenance"}
 _USAGE_TOOL_EVIDENCE = {"enforcement", "mode", "source", "status", "observable", "toolCallCount"}
 _USAGE_PROVENANCE = {"eventCount", "inputTokens", "outputTokens", "origin", "status"}
+
+
 def _fail(path: str, message: str) -> None:
     raise NoncanonicalLiveLedgerSafetyError(f"{path} {message}")
 
@@ -69,8 +134,10 @@ def _normalise(key: str) -> str:
 
 
 def _scalar(value: object) -> bool:
-    return value is None or type(value) in (str, bool, int) or (
-        type(value) is float and math.isfinite(value)
+    return (
+        value is None
+        or type(value) in (str, bool, int)
+        or (type(value) is float and math.isfinite(value))
     )
 
 
@@ -131,7 +198,13 @@ def _exact(value: object, path: str, allowed: set[str], required: set[str]) -> d
     return obj
 
 
-def _typed(obj: dict, path: str, strings: set[str] = set(), booleans: set[str] = set(), ints: set[str] = set()) -> None:
+def _typed(
+    obj: dict,
+    path: str,
+    strings: set[str] = set(),
+    booleans: set[str] = set(),
+    ints: set[str] = set(),
+) -> None:
     for key, value in obj.items():
         if key in strings and type(value) is not str:
             _fail(f"{path}.{key}", "must be a string")
@@ -142,10 +215,14 @@ def _typed(obj: dict, path: str, strings: set[str] = set(), booleans: set[str] =
 
 
 def _answer(value: object, path: str, active: set[int]) -> None:
-    obj = _exact(value, path, {"answer", "citations", "abstain"}, {"answer", "citations", "abstain"})
+    obj = _exact(
+        value, path, {"answer", "citations", "abstain"}, {"answer", "citations", "abstain"}
+    )
     if obj["answer"] is not None and type(obj["answer"]) is not str:
         _fail(f"{path}.answer", "must be a string or null")
-    if type(obj["citations"]) is not list or any(type(item) is not str for item in obj["citations"]):
+    if type(obj["citations"]) is not list or any(
+        type(item) is not str for item in obj["citations"]
+    ):
         _fail(f"{path}.citations", "must be a list of strings")
     if type(obj["abstain"]) is not bool:
         _fail(f"{path}.abstain", "must be a boolean")
@@ -218,23 +295,69 @@ def _usage_summary(value: object, path: str, active: set[int]) -> None:
 def _ledger(value: object, path: str, active: set[int]) -> None:
     required = _TOP - {"source_db_digest"}
     obj = _exact(value, path, _TOP, required)
-    _typed(obj, path, strings={"schema_version", "status", "canonical_status", "run_id", "created_at", "source_db_digest", "provider", "model"})
-    auth = _exact(obj["authorization"], f"{path}.authorization", _AUTH, {"selected_path", "strict_input_created"})
-    _typed(auth, f"{path}.authorization", strings={"selected_path"}, booleans=_AUTH - {"selected_path"})
-    safety = _exact(obj["safety"], f"{path}.safety", _SAFETY, set(_SAFETY) - {"raw_prompts_exported", "raw_contexts_exported", "raw_responses_exported"})
+    _typed(
+        obj,
+        path,
+        strings={
+            "schema_version",
+            "status",
+            "canonical_status",
+            "run_id",
+            "created_at",
+            "source_db_digest",
+            "provider",
+            "model",
+        },
+    )
+    auth = _exact(
+        obj["authorization"],
+        f"{path}.authorization",
+        _AUTH,
+        {"selected_path", "strict_input_created"},
+    )
+    _typed(
+        auth, f"{path}.authorization", strings={"selected_path"}, booleans=_AUTH - {"selected_path"}
+    )
+    safety = _exact(
+        obj["safety"],
+        f"{path}.safety",
+        _SAFETY,
+        set(_SAFETY) - {"raw_prompts_exported", "raw_contexts_exported", "raw_responses_exported"},
+    )
     _typed(safety, f"{path}.safety", booleans=set(safety))
     billing = _exact(obj["billing"], f"{path}.billing", _BILLING, _BILLING)
     _typed(billing, f"{path}.billing", strings={"reason"}, booleans={"attestation_created"})
-    summary = _exact(obj["summary"], f"{path}.summary", _SUMMARY, {"completed_cells", "failed_cells", "attempted_calls", "planned_calls"})
+    summary = _exact(
+        obj["summary"],
+        f"{path}.summary",
+        _SUMMARY,
+        {"completed_cells", "failed_cells", "attempted_calls", "planned_calls"},
+    )
     _typed(summary, f"{path}.summary", ints=set(summary))
     if type(obj["results"]) is not list:
         _fail(f"{path}.results", "must be a list")
     for index, result in enumerate(obj["results"]):
         row = _exact(result, f"{path}.results[{index}]", _RESULT, set())
-        _typed(row, f"{path}.results[{index}]", strings={"case_name", "arm", "status", "request_digest", "response_digest", "error_code", "error_message"}, ints={"db_request_log_id", "cell_index", "duration_ms"})
+        _typed(
+            row,
+            f"{path}.results[{index}]",
+            strings={
+                "case_name",
+                "arm",
+                "status",
+                "request_digest",
+                "response_digest",
+                "error_code",
+                "error_message",
+            },
+            ints={"db_request_log_id", "cell_index", "duration_ms"},
+        )
         if "started_at" in row and type(row["started_at"]) not in (str, int):
             _fail(f"{path}.results[{index}].started_at", "must be a string or integer")
-        if "selected_evidence_ids" in row and (type(row["selected_evidence_ids"]) is not list or any(type(x) is not str for x in row["selected_evidence_ids"] or [])):
+        if "selected_evidence_ids" in row and (
+            type(row["selected_evidence_ids"]) is not list
+            or any(type(x) is not str for x in row["selected_evidence_ids"] or [])
+        ):
             _fail(f"{path}.results[{index}].selected_evidence_ids", "must be a list of strings")
         if "answer" in row:
             _answer(row["answer"], f"{path}.results[{index}].answer", active)
@@ -246,8 +369,62 @@ def _ledger(value: object, path: str, active: set[int]) -> None:
 
 
 def _summary(value: object, path: str, active: set[int]) -> None:
-    obj = _exact(value, path, {"schema_version", "status", "canonical_status", "run_id", "created_at", "provider", "model", "raw_prompts_exported", "raw_contexts_exported", "raw_responses_exported", "completed_cells", "failed_cells", "redacted_cells", "attempted_calls", "planned_calls"}, {"schema_version", "status", "canonical_status", "run_id", "created_at", "raw_prompts_exported", "raw_contexts_exported", "raw_responses_exported", "completed_cells", "failed_cells", "attempted_calls", "planned_calls"})
-    _typed(obj, path, strings={"schema_version", "status", "canonical_status", "run_id", "created_at", "provider", "model"}, booleans={"raw_prompts_exported", "raw_contexts_exported", "raw_responses_exported"}, ints={"completed_cells", "failed_cells", "redacted_cells", "attempted_calls", "planned_calls"})
+    obj = _exact(
+        value,
+        path,
+        {
+            "schema_version",
+            "status",
+            "canonical_status",
+            "run_id",
+            "created_at",
+            "provider",
+            "model",
+            "raw_prompts_exported",
+            "raw_contexts_exported",
+            "raw_responses_exported",
+            "completed_cells",
+            "failed_cells",
+            "redacted_cells",
+            "attempted_calls",
+            "planned_calls",
+        },
+        {
+            "schema_version",
+            "status",
+            "canonical_status",
+            "run_id",
+            "created_at",
+            "raw_prompts_exported",
+            "raw_contexts_exported",
+            "raw_responses_exported",
+            "completed_cells",
+            "failed_cells",
+            "attempted_calls",
+            "planned_calls",
+        },
+    )
+    _typed(
+        obj,
+        path,
+        strings={
+            "schema_version",
+            "status",
+            "canonical_status",
+            "run_id",
+            "created_at",
+            "provider",
+            "model",
+        },
+        booleans={"raw_prompts_exported", "raw_contexts_exported", "raw_responses_exported"},
+        ints={
+            "completed_cells",
+            "failed_cells",
+            "redacted_cells",
+            "attempted_calls",
+            "planned_calls",
+        },
+    )
     _scan_public_values(obj, path, active)
 
 

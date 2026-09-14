@@ -94,7 +94,9 @@ class BridgeCompletionAdapter:
                 trust_env=False,
                 follow_redirects=False,
             ) as client:
-                headers = {} if self._bearer is None else {"Authorization": f"Bearer {self._bearer}"}
+                headers = (
+                    {} if self._bearer is None else {"Authorization": f"Bearer {self._bearer}"}
+                )
                 async with asyncio.timeout(float(defaults.timeout)):
                     response = await client.post(self._endpoint, json=payload, headers=headers)
         except (asyncio.TimeoutError, httpx.TimeoutException):
@@ -111,9 +113,15 @@ class BridgeCompletionAdapter:
             raise LLMError("Bridge response was invalid") from None
         if not isinstance(wire_payload, dict):
             raise LLMError("Bridge response was invalid")
-        if not isinstance(wire_payload.get("resolvedProvider"), str) or not wire_payload["resolvedProvider"].strip():
+        if (
+            not isinstance(wire_payload.get("resolvedProvider"), str)
+            or not wire_payload["resolvedProvider"].strip()
+        ):
             raise LLMError("Bridge provider pin was not confirmed")
-        if not isinstance(wire_payload.get("resolvedModel"), str) or not wire_payload["resolvedModel"].strip():
+        if (
+            not isinstance(wire_payload.get("resolvedModel"), str)
+            or not wire_payload["resolvedModel"].strip()
+        ):
             raise LLMError("Bridge model pin was not confirmed")
         if type(wire_payload.get("fallbackUsed")) is not bool:
             raise LLMError("Bridge provider pin was not confirmed")

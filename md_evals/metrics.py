@@ -834,9 +834,7 @@ def build_usage_metrics(
             warnings.append("stage_sum_mismatch")
 
         # Determine pipeline_mode
-        has_multi_stage = any(
-            r.response.stage_type != "single_pass" for r in treatment_results
-        )
+        has_multi_stage = any(r.response.stage_type != "single_pass" for r in treatment_results)
         mode = "orchestrator" if has_multi_stage else "non_orchestrator"
 
         variants[treatment_name] = VariantMetrics(

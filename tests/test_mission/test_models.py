@@ -1,6 +1,5 @@
 """Tests for Mission models (Pydantic schemas)."""
 
-
 from md_evals.mission.models import (
     MissionConfig,
     MissionPassCriteria,
@@ -23,16 +22,12 @@ class TestMissionPassCriteria:
         assert c.pass_threshold == 0.8
 
     def test_regex_criteria(self):
-        c = MissionPassCriteria(
-            type="regex", name="has_hello", pattern="[Hh]ello"
-        )
+        c = MissionPassCriteria(type="regex", name="has_hello", pattern="[Hh]ello")
         assert c.type == "regex"
         assert c.pattern == "[Hh]ello"
 
     def test_exact_match_criteria(self):
-        c = MissionPassCriteria(
-            type="exact-match", name="has_text", expected="hello world"
-        )
+        c = MissionPassCriteria(type="exact-match", name="has_text", expected="hello world")
         assert c.type == "exact-match"
         assert c.expected == "hello world"
 
@@ -76,11 +71,7 @@ class TestMissionTestCase:
             description="Test greeting behavior",
             prompt="Hello {name}!",
             variables={"name": "World"},
-            pass_criteria=[
-                MissionPassCriteria(
-                    type="regex", name="has_hello", pattern="Hello"
-                )
-            ],
+            pass_criteria=[MissionPassCriteria(type="regex", name="has_hello", pattern="Hello")],
             tags=["greeting", "basic"],
         )
         assert tc.description == "Test greeting behavior"
@@ -111,9 +102,7 @@ class TestMissionConfig:
             model="claude-3",
             provider="anthropic",
             schedule_hint="0 0 * * 0",
-            test_cases=[
-                MissionTestCase(name="t1", prompt="test")
-            ],
+            test_cases=[MissionTestCase(name="t1", prompt="test")],
             tags=["weekly", "regression"],
         )
         assert cfg.description == "Weekly regression test"
@@ -146,9 +135,7 @@ class TestMissionTestResult:
         assert r.error is None
 
     def test_failed_with_error(self):
-        r = MissionTestResult(
-            test_name="t1", passed=False, error="LLM timeout"
-        )
+        r = MissionTestResult(test_name="t1", passed=False, error="LLM timeout")
         assert r.passed is False
         assert r.error == "LLM timeout"
 

@@ -14,7 +14,12 @@ import re
 from dataclasses import dataclass
 from typing import Any
 
-from md_evals.strict_run_assembly import StrictRunAssembly, StrictRunAssemblyError, _validate_repository, parse_strict_run_assembly
+from md_evals.strict_run_assembly import (
+    StrictRunAssembly,
+    StrictRunAssemblyError,
+    _validate_repository,
+    parse_strict_run_assembly,
+)
 
 
 class StrictRunPacketError(ValueError):
@@ -22,7 +27,9 @@ class StrictRunPacketError(ValueError):
 
 
 _HEX256 = re.compile(r"[0-9a-f]{64}\Z")
-_SECRET_KEY = re.compile(r"(?:secret|token|password|credential|api[_-]?key|authorization|cookie)", re.I)
+_SECRET_KEY = re.compile(
+    r"(?:secret|token|password|credential|api[_-]?key|authorization|cookie)", re.I
+)
 _SECRET_VALUE = re.compile(r"(?:Bearer\s+|sk-[A-Za-z0-9]|gh[pousr]_[A-Za-z0-9]|AKIA[0-9A-Z]{16})")
 _PRIVATE_KEY_MARKER = re.compile(
     r"-----BEGIN(?:\s+[A-Z0-9]+)?\s+PRIVATE KEY-----|"
@@ -38,7 +45,9 @@ _COMMAND = re.compile(
     re.I | re.M,
 )
 _FORBIDDEN_BILLING = re.compile(r"catalog|estimate|estimated|pricing|price|rate|quote|cost", re.I)
-_FORBIDDEN_PUBLIC_KEY = re.compile(r"(?:prompt|context|rendered[_-]?context|raw[_-]?response|private[_-]?context)", re.I)
+_FORBIDDEN_PUBLIC_KEY = re.compile(
+    r"(?:prompt|context|rendered[_-]?context|raw[_-]?response|private[_-]?context)", re.I
+)
 _ISO_TIMESTAMP = re.compile(r"^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?Z$")
 
 CHECKLIST_IDS = (
@@ -55,7 +64,14 @@ CHECKLIST_IDS = (
 )
 
 _ITEM_KEYS = {"status", "evidence_payload", "evidence_digest"}
-_TOP_KEYS = {"profile", "assembly_sha256", "assembly_state", "checklist", "ready_for_live_request", "execution_authorized"}
+_TOP_KEYS = {
+    "profile",
+    "assembly_sha256",
+    "assembly_state",
+    "checklist",
+    "ready_for_live_request",
+    "execution_authorized",
+}
 
 
 def _fail(message: str) -> None:
@@ -64,7 +80,9 @@ def _fail(message: str) -> None:
 
 def _canonical(value: object, label: str) -> str:
     try:
-        return json.dumps(value, sort_keys=True, separators=(",", ":"), ensure_ascii=True, allow_nan=False)
+        return json.dumps(
+            value, sort_keys=True, separators=(",", ":"), ensure_ascii=True, allow_nan=False
+        )
     except (TypeError, ValueError, RecursionError) as exc:
         raise StrictRunPacketError(f"{label} must be canonical JSON") from exc
 
@@ -146,9 +164,14 @@ def _validate_payload(payload: object, item_id: str, assembly: dict[str, Any] | 
         if type(item["fallbacks"]) is not bool or item["fallbacks"] is not False:
             _fail("fallback policy evidence must set fallbacks to exactly false")
     elif item_id == "tools_none_local_evidence":
-        item = _closed_variants(payload, ({"tools", "mode", "enforced", "source"},
-                                          {"tools", "mode", "enforced", "source", "evidence_digest"}),
-                                "tools evidence")
+        item = _closed_variants(
+            payload,
+            (
+                {"tools", "mode", "enforced", "source"},
+                {"tools", "mode", "enforced", "source", "evidence_digest"},
+            ),
+            "tools evidence",
+        )
         if item["tools"] != "none" or item["mode"] != "none":
             _fail("tools evidence must declare tools and mode as none")
         if type(item["enforced"]) is not bool or item["enforced"] is not True:
@@ -157,18 +180,55 @@ def _validate_payload(payload: object, item_id: str, assembly: dict[str, Any] | 
         if "evidence_digest" in item:
             _sha(item["evidence_digest"], "tools evidence digest")
     elif item_id == "provider_authenticity":
-        item = _closed(payload, {"provider", "model", "source", "evidence_digest"}, "provider authenticity evidence")
+        item = _closed(
+            payload,
+            {"provider", "model", "source", "evidence_digest"},
+            "provider authenticity evidence",
+        )
         for key in ("provider", "model", "source"):
             _text(item[key], f"provider authenticity {key}")
         _sha(item["evidence_digest"], "provider authenticity evidence digest")
-        if assembly is not None and (item["provider"] != assembly["plan"]["provider"] or item["model"] != assembly["plan"]["model"]):
+        if assembly is not None and (
+            item["provider"] != assembly["plan"]["provider"]
+            or item["model"] != assembly["plan"]["model"]
+        ):
             _fail("provider authenticity evidence does not match the assembly provider/model")
     elif item_id == "provider_billing":
-        item = _closed_variants(payload, ({"provider", "model", "kind", "source", "observed_at", "charge_assertion"},
-                                          {"provider", "model", "kind", "source", "observed_at", "charge_assertion", "evidence_digest"},
-                                          {"provider", "model", "kind", "source", "observed_at", "charge_assertion", "authenticity_unproven_by_validator"},
-                                          {"provider", "model", "kind", "source", "observed_at", "charge_assertion", "evidence_digest", "authenticity_unproven_by_validator"}),
-                                 "provider billing evidence")
+        item = _closed_variants(
+            payload,
+            (
+                {"provider", "model", "kind", "source", "observed_at", "charge_assertion"},
+                {
+                    "provider",
+                    "model",
+                    "kind",
+                    "source",
+                    "observed_at",
+                    "charge_assertion",
+                    "evidence_digest",
+                },
+                {
+                    "provider",
+                    "model",
+                    "kind",
+                    "source",
+                    "observed_at",
+                    "charge_assertion",
+                    "authenticity_unproven_by_validator",
+                },
+                {
+                    "provider",
+                    "model",
+                    "kind",
+                    "source",
+                    "observed_at",
+                    "charge_assertion",
+                    "evidence_digest",
+                    "authenticity_unproven_by_validator",
+                },
+            ),
+            "provider billing evidence",
+        )
         for key in ("provider", "model", "kind", "source", "charge_assertion"):
             _text(item[key], f"provider billing {key}")
         if item["kind"] not in {"pending_live_billing", "provider_billing_evidence_recorded"}:
@@ -187,7 +247,10 @@ def _validate_payload(payload: object, item_id: str, assembly: dict[str, Any] | 
             _fail("provider billing observed_at must be an ISO timestamp")
         if "evidence_digest" in item:
             _sha(item["evidence_digest"], "provider billing evidence digest")
-        if assembly is not None and (item["provider"] != assembly["plan"]["provider"] or item["model"] != assembly["plan"]["model"]):
+        if assembly is not None and (
+            item["provider"] != assembly["plan"]["provider"]
+            or item["model"] != assembly["plan"]["model"]
+        ):
             _fail("provider billing evidence does not match the assembly provider/model")
     elif item_id == "final_strict_consent":
         item = _closed(payload, {"subject_manifest_sha256"}, "final strict consent evidence")
@@ -200,24 +263,43 @@ def _validate_payload(payload: object, item_id: str, assembly: dict[str, Any] | 
     elif item_id == "independent_reviewer":
         item = _closed(payload, {"reviewer_identity"}, "independent reviewer evidence")
         _text(item["reviewer_identity"], "reviewer identity")
-        if assembly is not None and item["reviewer_identity"] in {assembly["reviewer_metadata"]["operator_identity"], assembly["reviewer_metadata"]["interpretation_authority_identity"]}:
+        if assembly is not None and item["reviewer_identity"] in {
+            assembly["reviewer_metadata"]["operator_identity"],
+            assembly["reviewer_metadata"]["interpretation_authority_identity"],
+        }:
             _fail("independent reviewer must differ from operator and interpretation authority")
     elif item_id == "cleanup_deletion":
-        item = _closed(payload, {"retention_policy", "deletion_deadline", "deletion_evidence_required", "deletion_evidence_placeholder"}, "cleanup evidence")
+        item = _closed(
+            payload,
+            {
+                "retention_policy",
+                "deletion_deadline",
+                "deletion_evidence_required",
+                "deletion_evidence_placeholder",
+            },
+            "cleanup evidence",
+        )
         for key in ("retention_policy", "deletion_deadline", "deletion_evidence_placeholder"):
             _text(item[key], f"cleanup evidence {key}")
-        if type(item["deletion_evidence_required"]) is not bool or item["deletion_evidence_required"] is not True:
+        if (
+            type(item["deletion_evidence_required"]) is not bool
+            or item["deletion_evidence_required"] is not True
+        ):
             _fail("cleanup evidence must require deletion evidence")
     elif item_id == "repository_state":
         try:
             _validate_repository(payload)
         except StrictRunAssemblyError as exc:
-            raise StrictRunPacketError(str(exc).replace("repository state", "repository evidence", 1)) from exc
+            raise StrictRunPacketError(
+                str(exc).replace("repository state", "repository evidence", 1)
+            ) from exc
     elif item_id == "strict_live_execution":
         _fail("strict live execution result is not allowed in a pre-run packet")
 
 
-def _validate_item(item: object, item_id: str, assembly: dict[str, Any] | None = None) -> dict[str, Any]:
+def _validate_item(
+    item: object, item_id: str, assembly: dict[str, Any] | None = None
+) -> dict[str, Any]:
     result = _closed(item, _ITEM_KEYS, f"checklist item {item_id}")
     if result["status"] not in {"pending", "provided"}:
         _fail(f"checklist item {item_id} has an invalid status")
@@ -256,7 +338,12 @@ def _validate_packet(manifest: object, *, raw: str | None = None) -> dict[str, A
         _fail("finalized assembly requires provided final strict consent")
     # The packet deliberately stores a digest/reference only.  The assembly is
     # validated by the builder before this closed public manifest is made.
-    if type(packet["ready_for_live_request"]) is not bool or packet["ready_for_live_request"] != _ready_for_request(packet["checklist"], packet["assembly_state"]) or packet["execution_authorized"] is not False:
+    if (
+        type(packet["ready_for_live_request"]) is not bool
+        or packet["ready_for_live_request"]
+        != _ready_for_request(packet["checklist"], packet["assembly_state"])
+        or packet["execution_authorized"] is not False
+    ):
         _fail("packet readiness or execution boundary is invalid")
     if raw is not None and _canonical(packet, "strict run packet") != raw:
         _fail("strict run packet is not canonical JSON")
@@ -274,10 +361,19 @@ def _build_manifest(assembly: StrictRunAssembly, checklist: dict[str, Any]) -> d
     if type(checklist) is not dict or set(checklist) != set(CHECKLIST_IDS):
         _fail("checklist must contain every required item exactly once")
     assembly_manifest = bound.to_dict()
-    validated = {item_id: _validate_item(checklist[item_id], item_id, assembly_manifest) for item_id in CHECKLIST_IDS}
-    if assembly_manifest["state"] == "candidate" and validated["final_strict_consent"]["status"] != "pending":
+    validated = {
+        item_id: _validate_item(checklist[item_id], item_id, assembly_manifest)
+        for item_id in CHECKLIST_IDS
+    }
+    if (
+        assembly_manifest["state"] == "candidate"
+        and validated["final_strict_consent"]["status"] != "pending"
+    ):
         _fail("candidate assembly requires pending final strict consent")
-    if assembly_manifest["state"] == "finalized" and validated["final_strict_consent"]["status"] != "provided":
+    if (
+        assembly_manifest["state"] == "finalized"
+        and validated["final_strict_consent"]["status"] != "provided"
+    ):
         _fail("finalized assembly requires provided final strict consent")
     # Live-only evidence is intentionally pending offline.  Readiness means the
     # packet is structurally safe to present for a separate human authorization;
@@ -323,7 +419,9 @@ class StrictRunPacket:
 
     _TOKEN = object()
 
-    def __init__(self, manifest_json: str, sha256: str, assembly_sha256: str, *, _token: object = None) -> None:
+    def __init__(
+        self, manifest_json: str, sha256: str, assembly_sha256: str, *, _token: object = None
+    ) -> None:
         if _token is not StrictRunPacket._TOKEN:
             _fail("StrictRunPacket must be created by the builder or parser")
         object.__setattr__(self, "manifest_json", manifest_json)
@@ -334,7 +432,9 @@ class StrictRunPacket:
         return json.loads(self.manifest_json)
 
 
-def build_strict_run_packet(*, assembly: StrictRunAssembly, checklist: dict[str, Any]) -> StrictRunPacket:
+def build_strict_run_packet(
+    *, assembly: StrictRunAssembly, checklist: dict[str, Any]
+) -> StrictRunPacket:
     manifest = _build_manifest(assembly, copy.deepcopy(checklist))
     raw = _canonical(manifest, "strict run packet")
     digest = hashlib.sha256(raw.encode()).hexdigest()
@@ -354,10 +454,14 @@ def parse_strict_run_packet(manifest_json: str) -> StrictRunPacket:
     # assembly binding before treating the packet as assembly-bound.
     _validate_packet(manifest, raw=manifest_json)
     digest = hashlib.sha256(manifest_json.encode()).hexdigest()
-    return StrictRunPacket(manifest_json, digest, manifest["assembly_sha256"], _token=StrictRunPacket._TOKEN)
+    return StrictRunPacket(
+        manifest_json, digest, manifest["assembly_sha256"], _token=StrictRunPacket._TOKEN
+    )
 
 
-def validate_strict_run_packet_binding(packet: StrictRunPacket, assembly: StrictRunAssembly) -> StrictRunPacket:
+def validate_strict_run_packet_binding(
+    packet: StrictRunPacket, assembly: StrictRunAssembly
+) -> StrictRunPacket:
     """Prove that a locally valid packet is bound to this exact assembly artifact."""
     if not isinstance(packet, StrictRunPacket) or not isinstance(assembly, StrictRunAssembly):
         _fail("packet and assembly must be their validated artifact types")

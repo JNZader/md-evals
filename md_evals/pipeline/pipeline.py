@@ -177,17 +177,13 @@ class Pipeline:
         Returns:
             A fully-populated ``EvalResult``.
         """
-        dimensions: list[DimensionScore] = (
-            context.scores if context.scores else []
-        )
+        dimensions: list[DimensionScore] = context.scores if context.scores else []
 
         if dimensions:
             thresholds: dict[str, float] = {}
             if context.rubric is not None:
                 thresholds = context.rubric.grade_thresholds
-            overall_score, overall_grade = calculate_overall_grade(
-                dimensions, thresholds
-            )
+            overall_score, overall_grade = calculate_overall_grade(dimensions, thresholds)
         else:
             overall_score = 0.0
             overall_grade = "F"

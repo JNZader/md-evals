@@ -304,9 +304,7 @@ class SkillParser:
             input_text = ""
             expected = ""
 
-            input_match = re.search(
-                r"\*\*Input:?\*\*\s*(.+?)(?=\*\*|$)", body, re.DOTALL
-            )
+            input_match = re.search(r"\*\*Input:?\*\*\s*(.+?)(?=\*\*|$)", body, re.DOTALL)
             if input_match:
                 input_text = input_match.group(1).strip()
 

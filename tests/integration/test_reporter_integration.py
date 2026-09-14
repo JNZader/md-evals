@@ -121,9 +121,7 @@ class TestReporterJson:
             skill_path="/test/SKILL.md",
             overall_grade="A",
             overall_score=0.90,
-            dimensions=[
-                DimensionScore(dimension="correctness", score=0.90, weight=1.0, grade="A")
-            ],
+            dimensions=[DimensionScore(dimension="correctness", score=0.90, weight=1.0, grade="A")],
             pre_check=None,
             metadata=EvalMetadata(model="gpt-4o", provider="openai"),
         )

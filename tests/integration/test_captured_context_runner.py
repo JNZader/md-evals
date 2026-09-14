@@ -56,7 +56,11 @@ with (
     from md_evals.captured_batch_report import render_captured_report_json
     from md_evals.llm import LLMError
     from md_evals.models import Defaults, EvalConfig, LLMResponse, OutputConfig, Task, Treatment
-    from md_evals.context_renderer import compose_paired_context, render_paired_context, render_selected_evidence
+    from md_evals.context_renderer import (
+        compose_paired_context,
+        render_paired_context,
+        render_selected_evidence,
+    )
     from md_evals.captured_pilot_plan import CapturedPilotPlan, prepare_captured_pilot
     from tests.context_broker_capture_union_support import compose_capture
     from md_evals.captured_context_runner import (
@@ -381,7 +385,11 @@ async def test_sixteen_real_engine_calls_preserve_order_context_and_raw_metadata
             )
         else:
             context = render_selected_evidence(packs[name][arm])
-            ids = () if arm == "CONTROL" else tuple(item["id"] for item in packs[name][arm]["evidence"])
+            ids = (
+                ()
+                if arm == "CONTROL"
+                else tuple(item["id"] for item in packs[name][arm]["evidence"])
+            )
         assert adapter.calls[index] == (f"Explain {name}", context, config.defaults.model_dump())
         assert row.prompt == f"Explain {name}" and row.selected_ids == ids
         assert row.rendered_context_sha256 == (
@@ -401,11 +409,7 @@ async def test_audit_sentinels_and_later_input_mutations_never_change_prepared_c
     for arms in packs.values():
         for arm, value in arms.items():
             if value is not None:
-                slots = (
-                    (value["structure"], value["memory"])
-                    if arm == "E_PAIRED"
-                    else (value,)
-                )
+                slots = (value["structure"], value["memory"]) if arm == "E_PAIRED" else (value,)
                 for slot in slots:
                     slot["trace"]["retrieval_digest"] = "ANSWER_SENTINEL"
                     for provider in slot["providers"]:
@@ -421,10 +425,7 @@ async def test_audit_sentinels_and_later_input_mutations_never_change_prepared_c
     rows = await run_captured_arms(config, adapter, packs)
     assert adapter.calls[-1][0:2] == ("Explain last", expected)
     assert all(
-        (
-            "ANSWER_SENTINEL" in (call[1] or "")
-            and "MANIFEST_SENTINEL" in (call[1] or "")
-        )
+        ("ANSWER_SENTINEL" in (call[1] or "") and "MANIFEST_SENTINEL" in (call[1] or ""))
         if row.arm == "E_PAIRED"
         else "SENTINEL" not in (call[1] or "")
         for row, call in zip(rows, adapter.calls)
@@ -541,9 +542,7 @@ async def test_union_truncation_can_remove_one_or_both_kinds(inputs, keep):
     rows = await run_captured_arms(config, Recorder(config.defaults), packs)
     pair = packs["first"]["E_PAIRED"]
     expected_ids = tuple(
-        item["id"]
-        for slot in ("structure", "memory")
-        for item in pair[slot]["evidence"]
+        item["id"] for slot in ("structure", "memory") for item in pair[slot]["evidence"]
     )
     expected_context = render_paired_context(pair)
     assert len(rows) == 16
@@ -645,7 +644,10 @@ async def test_captured_pipeline_runs_real_engine_then_strict_comparison(inputs)
         ),
         Task(
             name="unknown",
-            prompt="What is this repository's actual current Git commit? Abstain if it is not captured.",
+            prompt=(
+                "What is this repository's actual current Git commit? "
+                "Abstain if it is not captured."
+            ),
             variables={},
         ),
     ]
@@ -720,9 +722,7 @@ async def test_captured_pipeline_runs_real_engine_then_strict_comparison(inputs)
             ()
             if pack is None
             else tuple(
-                item["id"]
-                for slot in ("structure", "memory")
-                for item in pack[slot]["evidence"]
+                item["id"] for slot in ("structure", "memory") for item in pack[slot]["evidence"]
             )
             if row.arm == "E_PAIRED"
             else tuple(item["id"] for item in pack["evidence"])
@@ -1209,7 +1209,8 @@ def test_injected_offline_worker_runs_frozen_prompt_context_without_private_outp
     assert requests[-1].context is not None
     assert all(row.status == "completed" for row in rows)
     assert all(
-        row.response.raw_response == {
+        row.response.raw_response
+        == {
             "schema_version": OUTPUT_SCHEMA,
             "status": "completed",
             "answer": {"answer": "local", "citations": [], "abstain": False},
@@ -1233,7 +1234,8 @@ def test_malformed_offline_worker_output_is_non_success_and_public_only(inputs):
     assert len(rows) == 4
     assert all(row.status == "llm_error" for row in rows)
     assert all(
-        row.response.raw_response == {
+        row.response.raw_response
+        == {
             "schema_version": OUTPUT_SCHEMA,
             "status": "malformed_output",
             "answer": None,

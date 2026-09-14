@@ -26,6 +26,7 @@ from md_evals.models import EvaluatorResult
 @dataclass
 class TerminalTask:
     """A terminal task that can be graded by executing commands."""
+
     name: str
     description: str
     setup_script: str = ""  # commands to run before the task
@@ -38,6 +39,7 @@ class TerminalTask:
 @dataclass
 class TerminalTaskResult:
     """Result of executing and verifying a terminal task."""
+
     task_name: str
     passed: bool
     stdout: str
@@ -66,6 +68,7 @@ def execute_task(
         TerminalTaskResult with pass/fail and captured output.
     """
     import time
+
     start = time.monotonic()
 
     if work_dir is None:
@@ -85,7 +88,9 @@ def execute_task(
         # Verify
         if task.verification_script:
             verify_result = _run_script(
-                task.verification_script, work_dir, task.timeout_seconds,
+                task.verification_script,
+                work_dir,
+                task.timeout_seconds,
             )
             passed = verify_result.returncode == 0
             verification_stdout = verify_result.stdout
@@ -139,7 +144,9 @@ def execute_task(
 
 
 def _run_script(
-    script: str, cwd: str, timeout: int,
+    script: str,
+    cwd: str,
+    timeout: int,
 ) -> subprocess.CompletedProcess[str]:
     """Run a shell script and capture output."""
     return subprocess.run(
@@ -201,7 +208,8 @@ class TerminalTaskGrader:
             evaluator_name=self.name,
             score=1.0 if result.passed else 0.0,
             passed=result.passed,
-            reason=result.error or (
+            reason=result.error
+            or (
                 f"Task {'passed' if result.passed else 'failed'} "
                 f"(exit={result.exit_code}, verify={result.verification_exit_code}, "
                 f"{result.duration_ms}ms)"

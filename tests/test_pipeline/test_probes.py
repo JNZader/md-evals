@@ -118,9 +118,11 @@ def test_dimension_probe_fallback_when_no_adapter():
 
 def test_dimension_probe_with_llm(monkeypatch):
     """DimensionProbe uses LLM when adapter is available."""
-    llm_response = json.dumps([
-        {"prompt": "Test correctness scenario", "expected_behavior": "Should be correct"},
-    ])
+    llm_response = json.dumps(
+        [
+            {"prompt": "Test correctness scenario", "expected_behavior": "Should be correct"},
+        ]
+    )
 
     # Mock _run_llm_complete to avoid async issues
     monkeypatch.setattr(
@@ -218,9 +220,11 @@ def test_edge_case_probe_fallback_includes_adversarial():
 
 def test_edge_case_probe_with_llm(monkeypatch):
     """EdgeCaseProbe uses LLM when adapter is available."""
-    llm_response = json.dumps([
-        {"prompt": "Empty input edge case", "expected_behavior": "Handle gracefully"},
-    ])
+    llm_response = json.dumps(
+        [
+            {"prompt": "Empty input edge case", "expected_behavior": "Handle gracefully"},
+        ]
+    )
     monkeypatch.setattr(
         "md_evals.pipeline.probes._run_llm_complete",
         lambda adapter, prompt, **kwargs: llm_response,
@@ -278,9 +282,11 @@ def test_compliance_probe_fallback():
 
 def test_compliance_probe_with_llm(monkeypatch):
     """ComplianceProbe uses LLM to generate compliance scenarios."""
-    llm_response = json.dumps([
-        {"prompt": "Test rule 1", "expected_behavior": "Complies with rule", "rule_index": 0},
-    ])
+    llm_response = json.dumps(
+        [
+            {"prompt": "Test rule 1", "expected_behavior": "Complies with rule", "rule_index": 0},
+        ]
+    )
     monkeypatch.setattr(
         "md_evals.pipeline.probes._run_llm_complete",
         lambda adapter, prompt, **kwargs: llm_response,

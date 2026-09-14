@@ -140,9 +140,7 @@ def test_non_monotonic_thresholds_rejected():
 
 def test_non_monotonic_thresholds_inline():
     """Inline config where C > B is rejected."""
-    data = _minimal_rubric_data(
-        grade_thresholds={"A": 0.85, "B": 0.50, "C": 0.70, "D": 0.30}
-    )
+    data = _minimal_rubric_data(grade_thresholds={"A": 0.85, "B": 0.50, "C": 0.70, "D": 0.30})
     with pytest.raises(RubricValidationError, match="strictly decreasing"):
         RubricConfig(**data)
 
@@ -174,9 +172,7 @@ def test_missing_required_thresholds():
 
 def test_missing_single_threshold():
     """Missing just D threshold is rejected."""
-    data = _minimal_rubric_data(
-        grade_thresholds={"A": 0.85, "B": 0.70, "C": 0.50}
-    )
+    data = _minimal_rubric_data(grade_thresholds={"A": 0.85, "B": 0.70, "C": 0.50})
     with pytest.raises(RubricValidationError, match="Missing required grade"):
         RubricConfig(**data)
 
@@ -242,9 +238,7 @@ def test_builtin_dimension_empty_description_no_warning(caplog):
     with caplog.at_level(logging.WARNING, logger="md_evals.rubric"):
         RubricConfig(**data)
 
-    creativity_warnings = [
-        r for r in caplog.records if "correctness" in r.message
-    ]
+    creativity_warnings = [r for r in caplog.records if "correctness" in r.message]
     assert len(creativity_warnings) == 0
 
 
@@ -390,9 +384,7 @@ def test_weights_at_floating_point_boundary():
 
 def test_single_dimension_rubric():
     """A rubric with exactly one dimension is valid."""
-    data = _minimal_rubric_data(
-        dimensions={"only": {"weight": 1.0, "description": "The only one"}}
-    )
+    data = _minimal_rubric_data(dimensions={"only": {"weight": 1.0, "description": "The only one"}})
     config = RubricConfig(**data)
     assert len(config.dimensions) == 1
     assert config.dimensions["only"].weight == 1.0
@@ -427,9 +419,7 @@ def test_custom_dimensions_with_description_no_warning(caplog):
         config = RubricConfig(**data)
 
     # "creativity" has a description → no warning
-    creativity_warnings = [
-        r for r in caplog.records if "creativity" in r.message
-    ]
+    creativity_warnings = [r for r in caplog.records if "creativity" in r.message]
     assert len(creativity_warnings) == 0
     assert config.dimensions["creativity"].description == "Novel solutions"
 
@@ -460,18 +450,14 @@ def test_zero_weight_dimension():
 
 def test_threshold_out_of_range_rejected():
     """Grade threshold value of 0.0 (not in (0.0, 1.0]) is rejected."""
-    data = _minimal_rubric_data(
-        grade_thresholds={"A": 0.85, "B": 0.70, "C": 0.50, "D": 0.0}
-    )
+    data = _minimal_rubric_data(grade_thresholds={"A": 0.85, "B": 0.70, "C": 0.50, "D": 0.0})
     with pytest.raises(RubricValidationError, match="must be in"):
         RubricConfig(**data)
 
 
 def test_threshold_above_one_rejected():
     """Grade threshold value > 1.0 is rejected."""
-    data = _minimal_rubric_data(
-        grade_thresholds={"A": 1.5, "B": 0.70, "C": 0.50, "D": 0.30}
-    )
+    data = _minimal_rubric_data(grade_thresholds={"A": 1.5, "B": 0.70, "C": 0.50, "D": 0.30})
     with pytest.raises(RubricValidationError, match="must be in"):
         RubricConfig(**data)
 

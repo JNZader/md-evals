@@ -68,13 +68,9 @@ class CommandGrader:
         reasons: list[str] = []
 
         if not exit_ok:
-            reasons.append(
-                f"Exit code {result.returncode}, expected {self.expected_exit_code}"
-            )
+            reasons.append(f"Exit code {result.returncode}, expected {self.expected_exit_code}")
         if not output_ok:
-            reasons.append(
-                f"Expected output '{self.expected_output}' not found in stdout"
-            )
+            reasons.append(f"Expected output '{self.expected_output}' not found in stdout")
 
         return EvaluatorResult(
             evaluator_name=self.name,

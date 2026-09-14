@@ -41,9 +41,13 @@ def outbound_guard():
 
     with ExitStack() as stack:
         for target in (
-            "socket.getaddrinfo", "socket.socket.connect", "socket.socket.connect_ex",
-            "socket.socket.sendto", "socket.socket.sendmsg",
-            "subprocess.Popen", "os.system",
+            "socket.getaddrinfo",
+            "socket.socket.connect",
+            "socket.socket.connect_ex",
+            "socket.socket.sendto",
+            "socket.socket.sendmsg",
+            "subprocess.Popen",
+            "os.system",
         ):
             stack.enter_context(patch(target, deny))
         yield events
@@ -51,8 +55,9 @@ def outbound_guard():
 
 # Inspected LiteLLM 1.82.6 get_model_cost_map.py:244-258 supports local-only import.
 # patch.dict restores the prior environment immediately afterward.
-with outbound_guard() as import_denials, patch.dict(
-    "os.environ", {"LITELLM_LOCAL_MODEL_COST_MAP": "True"}
+with (
+    outbound_guard() as import_denials,
+    patch.dict("os.environ", {"LITELLM_LOCAL_MODEL_COST_MAP": "True"}),
 ):
     import hashlib
     import json
@@ -77,8 +82,12 @@ IMPORT_STATE_RESTORED = (
 FIXTURES = Path(__file__).parents[1] / "fixtures" / "context_broker"
 SCHEMA = json.loads((FIXTURES / "context-pack.schema.json").read_text())
 CASES = json.loads((FIXTURES / "cases.json").read_text())
-ARMS = {"CONTROL": (), "B_STRUCTURE": ("structure",),
-        "C_MEMORY": ("memory",), "D_UNION": ("structure", "memory")}
+ARMS = {
+    "CONTROL": (),
+    "B_STRUCTURE": ("structure",),
+    "C_MEMORY": ("memory",),
+    "D_UNION": ("structure", "memory"),
+}
 PRODUCER = {"name": "offline-fixture", "version": "0", "instance": "fixture-local"}
 
 
@@ -97,9 +106,18 @@ def digest(value):
 
 
 def identity(record):
-    return {key: record[key] for key in (
-        "kind", "repository", "revision", "producer_instance", "source_id", "path", "line"
-    )}
+    return {
+        key: record[key]
+        for key in (
+            "kind",
+            "repository",
+            "revision",
+            "producer_instance",
+            "source_id",
+            "path",
+            "line",
+        )
+    }
 
 
 def quote_estimate(records):
@@ -110,8 +128,9 @@ def quote_estimate(records):
 def retrieval(case, arm):
     providers = [deepcopy(p) for p in case["providers"] if p["kind"] in ARMS[arm]]
     available = {p["kind"] for p in providers if p["status"] == "ok"}
-    records = [dict(deepcopy(r), id=digest(identity(r)))
-               for r in case["records"] if r["kind"] in available]
+    records = [
+        dict(deepcopy(r), id=digest(identity(r))) for r in case["records"] if r["kind"] in available
+    ]
     return providers, records
 
 
@@ -121,22 +140,29 @@ def prefix_within_budget(records, limit):
         if quote_estimate(kept + [record]) > limit:
             break
         kept.append(record)
-    return kept, records[len(kept):]
+    return kept, records[len(kept) :]
 
 
 def conflict_pairs(records):
-    return [[left["id"], right["id"]]
-            for index, left in enumerate(records) for right in records[index + 1:]
-            if left["claim"] == right["claim"] and left["value"] != right["value"]]
+    return [
+        [left["id"], right["id"]]
+        for index, left in enumerate(records)
+        for right in records[index + 1 :]
+        if left["claim"] == right["claim"] and left["value"] != right["value"]
+    ]
 
 
 def traces(case, providers, records, producer):
     return {
         "retrieval_digest": digest({"providers": providers, "records": records}),
-        "provenance_digest": digest({
-            "repository": case["repository"], "revision": case["revision"],
-            "producer": producer, "sources": [identity(r) for r in records],
-        }),
+        "provenance_digest": digest(
+            {
+                "repository": case["repository"],
+                "revision": case["revision"],
+                "producer": producer,
+                "sources": [identity(r) for r in records],
+            }
+        ),
     }
 
 
@@ -146,13 +172,21 @@ def make_pack(case, arm, limit=4096):
     kept, dropped = prefix_within_budget(records, limit)
     return {
         "schema_version": "ContextPack.v0",
-        "repository": case["repository"], "revision": case["revision"],
-        "producer": deepcopy(PRODUCER), "freshness": "fresh", "git_state": "clean",
-        "providers": providers, "evidence": kept, "conflicts": conflict_pairs(kept),
+        "repository": case["repository"],
+        "revision": case["revision"],
+        "producer": deepcopy(PRODUCER),
+        "freshness": "fresh",
+        "git_state": "clean",
+        "providers": providers,
+        "evidence": kept,
+        "conflicts": conflict_pairs(kept),
         "budget": {
-            "limit": limit, "estimated_tokens": quote_estimate(kept),
-            "measurement": "estimate", "algorithm": "utf8_quote_bytes_div4_ceil_v0",
-            "scope": "evidence_quotes", "truncated": bool(dropped),
+            "limit": limit,
+            "estimated_tokens": quote_estimate(kept),
+            "measurement": "estimate",
+            "algorithm": "utf8_quote_bytes_div4_ceil_v0",
+            "scope": "evidence_quotes",
+            "truncated": bool(dropped),
             "dropped_ids": [record["id"] for record in dropped],
         },
         "trace": traces(case, providers, records, PRODUCER),
@@ -181,7 +215,9 @@ def validate_contract(pack, case, arm):
     for provider in providers:
         matches = [r for r in case["records"] if r["kind"] == provider["kind"]]
         require((provider["status"] == "ok") == bool(matches), "provider")
-        require(provider["status"] not in ("error", "unsupported") or provider["detail"], "provider")
+        require(
+            provider["status"] not in ("error", "unsupported") or provider["detail"], "provider"
+        )
 
     expected = {record["id"]: record for record in records}
     for record in pack["evidence"]:
@@ -231,36 +267,39 @@ def test_rejects_wrong_repository():
         validate_contract(pack, case, "D_UNION")
 
 
-@pytest.mark.parametrize("path,value,reason", [
-    (("unexpected",), True, "schema"),
-    (("budget", "limit"), "4096", "schema"),
-    (("schema_version",), "ContextPack.v1", "schema"),
-    (("revision",), "c" * 40, "revision"),
-    (("producer", "instance"), "other", "producer"),
-    (("evidence", 0, "repository"), "fixture://other", "repository"),
-    (("evidence", 0, "revision"), "c" * 40, "revision"),
-    (("evidence", 0, "quote"), "invented citation", "citation"),
-    (("evidence", 0, "path"), "../shared.py", "citation"),
-    (("evidence", 0, "line"), 99, "citation"),
-    (("evidence", 0, "id"), "0" * 64, "evidence_id"),
-    (("evidence", 1, "producer_instance"), "memory-other", "evidence_id"),
-    (("evidence", 1, "source_id"), "8", "evidence_id"),
-    (("freshness",), "stale", "freshness"),
-    (("freshness",), "unknown", "freshness"),
-    (("git_state",), "dirty", "worktree"),
-    (("git_state",), "unknown", "worktree"),
-    (("evidence", 0, "freshness"), "stale", "freshness"),
-    (("evidence", 1, "freshness"), "unknown", "freshness"),
-    (("evidence", 0, "git_state"), "dirty", "worktree"),
-    (("evidence", 1, "git_state"), "unknown", "worktree"),
-    (("conflicts",), [], "conflicts"),
-    (("budget", "estimated_tokens"), 0, "budget"),
-    (("budget", "measurement"), "measured", "schema"),
-    (("budget", "algorithm"), "real-tokenizer", "schema"),
-    (("budget", "scope"), "complete-model-context", "schema"),
-    (("trace", "retrieval_digest"), "0" * 64, "trace"),
-    (("trace", "provenance_digest"), "0" * 64, "trace"),
-])
+@pytest.mark.parametrize(
+    "path,value,reason",
+    [
+        (("unexpected",), True, "schema"),
+        (("budget", "limit"), "4096", "schema"),
+        (("schema_version",), "ContextPack.v1", "schema"),
+        (("revision",), "c" * 40, "revision"),
+        (("producer", "instance"), "other", "producer"),
+        (("evidence", 0, "repository"), "fixture://other", "repository"),
+        (("evidence", 0, "revision"), "c" * 40, "revision"),
+        (("evidence", 0, "quote"), "invented citation", "citation"),
+        (("evidence", 0, "path"), "../shared.py", "citation"),
+        (("evidence", 0, "line"), 99, "citation"),
+        (("evidence", 0, "id"), "0" * 64, "evidence_id"),
+        (("evidence", 1, "producer_instance"), "memory-other", "evidence_id"),
+        (("evidence", 1, "source_id"), "8", "evidence_id"),
+        (("freshness",), "stale", "freshness"),
+        (("freshness",), "unknown", "freshness"),
+        (("git_state",), "dirty", "worktree"),
+        (("git_state",), "unknown", "worktree"),
+        (("evidence", 0, "freshness"), "stale", "freshness"),
+        (("evidence", 1, "freshness"), "unknown", "freshness"),
+        (("evidence", 0, "git_state"), "dirty", "worktree"),
+        (("evidence", 1, "git_state"), "unknown", "worktree"),
+        (("conflicts",), [], "conflicts"),
+        (("budget", "estimated_tokens"), 0, "budget"),
+        (("budget", "measurement"), "measured", "schema"),
+        (("budget", "algorithm"), "real-tokenizer", "schema"),
+        (("budget", "scope"), "complete-model-context", "schema"),
+        (("trace", "retrieval_digest"), "0" * 64, "trace"),
+        (("trace", "provenance_digest"), "0" * 64, "trace"),
+    ],
+)
 def test_independent_contract_mutations(path, value, reason):
     case = CASES[0]
     pack = make_pack(case, "D_UNION")
@@ -321,8 +360,11 @@ def test_ids_bind_repositories_revisions_and_provider_instances():
     assert left["evidence"][1]["producer_instance"] != right["evidence"][1]["producer_instance"]
     assert len({r["id"] for pack in (left, right) for r in pack["evidence"]}) == 4
     original = left["evidence"][1]
-    for key, value in (("repository", "fixture://beta"), ("revision", "b" * 40),
-                       ("producer_instance", "memory-beta")):
+    for key, value in (
+        ("repository", "fixture://beta"),
+        ("revision", "b" * 40),
+        ("producer_instance", "memory-beta"),
+    ):
         changed = dict(original, **{key: value})
         assert digest(identity(changed)) != original["id"]
 
@@ -387,22 +429,33 @@ class RecordingAdapter:
         arm = self.systems[system_prompt]
         repetition = self.counts[arm]
         self.counts[arm] += 1
-        self.calls.append({"arm": arm, "repetition": repetition, "prompt": prompt,
-                           "system_prompt": system_prompt,
-                           "prompt_digest": digest(prompt), "system_digest": digest(system_prompt)})
+        self.calls.append(
+            {
+                "arm": arm,
+                "repetition": repetition,
+                "prompt": prompt,
+                "system_prompt": system_prompt,
+                "prompt_digest": digest(prompt),
+                "system_digest": digest(system_prompt),
+            }
+        )
         return LLMResponse(
             content=canonical({"arm": arm, "repetition": repetition}),
-            model=self.model, provider=self.provider,
+            model=self.model,
+            provider=self.provider,
             raw_response={"telemetry": "unavailable_fixture"},
         )
 
 
 def wrapped_skill(content):
     """Independent exact expected bytes for the existing inject_skill contract."""
-    return ("You are a helpful AI assistant.\n\n"
-            "Below is a skill that provides guidelines for your responses:\n---\n"
-            + content + "\n---\n\n"
-            "Follow the skill guidelines above when responding to the user.")
+    return (
+        "You are a helpful AI assistant.\n\n"
+        "Below is a skill that provides guidelines for your responses:\n---\n"
+        + content
+        + "\n---\n\n"
+        "Follow the skill guidelines above when responding to the user."
+    )
 
 
 @pytest.mark.asyncio
@@ -412,9 +465,13 @@ async def test_real_engine_four_arms_two_repetitions(case, no_outbound):
     assert tuple(config.treatments) == tuple(ARMS)
     assert config.execution.repetitions == 2
     prompt = f"Inspect {case['repository']}@{case['revision']}: src/shared.py:1."
-    config.tests = [Task(name=case["id"], prompt=prompt, evaluators=[
-        RegexEvaluator(name="replay-json-envelope", pattern=r"^\{.*\}$")
-    ])]
+    config.tests = [
+        Task(
+            name=case["id"],
+            prompt=prompt,
+            evaluators=[RegexEvaluator(name="replay-json-envelope", pattern=r"^\{.*\}$")],
+        )
+    ]
     packs = {arm: make_pack(case, arm) for arm in ARMS}
     for arm, pack in packs.items():
         validate_contract(pack, case, arm)
@@ -444,7 +501,10 @@ async def test_real_engine_four_arms_two_repetitions(case, no_outbound):
     def fixture_read(path, *args, **kwargs):
         return virtual[str(path)] if str(path) in virtual else read_text(path, *args, **kwargs)
 
-    with patch.object(Path, "exists", fixture_exists), patch.object(Path, "read_text", fixture_read):
+    with (
+        patch.object(Path, "exists", fixture_exists),
+        patch.object(Path, "read_text", fixture_read),
+    ):
         results = await ExecutionEngine(config, adapter, EvaluatorEngine()).run_all(list(ARMS))
     expected = [(rep, arm) for rep in range(2) for arm in ARMS]
     assert len(results) == len(adapter.calls) == 8

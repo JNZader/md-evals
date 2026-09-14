@@ -65,9 +65,7 @@ class TestKeywordCoverageGrader:
         assert result.passed is False
 
     def test_empty_keywords(self, tmp_path: Path):
-        grader = KeywordCoverageGrader(
-            name="kw_check", content="anything", keywords=[]
-        )
+        grader = KeywordCoverageGrader(name="kw_check", content="anything", keywords=[])
         result = grader.grade(tmp_path)
         assert result.passed is True
 
@@ -82,9 +80,7 @@ class TestKeywordCoverageGrader:
         assert result.passed is True
 
     def test_file_not_found(self, tmp_path: Path):
-        grader = KeywordCoverageGrader(
-            name="kw_check", path="missing.txt", keywords=["test"]
-        )
+        grader = KeywordCoverageGrader(name="kw_check", path="missing.txt", keywords=["test"])
         result = grader.grade(tmp_path)
         assert result.passed is False
         assert "not found" in result.reason
@@ -141,9 +137,7 @@ class TestSectionCoverageGrader:
         assert result.passed is True
 
     def test_empty_sections(self, tmp_path: Path):
-        grader = SectionCoverageGrader(
-            name="section_check", content="anything", sections=[]
-        )
+        grader = SectionCoverageGrader(name="section_check", content="anything", sections=[])
         result = grader.grade(tmp_path)
         assert result.passed is True
 
@@ -225,16 +219,12 @@ class TestMinLengthGrader:
 
     def test_file_mode(self, tmp_path: Path):
         (tmp_path / "out.txt").write_text("word " * 50)
-        grader = MinLengthGrader(
-            name="len_check", path="out.txt", min_words=20
-        )
+        grader = MinLengthGrader(name="len_check", path="out.txt", min_words=20)
         result = grader.grade(tmp_path)
         assert result.passed is True
 
     def test_file_not_found(self, tmp_path: Path):
-        grader = MinLengthGrader(
-            name="len_check", path="missing.txt", min_words=1
-        )
+        grader = MinLengthGrader(name="len_check", path="missing.txt", min_words=1)
         result = grader.grade(tmp_path)
         assert result.passed is False
 

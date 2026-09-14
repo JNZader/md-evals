@@ -28,7 +28,9 @@ class StrictAuthorizationRequestError(ValueError):
 
 _ISO_TIMESTAMP = re.compile(r"^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?Z$")
 _HEX256 = re.compile(r"^[0-9a-f]{64}$")
-_SECRET_KEY = re.compile(r"(?:private[_-]?key|secret|token|password|credential|api[_-]?key|authorization|cookie)", re.I)
+_SECRET_KEY = re.compile(
+    r"(?:private[_-]?key|secret|token|password|credential|api[_-]?key|authorization|cookie)", re.I
+)
 _PRIVATE_CONTENT_KEY = re.compile(r"(?:prompt|context|rendered[_-]?context|raw[_-]?response)", re.I)
 _PRIVATE_KEY_MARKER = re.compile(
     r"-----BEGIN(?:\s+[A-Z0-9]+)?\s+PRIVATE KEY-----|"
@@ -45,19 +47,36 @@ _COMMAND = re.compile(
 )
 
 _LIVE_BLOCKERS = {
-    "provider_authenticity": "Provider identity and model authenticity must be verified during the separate live step.",
-    "provider_billing": "Provider billing/authenticity evidence must be obtained during the separate live step.",
-    "final_strict_consent": "Final strict consent must be supplied for the exact finalized assembly subject.",
-    "independent_reviewer": "Independent reviewer execution/review must occur during the separate live step.",
+    "provider_authenticity": (
+        "Provider identity and model authenticity must be verified during the separate live step."
+    ),
+    "provider_billing": (
+        "Provider billing/authenticity evidence must be obtained during the separate live step."
+    ),
+    "final_strict_consent": (
+        "Final strict consent must be supplied for the exact finalized assembly subject."
+    ),
+    "independent_reviewer": (
+        "Independent reviewer execution/review must occur during the separate live step."
+    ),
     "cleanup_deletion": "Cleanup and deletion evidence must be produced after the live step.",
     "repository_state": "Repository state must be captured again at execution time.",
     "strict_live_execution": "The strict retry-0/no-fallback live run has not been executed.",
 }
 
 _TOP_KEYS = {
-    "profile", "packet_sha256", "assembly_sha256", "generated_at", "readiness",
-    "packet_status_snapshot", "pending_live_blockers", "execution_authorized", "live_execution_requested",
-    "contains_command", "answer_domain", "safety",
+    "profile",
+    "packet_sha256",
+    "assembly_sha256",
+    "generated_at",
+    "readiness",
+    "packet_status_snapshot",
+    "pending_live_blockers",
+    "execution_authorized",
+    "live_execution_requested",
+    "contains_command",
+    "answer_domain",
+    "safety",
 }
 _READINESS_KEYS = {"ready_for_live_request", "summary"}
 _BLOCKER_KEYS = {"checklist_id", "status", "reason"}
@@ -65,7 +84,8 @@ _ANSWER_KEYS = {"type", "allowed_tokens", "selected_answer"}
 _SAFETY_KEYS = {"provider_network_credentials_policy", "non_authorization_notice"}
 
 _DEFAULT_SAFETY_TEXT = (
-    "Provider, network, and credentials will be touched only after a separate explicit user response."
+    "Provider, network, and credentials will be touched only after a separate explicit "
+    "user response."
 )
 _DEFAULT_NON_AUTHORIZATION = (
     "This artifact requests a human decision; it does not authorize or execute a live run."
@@ -79,7 +99,9 @@ def _fail(message: str) -> None:
 
 def _canonical(value: object, label: str) -> str:
     try:
-        return json.dumps(value, sort_keys=True, separators=(",", ":"), ensure_ascii=True, allow_nan=False)
+        return json.dumps(
+            value, sort_keys=True, separators=(",", ":"), ensure_ascii=True, allow_nan=False
+        )
     except (TypeError, ValueError, RecursionError) as exc:
         raise StrictAuthorizationRequestError(f"{label} must be canonical JSON") from exc
 
@@ -96,7 +118,9 @@ def _scan_unsafe(value: object, path: str = "artifact") -> None:
             if type(key) is not str:
                 _fail(f"{path} contains a non-string field")
             allowed_safety_key = path == "artifact.safety" and key in _SAFETY_KEYS
-            if (not allowed_safety_key and key != "allowed_tokens" and _SECRET_KEY.search(key)) or _PRIVATE_CONTENT_KEY.search(key):
+            if (
+                not allowed_safety_key and key != "allowed_tokens" and _SECRET_KEY.search(key)
+            ) or _PRIVATE_CONTENT_KEY.search(key):
                 _fail(f"{path}.{key} is not allowed in an authorization artifact")
             _scan_unsafe(child, f"{path}.{key}")
     elif type(value) in (list, tuple):
@@ -116,10 +140,17 @@ def _validate_manifest(manifest: object, *, raw: str | None = None) -> dict[str,
     for key in ("packet_sha256", "assembly_sha256"):
         if type(result[key]) is not str or _HEX256.fullmatch(result[key]) is None:
             _fail(f"{key} must be a SHA-256 digest")
-    if type(result["generated_at"]) is not str or _ISO_TIMESTAMP.fullmatch(result["generated_at"]) is None:
+    if (
+        type(result["generated_at"]) is not str
+        or _ISO_TIMESTAMP.fullmatch(result["generated_at"]) is None
+    ):
         _fail("generated_at must be an ISO timestamp supplied by the caller")
     readiness = _closed(result["readiness"], _READINESS_KEYS, "readiness")
-    if readiness["ready_for_live_request"] is not True or type(readiness["summary"]) is not str or not readiness["summary"]:
+    if (
+        readiness["ready_for_live_request"] is not True
+        or type(readiness["summary"]) is not str
+        or not readiness["summary"]
+    ):
         _fail("authorization request readiness is invalid")
     snapshot = result["packet_status_snapshot"]
     if type(snapshot) is not dict or set(snapshot) != set(_LIVE_BLOCKERS):
@@ -132,24 +163,42 @@ def _validate_manifest(manifest: object, *, raw: str | None = None) -> dict[str,
     blockers = result["pending_live_blockers"]
     if type(blockers) is not list:
         _fail("pending_live_blockers must be a list")
-    expected_ids = {checklist_id for checklist_id, status in snapshot.items() if status == "pending"}
+    expected_ids = {
+        checklist_id for checklist_id, status in snapshot.items() if status == "pending"
+    }
     blocker_ids = set()
     for blocker in blockers:
         item = _closed(blocker, _BLOCKER_KEYS, "pending live blocker")
-        if item["checklist_id"] not in _LIVE_BLOCKERS or item["status"] != "pending" or item["reason"] != _LIVE_BLOCKERS[item["checklist_id"]]:
+        if (
+            item["checklist_id"] not in _LIVE_BLOCKERS
+            or item["status"] != "pending"
+            or item["reason"] != _LIVE_BLOCKERS[item["checklist_id"]]
+        ):
             _fail("pending live blocker is invalid or marked complete")
         if item["checklist_id"] in blocker_ids:
             _fail("pending live blockers must be unique")
         blocker_ids.add(item["checklist_id"])
     if blocker_ids != expected_ids:
         _fail("pending live blockers do not match the packet status snapshot")
-    if result["execution_authorized"] is not False or result["live_execution_requested"] is not False or result["contains_command"] is not False:
+    if (
+        result["execution_authorized"] is not False
+        or result["live_execution_requested"] is not False
+        or result["contains_command"] is not False
+    ):
         _fail("authorization boundary flags must all be false")
     answer = _closed(result["answer_domain"], _ANSWER_KEYS, "answer domain")
-    if answer["type"] != "closed_choice" or type(answer["allowed_tokens"]) is not list or tuple(answer["allowed_tokens"]) != _DEFAULT_ANSWER_TOKENS or answer["selected_answer"] is not None:
+    if (
+        answer["type"] != "closed_choice"
+        or type(answer["allowed_tokens"]) is not list
+        or tuple(answer["allowed_tokens"]) != _DEFAULT_ANSWER_TOKENS
+        or answer["selected_answer"] is not None
+    ):
         _fail("answer domain must be closed and must not choose an answer")
     safety = _closed(result["safety"], _SAFETY_KEYS, "safety text")
-    if safety["provider_network_credentials_policy"] != _DEFAULT_SAFETY_TEXT or safety["non_authorization_notice"] != _DEFAULT_NON_AUTHORIZATION:
+    if (
+        safety["provider_network_credentials_policy"] != _DEFAULT_SAFETY_TEXT
+        or safety["non_authorization_notice"] != _DEFAULT_NON_AUTHORIZATION
+    ):
         _fail("authorization safety text is invalid")
     _scan_unsafe(result)
     if raw is not None and _canonical(result, "authorization request") != raw:
@@ -205,26 +254,37 @@ def build_strict_authorization_request(
         if packet_manifest["checklist"][item_id]["status"] == "pending"
     ]
     packet_status_snapshot = {
-        item_id: packet_manifest["checklist"][item_id]["status"]
-        for item_id in _LIVE_BLOCKERS
+        item_id: packet_manifest["checklist"][item_id]["status"] for item_id in _LIVE_BLOCKERS
     }
     manifest = {
         "profile": "StrictAuthorizationRequest.v1",
         "packet_sha256": bound.sha256,
         "assembly_sha256": assembly.sha256,
         "generated_at": generated_at,
-        "readiness": {"ready_for_live_request": True, "summary": "Strict packet is ready for a separate human live-authorization decision."},
+        "readiness": {
+            "ready_for_live_request": True,
+            "summary": "Strict packet is ready for a separate human live-authorization decision.",
+        },
         "packet_status_snapshot": packet_status_snapshot,
         "pending_live_blockers": pending,
         "execution_authorized": False,
         "live_execution_requested": False,
         "contains_command": False,
-        "answer_domain": {"type": "closed_choice", "allowed_tokens": list(_DEFAULT_ANSWER_TOKENS), "selected_answer": None},
-        "safety": {"provider_network_credentials_policy": _DEFAULT_SAFETY_TEXT, "non_authorization_notice": _DEFAULT_NON_AUTHORIZATION},
+        "answer_domain": {
+            "type": "closed_choice",
+            "allowed_tokens": list(_DEFAULT_ANSWER_TOKENS),
+            "selected_answer": None,
+        },
+        "safety": {
+            "provider_network_credentials_policy": _DEFAULT_SAFETY_TEXT,
+            "non_authorization_notice": _DEFAULT_NON_AUTHORIZATION,
+        },
     }
     _validate_manifest(manifest)
     raw = _canonical(manifest, "authorization request")
-    return StrictAuthorizationRequest(raw, hashlib.sha256(raw.encode()).hexdigest(), _token=StrictAuthorizationRequest._TOKEN)
+    return StrictAuthorizationRequest(
+        raw, hashlib.sha256(raw.encode()).hexdigest(), _token=StrictAuthorizationRequest._TOKEN
+    )
 
 
 def parse_strict_authorization_request(manifest_json: str) -> StrictAuthorizationRequest:
@@ -233,6 +293,12 @@ def parse_strict_authorization_request(manifest_json: str) -> StrictAuthorizatio
     try:
         manifest = json.loads(manifest_json)
     except json.JSONDecodeError as exc:
-        raise StrictAuthorizationRequestError("authorization request manifest must be JSON") from exc
+        raise StrictAuthorizationRequestError(
+            "authorization request manifest must be JSON"
+        ) from exc
     _validate_manifest(manifest, raw=manifest_json)
-    return StrictAuthorizationRequest(manifest_json, hashlib.sha256(manifest_json.encode()).hexdigest(), _token=StrictAuthorizationRequest._TOKEN)
+    return StrictAuthorizationRequest(
+        manifest_json,
+        hashlib.sha256(manifest_json.encode()).hexdigest(),
+        _token=StrictAuthorizationRequest._TOKEN,
+    )

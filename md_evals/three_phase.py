@@ -128,9 +128,7 @@ class ThreePhaseEvaluator:
             config = self._phases[phase]
 
             if stop:
-                phase_results.append(
-                    PhaseResult(phase=phase, passed=False, skipped=True)
-                )
+                phase_results.append(PhaseResult(phase=phase, passed=False, skipped=True))
                 continue
 
             grader_results = self._run_graders(config.graders, workspace)
@@ -185,9 +183,7 @@ class ThreePhaseEvaluator:
             shutil.rmtree(workspace, ignore_errors=True)
 
     @staticmethod
-    def _run_graders(
-        graders: list[Any], workspace: Path
-    ) -> list[EvaluatorResult]:
+    def _run_graders(graders: list[Any], workspace: Path) -> list[EvaluatorResult]:
         """Execute all graders against the workspace."""
         results: list[EvaluatorResult] = []
         for grader in graders:
@@ -210,9 +206,7 @@ class ThreePhaseEvaluator:
                 continue
 
             if pr.grader_results:
-                phase_score = sum(r.score for r in pr.grader_results) / len(
-                    pr.grader_results
-                )
+                phase_score = sum(r.score for r in pr.grader_results) / len(pr.grader_results)
             else:
                 phase_score = 1.0  # Empty phase = pass
 

@@ -5,7 +5,13 @@ from pathlib import Path
 import pytest
 
 from md_evals.precheck import PreCheckEngine, PreCheckResult, PreCheckFinding
-from md_evals.rubric import RubricLoader, RubricConfig, DimensionConfig, PreCheckConfig, SecurityPattern
+from md_evals.rubric import (
+    RubricLoader,
+    RubricConfig,
+    DimensionConfig,
+    PreCheckConfig,
+    SecurityPattern,
+)
 
 
 FIXTURES = Path(__file__).parent.parent / "fixtures"
@@ -51,9 +57,7 @@ class TestPreCheckWithDefaultRubric:
         result = engine.run(str(skill))
 
         # Missing sections produce warnings
-        section_findings = [
-            f for f in result.findings if f.check == "required-sections"
-        ]
+        section_findings = [f for f in result.findings if f.check == "required-sections"]
         assert len(section_findings) >= 1
 
     def test_skill_with_secret(self):
@@ -61,9 +65,7 @@ class TestPreCheckWithDefaultRubric:
         engine = PreCheckEngine(rubric)
         result = engine.run(str(FIXTURES / "skill_with_secret.md"))
 
-        security_findings = [
-            f for f in result.findings if f.check == "security_antipattern"
-        ]
+        security_findings = [f for f in result.findings if f.check == "security_antipattern"]
         assert len(security_findings) >= 1
 
 
@@ -72,7 +74,18 @@ class TestPreCheckWithCustomRubric:
 
     def test_custom_max_lines(self, tmp_path):
         skill = tmp_path / "SKILL.md"
-        lines = ["# Skill", "", "## Description", "Test", "", "## Rules", "- R", "", "## Examples", "- E"]
+        lines = [
+            "# Skill",
+            "",
+            "## Description",
+            "Test",
+            "",
+            "## Rules",
+            "- R",
+            "",
+            "## Examples",
+            "- E",
+        ]
         lines += [f"Extra line {i}" for i in range(20)]
         skill.write_text("\n".join(lines))
 
@@ -110,9 +123,7 @@ class TestPreCheckWithCustomRubric:
         engine = PreCheckEngine(rubric)
         result = engine.run(str(skill))
 
-        security_findings = [
-            f for f in result.findings if f.check == "security_antipattern"
-        ]
+        security_findings = [f for f in result.findings if f.check == "security_antipattern"]
         assert len(security_findings) >= 1
         assert "rm -rf" in security_findings[0].message
 

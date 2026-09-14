@@ -164,25 +164,29 @@ class EvalService:
             total_tests = len(treatments) * len(all_tasks)
 
             # Emit eval_started
-            await queue.put({
-                "type": "eval_started",
-                "eval_id": eval_id,
-                "total_tests": total_tests,
-                "model": config.defaults.model,
-                "provider": config.defaults.provider,
-            })
+            await queue.put(
+                {
+                    "type": "eval_started",
+                    "eval_id": eval_id,
+                    "total_tests": total_tests,
+                    "model": config.defaults.model,
+                    "provider": config.defaults.provider,
+                }
+            )
 
             # Run each (treatment, test) combination
             results = []
             idx = 0
             for t_name, treatment in treatments.items():
                 for task in all_tasks:
-                    await queue.put({
-                        "type": "test_started",
-                        "test_index": idx,
-                        "test_name": task.name,
-                        "treatment": t_name,
-                    })
+                    await queue.put(
+                        {
+                            "type": "test_started",
+                            "test_index": idx,
+                            "test_name": task.name,
+                            "treatment": t_name,
+                        }
+                    )
 
                     result = await asyncio.wait_for(
                         engine.run_single(treatment, task, t_name),
@@ -231,34 +235,40 @@ class EvalService:
                 usage_metrics=usage_metrics,
             )
 
-            await queue.put({
-                "type": "eval_completed",
-                "eval_id": eval_id,
-                "status": "completed",
-                "total_passed": total_passed,
-                "total_tests": len(results),
-                "duration_ms": total_duration,
-            })
+            await queue.put(
+                {
+                    "type": "eval_completed",
+                    "eval_id": eval_id,
+                    "status": "completed",
+                    "total_passed": total_passed,
+                    "total_tests": len(results),
+                    "duration_ms": total_duration,
+                }
+            )
 
         except asyncio.TimeoutError:
             logger.warning("Eval %s timed out", eval_id)
             await self._update_failed(eval_id, "timeout", "Eval exceeded time limit.")
-            await queue.put({
-                "type": "eval_timeout",
-                "eval_id": eval_id,
-                "completed": idx,
-                "total": total_tests,
-            })
+            await queue.put(
+                {
+                    "type": "eval_timeout",
+                    "eval_id": eval_id,
+                    "completed": idx,
+                    "total": total_tests,
+                }
+            )
 
         except Exception as exc:
             logger.exception("Eval %s failed: %s", eval_id, exc)
             await self._update_failed(eval_id, "failed", str(exc))
-            await queue.put({
-                "type": "eval_error",
-                "eval_id": eval_id,
-                "error": type(exc).__name__,
-                "message": str(exc),
-            })
+            await queue.put(
+                {
+                    "type": "eval_error",
+                    "eval_id": eval_id,
+                    "error": type(exc).__name__,
+                    "message": str(exc),
+                }
+            )
 
         finally:
             # Clean up temp file
@@ -330,9 +340,15 @@ class EvalService:
     def _clear_provider_env() -> None:
         """Remove all provider env vars to avoid key leakage."""
         for var in (
-            "OPENAI_API_KEY", "ANTHROPIC_API_KEY", "GOOGLE_API_KEY",
-            "GITHUB_TOKEN", "GROQ_API_KEY", "MISTRAL_API_KEY",
-            "CEREBRAS_API_KEY", "DEEPSEEK_API_KEY", "OPENROUTER_API_KEY",
+            "OPENAI_API_KEY",
+            "ANTHROPIC_API_KEY",
+            "GOOGLE_API_KEY",
+            "GITHUB_TOKEN",
+            "GROQ_API_KEY",
+            "MISTRAL_API_KEY",
+            "CEREBRAS_API_KEY",
+            "DEEPSEEK_API_KEY",
+            "OPENROUTER_API_KEY",
         ):
             os.environ.pop(var, None)
 
@@ -381,27 +397,29 @@ class EvalService:
         """Convert ExecutionResult list to JSON-serializable dict."""
         items = []
         for r in results:
-            items.append({
-                "treatment": r.treatment,
-                "test": r.test,
-                "passed": r.passed,
-                "response_text": r.response.content,
-                "duration_ms": r.response.duration_ms,
-                "cost_metrics": {
-                    "prompt_tokens": r.response.prompt_tokens,
-                    "completion_tokens": r.response.completion_tokens_detail,
-                    "total_tokens": r.response.total_tokens,
-                },
-                "evaluator_results": [
-                    {
-                        "evaluator_name": er.evaluator_name,
-                        "passed": er.passed,
-                        "score": er.score,
-                        "reason": er.reason,
-                    }
-                    for er in r.evaluator_results
-                ],
-            })
+            items.append(
+                {
+                    "treatment": r.treatment,
+                    "test": r.test,
+                    "passed": r.passed,
+                    "response_text": r.response.content,
+                    "duration_ms": r.response.duration_ms,
+                    "cost_metrics": {
+                        "prompt_tokens": r.response.prompt_tokens,
+                        "completion_tokens": r.response.completion_tokens_detail,
+                        "total_tokens": r.response.total_tokens,
+                    },
+                    "evaluator_results": [
+                        {
+                            "evaluator_name": er.evaluator_name,
+                            "passed": er.passed,
+                            "score": er.score,
+                            "reason": er.reason,
+                        }
+                        for er in r.evaluator_results
+                    ],
+                }
+            )
 
         # Build summary
         total = len(results)

@@ -32,7 +32,8 @@ ARMS = ("CONTROL", "B_STRUCTURE", "C_MEMORY", "E_PAIRED")
 TASKS = ("T1", "T2", "T3")
 _SAFE_REASON = re.compile(r"[\r\n]")
 _SECRET_KEY = re.compile(
-    r"(?:authorization|bearer|password|passwd|secret|token|api[_-]?key|credential|private[_-]?key)", re.I
+    r"(?:authorization|bearer|password|passwd|secret|token|api[_-]?key|credential|private[_-]?key)",
+    re.I,
 )
 _SECRET_VALUE = re.compile(
     r"Bearer\s+\S+|sk-[A-Za-z0-9_-]{8,}|gh[pousr]_[A-Za-z0-9_]{8,}|"
@@ -44,26 +45,39 @@ _REDACTED = "[REDACTED]"
 _OUTPUT_MARKER = ".gate1-smoke-runner"
 
 TASK_PROMPTS = {
-    "T1": """You are completing a synthetic smoke-dev evaluation. Summarize the project note below in no more than two sentences. Preserve all five facts and the explicit constraint exactly. Do not add claims, explanations, or facts that are not in the note. Return only the summary.
-
-Synthetic project note:
-- Project name: Cedar Clock.
-- Component: reminder display.
-- Change: add a quiet-hours indicator.
-- Owner: Mina.
-- Review date: 2026-10-14.
-- Explicit constraint: the indicator must not send notifications or change reminder timing.""",
-    "T2": """You are completing a synthetic smoke-dev evaluation. Extract the five named fields from the changelog paragraph and return valid JSON with exactly these keys: component, change_type, risk, owner, deadline. Use the source values without adding keys or commentary. Do not use Markdown fences.
-
-Synthetic changelog paragraph: \"The Lantern Parser component received a documentation update. The risk is low. The owner is Noor. The deadline is 2026-11-03.\"""",
-    "T3": """You are completing a synthetic smoke-dev evaluation. Consider this decision: a canonical model-capture study can use strict no-fallback and zero retries, or it can use flexible fallback and one retry to improve operational completion. Explain the tradeoff in a concise paragraph and recommend the safer option for canonical evidence. Explicitly address evidence contamination and operational resilience. Do not claim that either option has been executed.""",
+    "T1": (
+        "You are completing a synthetic smoke-dev evaluation. Summarize the project note below "
+        "in no more than two sentences. Preserve all five facts and the explicit constraint "
+        "exactly. Do not add claims, explanations, or facts that are not in the note. Return "
+        "only the summary.\n\nSynthetic project note:\n"
+        "- Project name: Cedar Clock.\n- Component: reminder display.\n"
+        "- Change: add a quiet-hours indicator.\n- Owner: Mina.\n"
+        "- Review date: 2026-10-14.\n- Explicit constraint: the indicator must not send "
+        "notifications or change reminder timing."
+    ),
+    "T2": (
+        "You are completing a synthetic smoke-dev evaluation. Extract the five named fields "
+        "from the changelog paragraph and return valid JSON with exactly these keys: component, "
+        "change_type, risk, owner, deadline. Use the source values without adding keys or "
+        "commentary. Do not use Markdown fences.\n\nSynthetic changelog paragraph: "
+        '"The Lantern Parser component received a documentation update. The risk is low. '
+        'The owner is Noor. The deadline is 2026-11-03."'
+    ),
+    "T3": (
+        "You are completing a synthetic smoke-dev evaluation. Consider this decision: a "
+        "canonical model-capture study can use strict no-fallback and zero retries, or it can "
+        "use flexible fallback and one retry to improve operational completion. Explain the "
+        "tradeoff in a concise paragraph and recommend the safer option for canonical evidence. "
+        "Explicitly address evidence contamination and operational resilience. Do not claim "
+        "that either option has been executed."
+    ),
 }
 
 CONTEXTS = {
     "CONTROL": "",
-    "B_STRUCTURE": "[Synthetic structure context]\nDocument type: short operational note.\nRequired output property: preserve source facts and explicit constraints.\nOrdering hint: identify facts first, then identify constraints.\nNo external facts are available.\n",
-    "C_MEMORY": "[Synthetic memory context]\nRemember only the supplied synthetic source in this request.\nDo not add facts from prior conversations or outside knowledge.\nIf a detail is absent from the source, mark it as absent rather than guessing.\n",
-    "E_PAIRED": "[Synthetic paired context]\nStructure: preserve source facts and explicit constraints; organize the answer clearly.\nMemory: use only the supplied synthetic source; do not import outside or prior information.\nIf a detail is absent, do not guess.\n",
+    "B_STRUCTURE": "[Synthetic structure context]\nDocument type: short operational note.\nRequired output property: preserve source facts and explicit constraints.\nOrdering hint: identify facts first, then identify constraints.\nNo external facts are available.\n",  # noqa: E501
+    "C_MEMORY": "[Synthetic memory context]\nRemember only the supplied synthetic source in this request.\nDo not add facts from prior conversations or outside knowledge.\nIf a detail is absent from the source, mark it as absent rather than guessing.\n",  # noqa: E501
+    "E_PAIRED": "[Synthetic paired context]\nStructure: preserve source facts and explicit constraints; organize the answer clearly.\nMemory: use only the supplied synthetic source; do not import outside or prior information.\nIf a detail is absent, do not guess.\n",  # noqa: E501
 }
 
 
@@ -91,7 +105,7 @@ def build_smoke_cells(run_id: str = "PLAN") -> tuple[FrozenCell, ...]:
         for arm in ARMS:
             context = CONTEXTS[arm].encode("utf-8")
             prompt = TASK_PROMPTS[task_id]
-            cell_id = f"{task_id}-{arm.replace('_', '-') }"
+            cell_id = f"{task_id}-{arm.replace('_', '-')}"
             cells.append(
                 FrozenCell.bind(
                     cell_id=cell_id,
@@ -105,11 +119,13 @@ def build_smoke_cells(run_id: str = "PLAN") -> tuple[FrozenCell, ...]:
                     context_digest=sha256(context).hexdigest(),
                     selected_ids=(),
                     tools=TOOLS,
-                     tool_configuration="tools=none enforced by temporary OpenCode no-tools agent; toolEvidence required",
+                    tool_configuration="tools=none enforced by temporary OpenCode no-tools agent; toolEvidence required",  # noqa: E501
                     provider_pin=PROVIDER,
                     model_pin=MODEL,
                     endpoint_pin=f"{GATEWAY_BASE}{GATEWAY_ROUTE}",
-                    model_config_digest=sha256(f"{PROVIDER}:{MODEL}:{MAX_TOKENS}".encode()).hexdigest(),
+                    model_config_digest=sha256(
+                        f"{PROVIDER}:{MODEL}:{MAX_TOKENS}".encode()
+                    ).hexdigest(),
                     code_revision="smoke-dev-runner",
                     budget="billing-cap-0",
                     timeout="60s",
@@ -124,7 +140,7 @@ def build_smoke_cells(run_id: str = "PLAN") -> tuple[FrozenCell, ...]:
                     request_id=f"{run_id}:{cell_id}:1",
                     raw_output_ref=f"raw-responses/{cell_id}-attempt-1.json",
                     route_label=GATEWAY_ROUTE,
-                    identity_attestation="observed response labels only; not an identity attestation",
+                    identity_attestation="observed response labels only; not an identity attestation",  # noqa: E501
                 )
             )
     return tuple(cells)
@@ -144,11 +160,11 @@ def plan_manifest(run_id: str = "PLAN") -> dict[str, Any]:
         "requireProvider": True,
         "maxTokens": MAX_TOKENS,
         "tools": "none",
-        "tools_limitation": "tools=none is enforced and observed through gateway-local toolEvidence; this is not provider-side attestation.",
+        "tools_limitation": "tools=none is enforced and observed through gateway-local toolEvidence; this is not provider-side attestation.",  # noqa: E501
         "retry_limit_per_cell": 1,
         "fallback_policy": "Smoke-only metadata; alternate provider/model pins are not authorized.",
         "billing_cap": 0,
-        "billing_evidence": "response metadata must explicitly report zero charge; missing evidence aborts",
+        "billing_evidence": "response metadata must explicitly report zero charge; missing evidence aborts",  # noqa: E501
         "authorization": "fresh exact smoke-dev authorization required at live invocation",
     }
 
@@ -249,10 +265,14 @@ def _billing_status(response: LLMResponse) -> str:
             and evidence.get("caveat")
             == "Estimated from gateway model-price metadata; not provider charge attestation."
         ):
-            remaining_metadata = {key: value for key, value in metadata.items() if key != "costEvidence"}
+            remaining_metadata = {
+                key: value for key, value in metadata.items() if key != "costEvidence"
+            }
             values = _billing_values(remaining_metadata)
             if values:
-                raise SmokeAbort("response metadata included unapproved billing fields outside costEvidence")
+                raise SmokeAbort(
+                    "response metadata included unapproved billing fields outside costEvidence"
+                )
             return "explicit-zero-catalog-estimate"
         raise SmokeAbort("response metadata did not include explicit zero-charge billing evidence")
     if evidence is not None:
@@ -336,24 +356,55 @@ def _write_outputs(
     (output_dir / "raw-responses").mkdir(exist_ok=True)
     manifest = _redact(manifest, secrets)
     rows = _redact(rows, secrets)
-    (output_dir / "manifest.md").write_text("# Gate 1 Smoke-Dev Manifest\n\n```json\n" + json.dumps(manifest, indent=2) + "\n```\n", encoding="utf-8")
+    (output_dir / "manifest.md").write_text(
+        "# Gate 1 Smoke-Dev Manifest\n\n```json\n" + json.dumps(manifest, indent=2) + "\n```\n",
+        encoding="utf-8",
+    )
     for row in rows:
         if row.get("raw") is not None:
             raw = row["raw"]
             (output_dir / raw["path"]).write_text(json.dumps(raw, indent=2), encoding="utf-8")
-    table = ["# Score Sheet", "", "| Cell ID | State | Retry | Fallback | Provider | Model | Tools | Billing | Canonical status |", "|---|---|---:|---|---|---|---|---|---|"]
-    table.extend(f"| {r['cell_id']} | {r['state']} | {r['retry_count']} | {r['fallback_used']} | {r['provider_observed']} | {r['model_observed']} | none (enforced; observed) | {r['billing']} | smoke-only/non-canonical |" for r in rows)
+    table = [
+        "# Score Sheet",
+        "",
+        "| Cell ID | State | Retry | Fallback | Provider | Model | Tools | Billing | Canonical status |",  # noqa: E501
+        "|---|---|---:|---|---|---|---|---|---|",
+    ]
+    table.extend(
+        f"| {r['cell_id']} | {r['state']} | {r['retry_count']} | {r['fallback_used']} | {r['provider_observed']} | {r['model_observed']} | none (enforced; observed) | {r['billing']} | smoke-only/non-canonical |"  # noqa: E501
+        for r in rows
+    )
     (output_dir / "score-sheet.md").write_text("\n".join(table) + "\n", encoding="utf-8")
     complete = sum(row["state"] == "complete" for row in rows)
-    summary = {"status": manifest["status"], "complete_cells": complete, "planned_cells": 12, "retry_count": sum(r["retry_count"] for r in rows), "fallback_count": sum(r["fallback_used"] for r in rows), "canonical_status": "smoke-only/non-canonical"}
-    (output_dir / "public-summary.md").write_text("# Gate 1 Smoke-Dev Summary\n\n```json\n" + json.dumps(summary, indent=2) + "\n```\n\nThis is non-canonical smoke-dev evidence and cannot decide Gate 1.\n", encoding="utf-8")
+    summary = {
+        "status": manifest["status"],
+        "complete_cells": complete,
+        "planned_cells": 12,
+        "retry_count": sum(r["retry_count"] for r in rows),
+        "fallback_count": sum(r["fallback_used"] for r in rows),
+        "canonical_status": "smoke-only/non-canonical",
+    }
+    (output_dir / "public-summary.md").write_text(
+        "# Gate 1 Smoke-Dev Summary\n\n```json\n"
+        + json.dumps(summary, indent=2)
+        + "\n```\n\nThis is non-canonical smoke-dev evidence and cannot decide Gate 1.\n",
+        encoding="utf-8",
+    )
     (output_dir / "deletion-receipt.md").write_text(
-        f"# Deletion Receipt\n\nRun status: {manifest['status']}.\nPending retention cleanup; no deletion has been performed.\n",
+        f"# Deletion Receipt\n\nRun status: {manifest['status']}.\nPending retention cleanup; no deletion has been performed.\n",  # noqa: E501
         encoding="utf-8",
     )
 
 
-async def run_smoke_dev(*, completion: Completion, run_id: str, output_dir: Path | None = None, live: bool = False, authorize: bool = False, environ: Mapping[str, str] | None = None) -> SmokeRunResult:
+async def run_smoke_dev(
+    *,
+    completion: Completion,
+    run_id: str,
+    output_dir: Path | None = None,
+    live: bool = False,
+    authorize: bool = False,
+    environ: Mapping[str, str] | None = None,
+) -> SmokeRunResult:
     """Run with an injected completion boundary; tests can therefore remain offline."""
     bearer = require_live_preflight(authorize=authorize, environ=environ) if live else None
     secrets = (bearer,) if bearer else ()
@@ -375,18 +426,34 @@ async def run_smoke_dev(*, completion: Completion, run_id: str, output_dir: Path
         retry_count = 0
         fallback = False
         attempts = 0
-        record: dict[str, Any] = {"cell_id": cell.cell_id, "state": "missing", "attempt_count": 0, "retry_count": 0, "retry_used": False, "fallback_used": False, "provider_observed": "unknown", "model_observed": "unknown", "billing": "unverified"}
+        record: dict[str, Any] = {
+            "cell_id": cell.cell_id,
+            "state": "missing",
+            "attempt_count": 0,
+            "retry_count": 0,
+            "retry_used": False,
+            "fallback_used": False,
+            "provider_observed": "unknown",
+            "model_observed": "unknown",
+            "billing": "unverified",
+        }
         while True:
             attempts += 1
             record["attempt_count"] = attempts
             try:
+
                 async def invoke(_prompt: str, _system_prompt: str | None = None) -> LLMResponse:
                     return await completion(cell)
 
                 result = await capture_cell(cell, invoke)
                 if result.state == "failed":
-                    if any(term in result.factual_failure_reason.lower() for term in ("secret", "credential", "private", "sensitive")):
-                        raise SmokeAbort("response or input violated secret/privacy retention controls")
+                    if any(
+                        term in result.factual_failure_reason.lower()
+                        for term in ("secret", "credential", "private", "sensitive")
+                    ):
+                        raise SmokeAbort(
+                            "response or input violated secret/privacy retention controls"
+                        )
                     raise SmokeRunnerError(result.factual_failure_reason)
                 response = result.response
                 assert response is not None
@@ -397,13 +464,24 @@ async def run_smoke_dev(*, completion: Completion, run_id: str, output_dir: Path
                     raise SmokeAbort("response identity metadata was missing or invalid")
                 if observed_provider != PROVIDER or observed_model != MODEL:
                     raise SmokeAbort("response provider/model did not match approved smoke pins")
-                record["provider_observed"], record["model_observed"] = observed_provider, observed_model
+                record["provider_observed"], record["model_observed"] = (
+                    observed_provider,
+                    observed_model,
+                )
                 record["billing"] = _billing_status(response)
                 record["tools"] = _tool_evidence_status(response)
                 fallback = _fallback_used(response)
                 record["fallback_used"] = fallback
                 record["state"] = "complete"
-                record["raw"] = {"path": f"raw-responses/{cell.cell_id}-attempt-{attempts}.json", "cell_id": cell.cell_id, "attempt": attempts, "provider_observed": observed_provider, "model_observed": observed_model, "smoke_only": True, "response": response.model_dump(mode="python")}
+                record["raw"] = {
+                    "path": f"raw-responses/{cell.cell_id}-attempt-{attempts}.json",
+                    "cell_id": cell.cell_id,
+                    "attempt": attempts,
+                    "provider_observed": observed_provider,
+                    "model_observed": observed_model,
+                    "smoke_only": True,
+                    "response": response.model_dump(mode="python"),
+                }
                 break
             except SmokeAbort:
                 record["state"] = "aborted"
@@ -422,18 +500,26 @@ async def run_smoke_dev(*, completion: Completion, run_id: str, output_dir: Path
                 break
         rows.append(record)
         checkpoint()
-    manifest["status"] = "complete" if all(row["state"] == "complete" for row in rows) else "incomplete"
+    manifest["status"] = (
+        "complete" if all(row["state"] == "complete" for row in rows) else "incomplete"
+    )
     if output_dir is not None:
         checkpoint()
     return SmokeRunResult(manifest, output_dir)
 
 
 def _parser() -> argparse.ArgumentParser:
-    parser = argparse.ArgumentParser(description="Plan or explicitly invoke the Gate 1 smoke-dev runner")
+    parser = argparse.ArgumentParser(
+        description="Plan or explicitly invoke the Gate 1 smoke-dev runner"
+    )
     parser.add_argument("--plan", action="store_true", help="print the offline manifest (default)")
-    parser.add_argument("--preflight", action="store_true", help="print secret-safe offline readiness JSON")
+    parser.add_argument(
+        "--preflight", action="store_true", help="print secret-safe offline readiness JSON"
+    )
     parser.add_argument("--live", action="store_true", help="invoke the approved local gateway")
-    parser.add_argument("--authorize-smoke-dev", action="store_true", help="fresh exact smoke-dev authorization")
+    parser.add_argument(
+        "--authorize-smoke-dev", action="store_true", help="fresh exact smoke-dev authorization"
+    )
     parser.add_argument("--run-id", default="RUN-0001")
     return parser
 
@@ -451,7 +537,9 @@ def main(argv: list[str] | None = None) -> int:
     from md_evals.bridge_adapter import BridgeCompletionAdapter
 
     adapter = BridgeCompletionAdapter(
-        base_url=GATEWAY_BASE, model=MODEL, provider=PROVIDER,
+        base_url=GATEWAY_BASE,
+        model=MODEL,
+        provider=PROVIDER,
         defaults=Defaults(model=MODEL, provider=PROVIDER, max_tokens=MAX_TOKENS, retry_attempts=1),
         bearer=bearer,
         allow_fallback_metadata=True,
@@ -459,11 +547,21 @@ def main(argv: list[str] | None = None) -> int:
     )
 
     async def complete(cell: FrozenCell) -> LLMResponse:
-        return await adapter.complete(cell.prompt, None if cell.arm_id == "CONTROL" else cell.context_bytes.decode())
+        return await adapter.complete(
+            cell.prompt, None if cell.arm_id == "CONTROL" else cell.context_bytes.decode()
+        )
 
     timestamp = datetime.now(timezone.utc).strftime("%Y%m%d-%H%M%S")
     output_dir = Path.home() / "Escritorio" / f"gate-1-smoke-dev-{timestamp}-{args.run_id}"
-    asyncio.run(run_smoke_dev(completion=complete, run_id=args.run_id, output_dir=output_dir, live=True, authorize=True))
+    asyncio.run(
+        run_smoke_dev(
+            completion=complete,
+            run_id=args.run_id,
+            output_dir=output_dir,
+            live=True,
+            authorize=True,
+        )
+    )
     return 0
 
 

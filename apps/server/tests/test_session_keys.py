@@ -96,9 +96,7 @@ class TestDeleteKey:
         assert result is False
 
     @pytest.mark.asyncio()
-    async def test_delete_does_not_affect_other_providers(
-        self, store: SessionKeyStore
-    ) -> None:
+    async def test_delete_does_not_affect_other_providers(self, store: SessionKeyStore) -> None:
         """Deleting one provider's key does not affect others."""
         await store.set_key("user-1", "openai", "sk-openai")
         await store.set_key("user-1", "anthropic", "sk-ant")
@@ -132,9 +130,7 @@ class TestTTLExpiration:
     """Tests for automatic TTL-based expiration."""
 
     @pytest.mark.asyncio()
-    async def test_expired_key_returns_none(
-        self, short_ttl_store: SessionKeyStore
-    ) -> None:
+    async def test_expired_key_returns_none(self, short_ttl_store: SessionKeyStore) -> None:
         """A key past its TTL is automatically removed on get."""
         await short_ttl_store.set_key("user-1", "openai", "sk-abc123")
         # Wait for TTL to expire
@@ -153,9 +149,7 @@ class TestTTLExpiration:
         assert keys == {}
 
     @pytest.mark.asyncio()
-    async def test_non_expired_key_still_accessible(
-        self, short_ttl_store: SessionKeyStore
-    ) -> None:
+    async def test_non_expired_key_still_accessible(self, short_ttl_store: SessionKeyStore) -> None:
         """A key within its TTL is still accessible."""
         await short_ttl_store.set_key("user-1", "openai", "sk-abc123")
         entry = await short_ttl_store.get_key("user-1", "openai")
@@ -167,9 +161,7 @@ class TestCleanupExpired:
     """Tests for the cleanup_expired method."""
 
     @pytest.mark.asyncio()
-    async def test_cleanup_removes_expired(
-        self, short_ttl_store: SessionKeyStore
-    ) -> None:
+    async def test_cleanup_removes_expired(self, short_ttl_store: SessionKeyStore) -> None:
         """cleanup_expired removes all expired entries."""
         await short_ttl_store.set_key("user-1", "openai", "sk-1")
         await short_ttl_store.set_key("user-2", "anthropic", "sk-2")
@@ -216,9 +208,7 @@ class TestUserIsolation:
         assert entry2.api_key == "sk-user2"
 
     @pytest.mark.asyncio()
-    async def test_delete_does_not_affect_other_users(
-        self, store: SessionKeyStore
-    ) -> None:
+    async def test_delete_does_not_affect_other_users(self, store: SessionKeyStore) -> None:
         """Deleting a key for one user does not affect another user's keys."""
         await store.set_key("user-1", "openai", "sk-user1")
         await store.set_key("user-2", "openai", "sk-user2")
@@ -282,9 +272,7 @@ class TestSessionKeyPriority:
         assert entry.created_at > 0
 
     @pytest.mark.asyncio()
-    async def test_session_key_available_for_eval_resolution(
-        self, store: SessionKeyStore
-    ) -> None:
+    async def test_session_key_available_for_eval_resolution(self, store: SessionKeyStore) -> None:
         """Session keys can be looked up the same way eval_service would."""
         await store.set_key("user-1", "openai", "sk-session-key")
 

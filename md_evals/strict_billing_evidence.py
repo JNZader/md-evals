@@ -50,8 +50,11 @@ _CREDENTIAL_LIKE_VALUE = (
     r"(?<![A-Za-z0-9])(?:AKIA|ASIA|AIDA|AROA)[0-9A-Z]{16}(?![A-Za-z0-9])"
 )
 _IDENTIFIER_FORBIDDEN = re.compile(
-    r"\Aauthorization\Z|" + _IDENTIFIER_SENSITIVE_MARKER + r"|api[_-]?key|bearer|"
-    + _CREDENTIAL_LIKE_VALUE + r"|"
+    r"\Aauthorization\Z|"
+    + _IDENTIFIER_SENSITIVE_MARKER
+    + r"|api[_-]?key|bearer|"
+    + _CREDENTIAL_LIKE_VALUE
+    + r"|"
     r"(?:^|[^a-z])(bash|curl|docker|git|npm|pytest|python|rm|sh|sudo|wget)(?:[^a-z]|$)|"
     r"&&|\|\||\$\(|[;\n\r]",
     re.I,
@@ -75,18 +78,40 @@ _POLICY = {
     "manual_dashboard_receipt": "optional_if_available",
 }
 _SCAFFOLD_KEYS = {
-    "schema_version", "status", "provider", "model", "plan_sha256", "created_at",
-    "capture_policy", "observed_calls", "ledger", "sha256",
+    "schema_version",
+    "status",
+    "provider",
+    "model",
+    "plan_sha256",
+    "created_at",
+    "capture_policy",
+    "observed_calls",
+    "ledger",
+    "sha256",
 }
 _SLOT_KEYS = {"cell_id", "case_id", "arm_id", "status", "response_digest", "usage", "observed_at"}
 _ATTESTATION_KEYS = {
-    "provider_charge_attested", "provider_identity", "attestation_kind", "attestation_id",
-    "attested_at", "evidence_payload", "evidence_digest",
+    "provider_charge_attested",
+    "provider_identity",
+    "attestation_kind",
+    "attestation_id",
+    "attested_at",
+    "evidence_payload",
+    "evidence_digest",
 }
 _LIVE_EVIDENCE_KEYS = {
-    "schema_version", "evidence_origin", "provider", "model", "charge_assertion", "observed_at",
-    "external_evidence_digest", "local_ledger_digest", "source_classification",
-    "attestation_id", "attested_at", "authenticity_unproven_by_validator",
+    "schema_version",
+    "evidence_origin",
+    "provider",
+    "model",
+    "charge_assertion",
+    "observed_at",
+    "external_evidence_digest",
+    "local_ledger_digest",
+    "source_classification",
+    "attestation_id",
+    "attested_at",
+    "authenticity_unproven_by_validator",
 }
 
 
@@ -96,7 +121,9 @@ def _fail(message: str) -> None:
 
 def _canonical(value: object, label: str) -> str:
     try:
-        return json.dumps(value, sort_keys=True, separators=(",", ":"), ensure_ascii=True, allow_nan=False)
+        return json.dumps(
+            value, sort_keys=True, separators=(",", ":"), ensure_ascii=True, allow_nan=False
+        )
     except (TypeError, ValueError, RecursionError) as exc:
         raise StrictBillingEvidenceError(f"{label} must be canonical JSON") from exc
 
@@ -148,10 +175,15 @@ def _scan(value: object, path: str = "billing") -> None:
 
 def _scan_scaffold(value: object) -> None:
     _scan(value)
+
     def visit(item: object, path: str = "scaffold") -> None:
         if type(item) is dict:
             for key, child in item.items():
-                if _BILLING_FORBIDDEN.search(key) or key in {"charged", "zero_charge", "provider_charge_attestation"}:
+                if _BILLING_FORBIDDEN.search(key) or key in {
+                    "charged",
+                    "zero_charge",
+                    "provider_charge_attestation",
+                }:
                     _fail(f"{path}.{key} is not permitted in a scaffold")
                 visit(child, f"{path}.{key}")
         elif type(item) is list:
@@ -159,6 +191,7 @@ def _scan_scaffold(value: object) -> None:
                 visit(child, f"{path}[{index}]")
         elif type(item) is str and (_BILLING_FORBIDDEN.search(item) or _COMMAND.search(item)):
             _fail(f"{path} contains forbidden billing or command text")
+
     visit(value)
 
 
@@ -187,7 +220,8 @@ def _cells_from_plan(plan: CapturedPilotPlan) -> tuple[str, list[dict[str, str]]
         _fail("strict plan must contain exactly 12 cells")
     cells = [
         {"cell_id": f"{case['name']}::{arm['arm']}", "case_id": case["name"], "arm_id": arm["arm"]}
-        for case in manifest.get("cases", []) for arm in case.get("arms", [])
+        for case in manifest.get("cases", [])
+        for arm in case.get("arms", [])
     ]
     for cell in cells:
         _identifier(cell["case_id"], "plan case_id")
@@ -217,8 +251,12 @@ def _normalise_cells(planned_cells: object) -> list[dict[str, str]]:
 
 
 def build_billing_scaffold(
-    *, provider: str | None = None, model: str | None = None, plan_sha256: str | None = None,
-    planned_cells: list[object] | None = None, created_at: str | None = None,
+    *,
+    provider: str | None = None,
+    model: str | None = None,
+    plan_sha256: str | None = None,
+    planned_cells: list[object] | None = None,
+    created_at: str | None = None,
     plan: CapturedPilotPlan | None = None,
 ) -> dict[str, Any]:
     """Build a deterministic, pending-live-execution billing ledger."""
@@ -234,14 +272,26 @@ def build_billing_scaffold(
     _nonempty(model, "model")
     _timestamp(created_at, "created_at")
     ledger = [
-        {**cell, "status": "pending_live", "response_digest": None, "usage": None, "observed_at": None}
+        {
+            **cell,
+            "status": "pending_live",
+            "response_digest": None,
+            "usage": None,
+            "observed_at": None,
+        }
         for cell in cells
     ]
     scaffold = {
         "schema_version": "StrictBillingEvidenceScaffold.v1",
         "status": "scaffold_pending_live_execution",
-        "provider": provider, "model": model, "plan_sha256": plan_sha256, "created_at": created_at,
-        "capture_policy": dict(_POLICY), "observed_calls": 0, "ledger": ledger, "sha256": None,
+        "provider": provider,
+        "model": model,
+        "plan_sha256": plan_sha256,
+        "created_at": created_at,
+        "capture_policy": dict(_POLICY),
+        "observed_calls": 0,
+        "ledger": ledger,
+        "sha256": None,
     }
     _scan_scaffold(scaffold)
     payload = {key: scaffold[key] for key in _SCAFFOLD_KEYS if key != "sha256"}
@@ -254,7 +304,10 @@ def validate_billing_scaffold(manifest: object) -> dict[str, Any]:
     if type(manifest) is not dict or set(manifest) != _SCAFFOLD_KEYS:
         _fail("billing scaffold has an invalid or extra field")
     _scan_scaffold(manifest)
-    if manifest["schema_version"] != "StrictBillingEvidenceScaffold.v1" or manifest["status"] != "scaffold_pending_live_execution":
+    if (
+        manifest["schema_version"] != "StrictBillingEvidenceScaffold.v1"
+        or manifest["status"] != "scaffold_pending_live_execution"
+    ):
         _fail("billing scaffold has an invalid schema or status")
     _nonempty(manifest["provider"], "provider")
     _nonempty(manifest["model"], "model")
@@ -269,7 +322,12 @@ def validate_billing_scaffold(manifest: object) -> dict[str, Any]:
     for slot in ledger:
         if type(slot) is not dict or set(slot) != _SLOT_KEYS:
             _fail("billing scaffold slot has an invalid or extra field")
-        if slot["status"] != "pending_live" or slot["response_digest"] is not None or slot["usage"] is not None or slot["observed_at"] is not None:
+        if (
+            slot["status"] != "pending_live"
+            or slot["response_digest"] is not None
+            or slot["usage"] is not None
+            or slot["observed_at"] is not None
+        ):
             _fail("billing scaffold slot is not pending live")
         _identifier(slot["case_id"], "case_id")
         _identifier(slot["arm_id"], "arm_id")
@@ -285,6 +343,7 @@ def validate_billing_scaffold(manifest: object) -> dict[str, Any]:
 
 def canonical_response_digest(response_payload: object) -> str:
     """Return only a digest; reject payloads that look like secret material."""
+
     def scan(item: object, path: str = "response_payload") -> None:
         if type(item) is dict:
             for key, child in item.items():
@@ -296,6 +355,7 @@ def canonical_response_digest(response_payload: object) -> str:
                 scan(child, f"{path}[{index}]")
         elif type(item) is str and _RESPONSE_FORBIDDEN.search(item):
             _fail(f"{path} contains forbidden response text")
+
     scan(response_payload)
     return _digest(response_payload, "response payload")
 
@@ -328,7 +388,13 @@ class StrictLiveBillingEvidenceRecord:
             r"scaffold|pending_live|offline", value["source_classification"], re.I
         ):
             _fail("scaffold or offline evidence cannot attest to a provider charge")
-        for key in ("evidence_origin", "provider", "model", "source_classification", "attestation_id"):
+        for key in (
+            "evidence_origin",
+            "provider",
+            "model",
+            "source_classification",
+            "attestation_id",
+        ):
             _nonempty(value[key], f"live evidence {key}")
         if _BILLING_FORBIDDEN.search(value["source_classification"]):
             _fail("catalog or estimated sources cannot attest to a provider charge")
@@ -355,16 +421,22 @@ def build_provider_billing_attestation(
     """Build assembly-compatible billing data only from a validated live record."""
     record = validate_live_billing_evidence_record(evidence_record)
     evidence = {
-        "provider": record.provider, "model": record.model, "charge_assertion": record.charge_assertion,
-        "source": record.source_classification, "observed_at": record.observed_at,
+        "provider": record.provider,
+        "model": record.model,
+        "charge_assertion": record.charge_assertion,
+        "source": record.source_classification,
+        "observed_at": record.observed_at,
         "external_evidence_digest": record.external_evidence_digest,
         "local_ledger_digest": record.local_ledger_digest,
         "authenticity_unproven_by_validator": record.authenticity_unproven_by_validator,
     }
     return {
-        "provider_charge_attested": False, "provider_identity": record.provider,
-        "attestation_kind": "provider_billing_evidence_recorded", "attestation_id": record.attestation_id,
-        "attested_at": record.attested_at, "evidence_payload": evidence,
+        "provider_charge_attested": False,
+        "provider_identity": record.provider,
+        "attestation_kind": "provider_billing_evidence_recorded",
+        "attestation_id": record.attestation_id,
+        "attested_at": record.attested_at,
+        "evidence_payload": evidence,
         "evidence_digest": _digest(evidence, "billing evidence payload"),
     }
 
@@ -411,8 +483,13 @@ def write_billing_scaffold(scaffold: dict[str, Any], path: str | Path) -> None:
             if fd != -1:
                 os.close(fd)
         # link() publishes atomically without replacing an existing target.
-        os.link(temporary, destination.name, src_dir_fd=parent_fd,
-                dst_dir_fd=parent_fd, follow_symlinks=False)
+        os.link(
+            temporary,
+            destination.name,
+            src_dir_fd=parent_fd,
+            dst_dir_fd=parent_fd,
+            follow_symlinks=False,
+        )
         os.unlink(temporary, dir_fd=parent_fd)
         temporary = None
         os.close(parent_fd)

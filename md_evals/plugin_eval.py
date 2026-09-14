@@ -175,21 +175,15 @@ class PluginEvaluator:
         manifest_path = Path(plugin_path).resolve() / "plugin.json"
 
         if not manifest_path.is_file():
-            raise PluginError(
-                f"plugin.json not found in '{plugin_path}'"
-            )
+            raise PluginError(f"plugin.json not found in '{plugin_path}'")
 
         try:
             data = json.loads(manifest_path.read_text(encoding="utf-8"))
         except (json.JSONDecodeError, OSError) as exc:
-            raise PluginError(
-                f"Failed to parse plugin.json in '{plugin_path}': {exc}"
-            ) from exc
+            raise PluginError(f"Failed to parse plugin.json in '{plugin_path}': {exc}") from exc
 
         if not isinstance(data, dict):
-            raise PluginError(
-                f"plugin.json must be a JSON object, got {type(data).__name__}"
-            )
+            raise PluginError(f"plugin.json must be a JSON object, got {type(data).__name__}")
 
         return PluginManifest(
             name=str(data.get("name", "")),

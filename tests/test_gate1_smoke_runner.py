@@ -22,7 +22,18 @@ from md_evals.models import LLMResponse
 
 
 def response(**kwargs):
-    return LLMResponse(content="offline answer", model=MODEL, provider=PROVIDER, raw_response={"resolvedProvider": PROVIDER, "resolvedModel": MODEL, "fallbackUsed": False, "toolEvidence": zero_tool_evidence(), **kwargs})
+    return LLMResponse(
+        content="offline answer",
+        model=MODEL,
+        provider=PROVIDER,
+        raw_response={
+            "resolvedProvider": PROVIDER,
+            "resolvedModel": MODEL,
+            "fallbackUsed": False,
+            "toolEvidence": zero_tool_evidence(),
+            **kwargs,
+        },
+    )
 
 
 def zero_cost_evidence():
@@ -53,7 +64,9 @@ def test_builds_exact_12_cells_and_excludes_legacy_arm():
     cells = build_smoke_cells("TEST")
     assert len(cells) == 12
     assert [cell.cell_id for cell in cells] == [
-        f"{task}-{arm.replace('_', '-')}" for task in ("T1", "T2", "T3") for arm in ("CONTROL", "B_STRUCTURE", "C_MEMORY", "E_PAIRED")
+        f"{task}-{arm.replace('_', '-')}"
+        for task in ("T1", "T2", "T3")
+        for arm in ("CONTROL", "B_STRUCTURE", "C_MEMORY", "E_PAIRED")
     ]
     assert all(cell.arm_id != "D_UNION" for cell in cells)
 
@@ -90,7 +103,10 @@ def test_preflight_reports_frozen_cells_and_no_network():
 def test_plan_remains_offline_and_does_not_authorize_live_execution(capsys):
     assert main(["--plan", "--run-id", "TEST-PLAN"]) == 0
     manifest = json.loads(capsys.readouterr().out)
-    assert manifest["authorization"] == "fresh exact smoke-dev authorization required at live invocation"
+    assert (
+        manifest["authorization"]
+        == "fresh exact smoke-dev authorization required at live invocation"
+    )
     assert "live_execution_authorized_by_this_preflight" not in manifest
 
 
@@ -103,14 +119,20 @@ def test_missing_bearer_fails_before_completion():
         raise AssertionError("must not be called")
 
     with pytest.raises(RuntimeError, match="missing or empty"):
-        asyncio.run(run_smoke_dev(completion=completion, run_id="TEST", live=True, authorize=True, environ={}))
+        asyncio.run(
+            run_smoke_dev(
+                completion=completion, run_id="TEST", live=True, authorize=True, environ={}
+            )
+        )
     assert calls == 0
 
 
 def test_bearer_is_not_logged(caplog):
     secret = "offline-secret-token"
     caplog.set_level(logging.INFO)
-    assert require_live_preflight(authorize=True, environ={"GATE1_GATEWAY_BEARER": secret}) == secret
+    assert (
+        require_live_preflight(authorize=True, environ={"GATE1_GATEWAY_BEARER": secret}) == secret
+    )
     assert secret not in caplog.text
 
 
@@ -153,10 +175,26 @@ def test_bearer_and_token_fields_are_redacted_from_artifacts_and_errors(tmp_path
     _write_outputs(
         tmp_path / "run",
         {"status": "complete", "token": secret},
-        [{"cell_id": "T1-CONTROL", "state": "complete", "retry_count": 0, "fallback_used": False, "provider_observed": PROVIDER, "model_observed": MODEL, "billing": "explicit-zero", "raw": {"path": "raw-responses/row.json", "response": {"Authorization": f"Bearer {secret}", "token": secret}}}],
+        [
+            {
+                "cell_id": "T1-CONTROL",
+                "state": "complete",
+                "retry_count": 0,
+                "fallback_used": False,
+                "provider_observed": PROVIDER,
+                "model_observed": MODEL,
+                "billing": "explicit-zero",
+                "raw": {
+                    "path": "raw-responses/row.json",
+                    "response": {"Authorization": f"Bearer {secret}", "token": secret},
+                },
+            }
+        ],
         (secret,),
     )
-    artifacts = "".join(path.read_text() for path in (tmp_path / "run").rglob("*" ) if path.is_file())
+    artifacts = "".join(
+        path.read_text() for path in (tmp_path / "run").rglob("*") if path.is_file()
+    )
     assert secret not in artifacts
     safe_error = _safe_error(RuntimeError(f"Authorization: Bearer {secret}"), (secret,))
     assert secret not in safe_error
@@ -170,9 +208,18 @@ def test_exception_text_is_redacted_from_error_artifact(tmp_path):
         raise RuntimeError(f"Authorization: Bearer {secret}")
 
     asyncio.run(
-        run_smoke_dev(completion=completion, run_id="TEST", output_dir=tmp_path / "run", live=True, authorize=True, environ={"GATE1_GATEWAY_BEARER": secret})
+        run_smoke_dev(
+            completion=completion,
+            run_id="TEST",
+            output_dir=tmp_path / "run",
+            live=True,
+            authorize=True,
+            environ={"GATE1_GATEWAY_BEARER": secret},
+        )
     )
-    artifacts = "".join(path.read_text() for path in (tmp_path / "run").rglob("*") if path.is_file())
+    artifacts = "".join(
+        path.read_text() for path in (tmp_path / "run").rglob("*") if path.is_file()
+    )
     assert secret not in artifacts
 
 
@@ -200,15 +247,18 @@ def test_malformed_gateway_zero_cost_evidence_still_aborts():
         asyncio.run(run_smoke_dev(completion=completion, run_id="TEST"))
 
 
-@pytest.mark.parametrize("tool_evidence", [
-    None,
-    {"status": "complete", "mode": "none"},
-    {**zero_tool_evidence(), "toolCallCount": 1},
-    {**zero_tool_evidence(), "toolCallCount": True},
-    {**zero_tool_evidence(), "source": "provider-claimed"},
-    {**zero_tool_evidence(), "enforcement": "provider-claimed"},
-    {**zero_tool_evidence(), "extra": "unexpected"},
-])
+@pytest.mark.parametrize(
+    "tool_evidence",
+    [
+        None,
+        {"status": "complete", "mode": "none"},
+        {**zero_tool_evidence(), "toolCallCount": 1},
+        {**zero_tool_evidence(), "toolCallCount": True},
+        {**zero_tool_evidence(), "source": "provider-claimed"},
+        {**zero_tool_evidence(), "enforcement": "provider-claimed"},
+        {**zero_tool_evidence(), "extra": "unexpected"},
+    ],
+)
 def test_missing_malformed_or_nonzero_tool_evidence_aborts(tool_evidence):
     async def completion(cell):
         metadata = {"costEvidence": zero_cost_evidence()}
@@ -287,7 +337,7 @@ def test_output_checkpoint_exists_before_first_completion_finishes(tmp_path):
         assert manifest["complete_cells"] == 0
         assert manifest["planned_cells"] == 12
         assert "| Cell ID | State |" in (output_dir / "score-sheet.md").read_text()
-        assert "complete_cells\": 0" in (output_dir / "public-summary.md").read_text()
+        assert 'complete_cells": 0' in (output_dir / "public-summary.md").read_text()
         assert "Run status: in_progress." in (output_dir / "deletion-receipt.md").read_text()
         task.cancel()
         with contextlib.suppress(asyncio.CancelledError):
@@ -310,9 +360,7 @@ def test_partial_rows_are_checkpointed_after_complete_and_failed_cells(tmp_path)
             raise RuntimeError("offline cell failure")
         return response(costEvidence=zero_cost_evidence())
 
-    result = asyncio.run(
-        run_smoke_dev(completion=completion, run_id="TEST", output_dir=output_dir)
-    )
+    result = asyncio.run(run_smoke_dev(completion=completion, run_id="TEST", output_dir=output_dir))
 
     score_sheet = (output_dir / "score-sheet.md").read_text()
     assert observed_first_checkpoint is True
@@ -325,7 +373,9 @@ def test_fallback_metadata_is_recorded_as_smoke_only_when_pins_match(tmp_path):
     async def completion(cell):
         return response(costEvidence=zero_cost_evidence(), fallbackUsed=True)
 
-    result = asyncio.run(run_smoke_dev(completion=completion, run_id="TEST", output_dir=tmp_path / "run"))
+    result = asyncio.run(
+        run_smoke_dev(completion=completion, run_id="TEST", output_dir=tmp_path / "run")
+    )
 
     assert result.manifest["status"] == "complete"
     score_sheet = (tmp_path / "run" / "score-sheet.md").read_text()
@@ -337,8 +387,12 @@ def test_output_manifest_is_smoke_only_and_tools_limitation_is_recorded(tmp_path
     async def completion(cell):
         return response(costEvidence=zero_cost_evidence())
 
-    result = asyncio.run(run_smoke_dev(completion=completion, run_id="TEST", output_dir=tmp_path / "run"))
+    result = asyncio.run(
+        run_smoke_dev(completion=completion, run_id="TEST", output_dir=tmp_path / "run")
+    )
     assert result.manifest["canonical_status"] == "smoke-only/non-canonical"
     assert "enforced and observed" in result.manifest["tools_limitation"]
-    manifest = json.loads((tmp_path / "run" / "manifest.md").read_text().split("```json\n")[1].split("\n```")[0])
+    manifest = json.loads(
+        (tmp_path / "run" / "manifest.md").read_text().split("```json\n")[1].split("\n```")[0]
+    )
     assert manifest["tools"] == "none"

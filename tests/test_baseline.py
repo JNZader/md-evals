@@ -52,9 +52,7 @@ class TestBaselineManagerSaveLoad:
         assert loaded is not None
         assert len(loaded) == 2  # 2 unique (treatment, test) combos
 
-        control_entry = next(
-            (e for e in loaded if e.treatment == "CONTROL"), None
-        )
+        control_entry = next((e for e in loaded if e.treatment == "CONTROL"), None)
         assert control_entry is not None
         assert control_entry.test_name == "t1"
         assert control_entry.pass_count == 1

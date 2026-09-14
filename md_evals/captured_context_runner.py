@@ -294,7 +294,9 @@ def _prepare(config, adapter, packs_by_task, plan=None):
                         "supported common budget contract",
                     )
                     target = (source_pack["repository"], source_pack["revision"], contract)
-                    _require(common_target is None or target == common_target, "common target/budget")
+                    _require(
+                        common_target is None or target == common_target, "common target/budget"
+                    )
                     common_target = target
                     providers = {}
                     for provider in source_pack["providers"]:
@@ -318,10 +320,13 @@ def _prepare(config, adapter, packs_by_task, plan=None):
                             "shared provider binding",
                         )
                         _require(
-                            instance not in known_providers or known_providers[instance] == provider,
+                            instance not in known_providers
+                            or known_providers[instance] == provider,
                             "provider alias",
                         )
-                        providers[kind] = task_providers[kind] = known_providers[instance] = provider
+                        providers[kind] = task_providers[kind] = known_providers[instance] = (
+                            provider
+                        )
                     expected_kinds = {source_kind} if arm == "E_PAIRED" else set(kinds)
                     _require(set(providers) == expected_kinds, "arm provider kinds")
                     source_selected = source_pack["evidence"]
@@ -334,7 +339,8 @@ def _prepare(config, adapter, packs_by_task, plan=None):
                             "selected provider binding",
                         )
                         _require(
-                            record["id"] not in known_records or known_records[record["id"]] == record,
+                            record["id"] not in known_records
+                            or known_records[record["id"]] == record,
                             "contradictory selected identity",
                         )
                         known_records[record["id"]] = record

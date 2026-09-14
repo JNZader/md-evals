@@ -74,9 +74,7 @@ async def list_keys(
     user_id = current_user["sub"]
 
     # 1. Persistent keys from DB
-    result = await db.execute(
-        select(ProviderKey).where(ProviderKey.user_id == user_id)
-    )
+    result = await db.execute(select(ProviderKey).where(ProviderKey.user_id == user_id))
     rows = result.scalars().all()
 
     # Track which providers have persistent keys
@@ -155,7 +153,9 @@ async def create_or_update_key(
         )
         now = datetime.now(timezone.utc)
         logger.info(
-            "Session key saved for user=%s provider=%s", user_id, body.provider,
+            "Session key saved for user=%s provider=%s",
+            user_id,
+            body.provider,
         )
         return ProviderKeyResponse(
             provider=body.provider,

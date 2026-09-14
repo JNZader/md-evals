@@ -158,7 +158,7 @@ def test_usage_partitions_partial_known_subtotals_and_arm_complete_totals_withou
     assert (by_arm["B_STRUCTURE"].partial, by_arm["C_MEMORY"].unknown) == (1, 1)
     assert all(
         value is None
-            for arm in ("B_STRUCTURE", "C_MEMORY", "E_PAIRED")
+        for arm in ("B_STRUCTURE", "C_MEMORY", "E_PAIRED")
         for value in (
             by_arm[arm].prompt_tokens_complete_total,
             by_arm[arm].completion_tokens_complete_total,

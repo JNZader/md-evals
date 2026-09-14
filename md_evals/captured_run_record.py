@@ -25,9 +25,20 @@ PLANNED_CELL_COUNT = 12
 CellState = Literal["complete", "failed", "aborted", "missing"]
 RunStatus = Literal["complete", "incomplete", "inconclusive", "failed", "aborted", "missing"]
 _REQUIRED = (
-    "provider_pin", "model_pin", "endpoint_pin", "model_config_digest", "budget", "timeout",
-    "operator", "reviewer", "code_revision", "arm_mapping_decision_id", "fixture_id",
-    "fixture_revision", "route_label", "identity_attestation",
+    "provider_pin",
+    "model_pin",
+    "endpoint_pin",
+    "model_config_digest",
+    "budget",
+    "timeout",
+    "operator",
+    "reviewer",
+    "code_revision",
+    "arm_mapping_decision_id",
+    "fixture_id",
+    "fixture_revision",
+    "route_label",
+    "identity_attestation",
 )
 _SECRET_KEY = re.compile(
     r"(?:^|[_-])(?:password|passwd|secret|token|api[_-]?key|authorization|credential|private[_-]?key)(?:$|[_-])",
@@ -101,10 +112,15 @@ class FrozenCell:
     identity_attestation: str = EXPLICIT_UNKNOWN
 
     def __post_init__(self) -> None:
-        if not all(isinstance(value, str) and value for value in (self.cell_id, self.task_id, self.prompt, self.case_id)):
+        if not all(
+            isinstance(value, str) and value
+            for value in (self.cell_id, self.task_id, self.prompt, self.case_id)
+        ):
             raise CaptureRecordError("cell identity and prompt are required")
         if self.arm_id not in ARMS:
-            raise CaptureRecordError("D_UNION is excluded; arm must be one of the four planned arms")
+            raise CaptureRecordError(
+                "D_UNION is excluded; arm must be one of the four planned arms"
+            )
         if type(self.capture_number) is not int or self.capture_number < 1:
             raise CaptureRecordError("capture_number must be a positive integer")
         if self.tools != "none" and self.arm_id == "CONTROL":
@@ -115,7 +131,10 @@ class FrozenCell:
             raise CaptureRecordError("prompt digest does not match frozen prompt")
         if self.context_digest != sha256(self.context_bytes).hexdigest():
             raise CaptureRecordError("context digest does not match frozen context")
-        if type(self.context_size) is not int and self.context_size not in (EXPLICIT_UNKNOWN, EXPLICIT_MISSING):
+        if type(self.context_size) is not int and self.context_size not in (
+            EXPLICIT_UNKNOWN,
+            EXPLICIT_MISSING,
+        ):
             raise CaptureRecordError("context_size must be measured or explicit unknown/missing")
         if self.state not in ("complete", "failed", "aborted", "missing"):
             raise CaptureRecordError("invalid cell state")
@@ -123,7 +142,11 @@ class FrozenCell:
             raise CaptureRecordError("failed and aborted cells require a factual reason")
         for name in _REQUIRED:
             value = getattr(self, name)
-            if not isinstance(value, str) or not value or value in (EXPLICIT_UNKNOWN, EXPLICIT_MISSING, NOT_APPLICABLE):
+            if (
+                not isinstance(value, str)
+                or not value
+                or value in (EXPLICIT_UNKNOWN, EXPLICIT_MISSING, NOT_APPLICABLE)
+            ):
                 raise CaptureRecordError(f"{name} is required and cannot be unknown or missing")
 
     @classmethod
@@ -157,7 +180,9 @@ class PrivateRawRecord:
             planned_denominator=PLANNED_CELL_COUNT,
             denominator_eligible=self.state == "complete" and self.cell.state == "complete",
             has_raw_output_ref=self.raw_output_ref not in ("", EXPLICIT_UNKNOWN, EXPLICIT_MISSING),
-            outcome_ref=EXPLICIT_UNKNOWN if self.state != "complete" else "available-in-private-review",
+            outcome_ref=EXPLICIT_UNKNOWN
+            if self.state != "complete"
+            else "available-in-private-review",
             private_review_pointer="approved-private-review-required",
         )
 
@@ -192,7 +217,9 @@ class CaptureRunSummary:
 def _wire(response: LLMResponse | None) -> str:
     if response is None:
         return ""
-    return json.dumps(_plain_copy(response.model_dump(mode="python")), sort_keys=True, separators=(",", ":"))
+    return json.dumps(
+        _plain_copy(response.model_dump(mode="python")), sort_keys=True, separators=(",", ":")
+    )
 
 
 def _plain_copy(value: Any) -> Any:
@@ -244,7 +271,17 @@ async def capture_cell(cell: FrozenCell, complete: Completion) -> PrivateRawReco
         response = await result
     except CompletionOperationalError as exc:
         failed = replace(cell, state="failed", factual_failure_reason=exc.safe_reason)
-        return PrivateRawRecord(failed, None, cell.raw_output_ref, "", cell.request_id, cell.route_label, cell.identity_attestation, "failed", failed.factual_failure_reason)
+        return PrivateRawRecord(
+            failed,
+            None,
+            cell.raw_output_ref,
+            "",
+            cell.request_id,
+            cell.route_label,
+            cell.identity_attestation,
+            "failed",
+            failed.factual_failure_reason,
+        )
 
     if not isinstance(response, LLMResponse):
         raise CaptureRecordError("complete must return LLMResponse")
@@ -252,18 +289,44 @@ async def capture_cell(cell: FrozenCell, complete: Completion) -> PrivateRawReco
         snapshot = _frozen_response(response)
         plain_response = _plain_copy(response.model_dump(mode="python"))
         if _contains_secret(plain_response) or _contains_secret(snapshot.model_dump(mode="python")):
-            raise CompletionOperationalError("response contains credential or secret material; retention rejected")
+            raise CompletionOperationalError(
+                "response contains credential or secret material; retention rejected"
+            )
         wire_payload = json.dumps(plain_response, sort_keys=True, separators=(",", ":"))
         if _contains_secret(wire_payload):
-            raise CompletionOperationalError("serialized response contains credential or secret material; retention rejected")
+            raise CompletionOperationalError(
+                "serialized response contains credential or secret material; retention rejected"
+            )
     except CompletionOperationalError as exc:
         failed = replace(cell, state="failed", factual_failure_reason=exc.safe_reason)
-        return PrivateRawRecord(failed, None, cell.raw_output_ref, "", cell.request_id, cell.route_label, cell.identity_attestation, "failed", failed.factual_failure_reason)
+        return PrivateRawRecord(
+            failed,
+            None,
+            cell.raw_output_ref,
+            "",
+            cell.request_id,
+            cell.route_label,
+            cell.identity_attestation,
+            "failed",
+            failed.factual_failure_reason,
+        )
     captured = replace(cell, state="complete", factual_failure_reason=NOT_APPLICABLE)
-    return PrivateRawRecord(captured, snapshot, cell.raw_output_ref, wire_payload, cell.request_id, cell.route_label, cell.identity_attestation, "complete", NOT_APPLICABLE)
+    return PrivateRawRecord(
+        captured,
+        snapshot,
+        cell.raw_output_ref,
+        wire_payload,
+        cell.request_id,
+        cell.route_label,
+        cell.identity_attestation,
+        "complete",
+        NOT_APPLICABLE,
+    )
 
 
-async def capture_bound_cells(cells: tuple[FrozenCell, ...], complete: Completion) -> tuple[PrivateRawRecord, ...]:
+async def capture_bound_cells(
+    cells: tuple[FrozenCell, ...], complete: Completion
+) -> tuple[PrivateRawRecord, ...]:
     """Capture each supplied cell once, in order; this does not invent a matrix."""
     if len({cell.cell_id for cell in cells}) != len(cells):
         raise CaptureRecordError("cell_id must be unique")
@@ -273,12 +336,28 @@ async def capture_bound_cells(cells: tuple[FrozenCell, ...], complete: Completio
     return tuple(records)
 
 
-def summarize_run(records: tuple[PrivateRawRecord, ...], *, planned_cell_count: int = PLANNED_CELL_COUNT, run_status: RunStatus | None = None, factual_reason: str = NOT_APPLICABLE) -> CaptureRunSummary:
+def summarize_run(
+    records: tuple[PrivateRawRecord, ...],
+    *,
+    planned_cell_count: int = PLANNED_CELL_COUNT,
+    run_status: RunStatus | None = None,
+    factual_reason: str = NOT_APPLICABLE,
+) -> CaptureRunSummary:
     if planned_cell_count != PLANNED_CELL_COUNT:
         raise CaptureRecordError("planned_cell_count is immutable and must be 12")
-    if run_status in ("failed", "aborted", "inconclusive") and factual_reason in ("", NOT_APPLICABLE):
+    if run_status in ("failed", "aborted", "inconclusive") and factual_reason in (
+        "",
+        NOT_APPLICABLE,
+    ):
         raise CaptureRecordError("failed, aborted, and inconclusive runs require a factual reason")
-    if run_status is not None and run_status not in ("complete", "incomplete", "inconclusive", "failed", "aborted", "missing"):
+    if run_status is not None and run_status not in (
+        "complete",
+        "incomplete",
+        "inconclusive",
+        "failed",
+        "aborted",
+        "missing",
+    ):
         raise CaptureRecordError("invalid run status")
     complete = sum(record.state == "complete" for record in records)
     if run_status is None:
@@ -286,12 +365,20 @@ def summarize_run(records: tuple[PrivateRawRecord, ...], *, planned_cell_count: 
             status = "missing"
         elif any(record.state == "aborted" for record in records):
             status = "aborted"
-            factual_reason = next(record.factual_failure_reason for record in records if record.state == "aborted")
+            factual_reason = next(
+                record.factual_failure_reason for record in records if record.state == "aborted"
+            )
         elif any(record.state == "failed" for record in records):
             status = "failed"
-            factual_reason = next(record.factual_failure_reason for record in records if record.state == "failed")
+            factual_reason = next(
+                record.factual_failure_reason for record in records if record.state == "failed"
+            )
         else:
-            status = "complete" if len(records) == planned_cell_count and complete == planned_cell_count else "incomplete"
+            status = (
+                "complete"
+                if len(records) == planned_cell_count and complete == planned_cell_count
+                else "incomplete"
+            )
     else:
         status = run_status
     return CaptureRunSummary(status, planned_cell_count, complete, False, None, factual_reason)

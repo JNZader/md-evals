@@ -78,9 +78,7 @@ class TestRegexEvaluator:
             name="json_structure",
             pattern=r'\{[^}]*"name"\s*:\s*"[^"]+"[^}]*\}',
         )
-        results = run_async(
-            engine.evaluate('Result: {"name": "test", "value": 42}', [evaluator])
-        )
+        results = run_async(engine.evaluate('Result: {"name": "test", "value": 42}', [evaluator]))
         assert results[0].passed is True
 
 
@@ -104,9 +102,7 @@ class TestExactMatchEvaluator:
         assert results[0].passed is True  # case_sensitive defaults to False
 
     def test_case_sensitive(self, engine):
-        evaluator = ExactMatchEvaluator(
-            name="check", expected="Hello", case_sensitive=True
-        )
+        evaluator = ExactMatchEvaluator(name="check", expected="Hello", case_sensitive=True)
         results = run_async(engine.evaluate("hello world", [evaluator]))
         assert results[0].passed is False
 

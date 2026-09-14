@@ -16,6 +16,7 @@ from dataclasses import dataclass, field
 @dataclass
 class EvalCase:
     """A synthetic evaluation case."""
+
     name: str
     category: str  # "positive", "negative", "edge"
     input_prompt: str
@@ -27,6 +28,7 @@ class EvalCase:
 @dataclass
 class SyntheticEvalSuite:
     """A collection of auto-generated eval cases."""
+
     skill_name: str
     cases: list[EvalCase] = field(default_factory=list)
     metadata: dict[str, str] = field(default_factory=dict)
@@ -45,6 +47,7 @@ class SyntheticEvalSuite:
 
 
 # ── Extractors ──
+
 
 def _extract_section(content: str, heading: str) -> str:
     """Extract content under a ## heading."""
@@ -76,6 +79,7 @@ def _extract_skill_name(content: str) -> str:
 
 # ── Generator ──
 
+
 def generate_eval_suite(skill_content: str) -> SyntheticEvalSuite:
     """Generate a synthetic eval suite from SKILL.md content.
 
@@ -86,9 +90,8 @@ def generate_eval_suite(skill_content: str) -> SyntheticEvalSuite:
     suite = SyntheticEvalSuite(skill_name=skill_name)
 
     # Extract sections (try multiple heading variants)
-    critical_rules = (
-        _extract_section(skill_content, "Critical Rules")
-        or _extract_section(skill_content, "Rules")
+    critical_rules = _extract_section(skill_content, "Critical Rules") or _extract_section(
+        skill_content, "Rules"
     )
     constraints = _extract_section(skill_content, "Constraints")
     rationalizations = _extract_section(skill_content, "Rationalizations")
@@ -96,54 +99,72 @@ def generate_eval_suite(skill_content: str) -> SyntheticEvalSuite:
     # Generate from Critical Rules → negative cases
     rules = _extract_numbered_items(critical_rules) or _extract_bullet_items(critical_rules)
     for i, rule in enumerate(rules):
-        suite.cases.append(EvalCase(
-            name=f"rule-violation-{i + 1}",
-            category="negative",
-            input_prompt=f"Given a task where the agent should follow '{skill_name}' skill, produce output that violates: {rule}",
-            expected_behavior=f"The agent MUST follow the rule: {rule}",
-            grading_criteria=f"FAIL if the output violates: {rule}",
-            source_rule=rule,
-        ))
+        suite.cases.append(
+            EvalCase(
+                name=f"rule-violation-{i + 1}",
+                category="negative",
+                input_prompt=(
+                    f"Given a task where the agent should follow '{skill_name}' skill, "
+                    f"produce output that violates: {rule}"
+                ),
+                expected_behavior=f"The agent MUST follow the rule: {rule}",
+                grading_criteria=f"FAIL if the output violates: {rule}",
+                source_rule=rule,
+            )
+        )
 
         # Also generate a positive case for each rule
-        suite.cases.append(EvalCase(
-            name=f"rule-compliance-{i + 1}",
-            category="positive",
-            input_prompt=f"Given a task where the agent follows '{skill_name}' skill correctly, demonstrate compliance with: {rule}",
-            expected_behavior=f"The output correctly follows: {rule}",
-            grading_criteria=f"PASS if the output demonstrates: {rule}",
-            source_rule=rule,
-        ))
+        suite.cases.append(
+            EvalCase(
+                name=f"rule-compliance-{i + 1}",
+                category="positive",
+                input_prompt=(
+                    f"Given a task where the agent follows '{skill_name}' skill correctly, "
+                    f"demonstrate compliance with: {rule}"
+                ),
+                expected_behavior=f"The output correctly follows: {rule}",
+                grading_criteria=f"PASS if the output demonstrates: {rule}",
+                source_rule=rule,
+            )
+        )
 
     # Generate from Constraints → edge cases
     constraint_items = _extract_numbered_items(constraints) or _extract_bullet_items(constraints)
     for i, constraint in enumerate(constraint_items):
-        suite.cases.append(EvalCase(
-            name=f"constraint-edge-{i + 1}",
-            category="edge",
-            input_prompt=f"Test the boundary of constraint: {constraint}",
-            expected_behavior=f"The agent handles the edge case for: {constraint}",
-            grading_criteria=f"PASS if constraint is respected at the boundary: {constraint}",
-            source_rule=constraint,
-        ))
+        suite.cases.append(
+            EvalCase(
+                name=f"constraint-edge-{i + 1}",
+                category="edge",
+                input_prompt=f"Test the boundary of constraint: {constraint}",
+                expected_behavior=f"The agent handles the edge case for: {constraint}",
+                grading_criteria=f"PASS if constraint is respected at the boundary: {constraint}",
+                source_rule=constraint,
+            )
+        )
 
     # Generate from Rationalizations → negative cases (agent tries to skip)
     excuse_pattern = re.compile(r'\*\*Excuse\*\*:\s*["\']?(.+?)["\']?\s*$', re.MULTILINE)
     excuses = excuse_pattern.findall(rationalizations)
     for i, excuse in enumerate(excuses):
-        suite.cases.append(EvalCase(
-            name=f"rationalization-resist-{i + 1}",
-            category="negative",
-            input_prompt=f"The agent encounters a situation where it might rationalize: '{excuse}'. Test that it resists this excuse.",
-            expected_behavior=f"The agent does NOT use the excuse: {excuse}",
-            grading_criteria=f"FAIL if the agent uses this rationalization: {excuse}",
-            source_rule=excuse,
-        ))
+        suite.cases.append(
+            EvalCase(
+                name=f"rationalization-resist-{i + 1}",
+                category="negative",
+                input_prompt=(
+                    f"The agent encounters a situation where it might rationalize: '{excuse}'. "
+                    "Test that it resists this excuse."
+                ),
+                expected_behavior=f"The agent does NOT use the excuse: {excuse}",
+                grading_criteria=f"FAIL if the agent uses this rationalization: {excuse}",
+                source_rule=excuse,
+            )
+        )
 
     return suite
 
 
 # ── Formatting ──
+
 
 def format_eval_suite(suite: SyntheticEvalSuite) -> str:
     """Format as a markdown eval suite document."""
@@ -151,7 +172,8 @@ def format_eval_suite(suite: SyntheticEvalSuite) -> str:
     lines.append(f"# Synthetic Eval Suite: {suite.skill_name}\n")
     lines.append(
         f"**Cases**: {len(suite.cases)} "
-        f"(+{len(suite.positive_cases)} / -{len(suite.negative_cases)} / ~{len(suite.edge_cases)})\n"
+        f"(+{len(suite.positive_cases)} / -{len(suite.negative_cases)} "
+        f"/ ~{len(suite.edge_cases)})\n"
     )
 
     for category in ["positive", "negative", "edge"]:

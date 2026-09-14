@@ -27,7 +27,9 @@ class TestUserInfo:
     """Tests for UserInfo schema."""
 
     def test_valid_user_info(self) -> None:
-        user = UserInfo(github_id=12345, login="testuser", avatar_url="https://example.com/avatar.png")
+        user = UserInfo(
+            github_id=12345, login="testuser", avatar_url="https://example.com/avatar.png"
+        )
         assert user.github_id == 12345
         assert user.login == "testuser"
         assert user.avatar_url == "https://example.com/avatar.png"

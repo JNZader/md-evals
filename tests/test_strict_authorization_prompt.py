@@ -24,8 +24,12 @@ def ready_packet(assembly=None):
 def test_valid_bound_request_is_deterministic_and_never_authorizes():
     assembly = assemble()
     packet = ready_packet(assembly)
-    first = build_strict_authorization_request(packet=packet, assembly=assembly, generated_at="2026-09-13T00:00:00Z")
-    second = build_strict_authorization_request(packet=packet, assembly=assembly, generated_at="2026-09-13T00:00:00Z")
+    first = build_strict_authorization_request(
+        packet=packet, assembly=assembly, generated_at="2026-09-13T00:00:00Z"
+    )
+    second = build_strict_authorization_request(
+        packet=packet, assembly=assembly, generated_at="2026-09-13T00:00:00Z"
+    )
     assert first == second
     assert first.sha256 == hashlib.sha256(first.manifest_json.encode()).hexdigest()
     assert first.to_dict()["execution_authorized"] is False
@@ -38,10 +42,16 @@ def test_valid_bound_request_is_deterministic_and_never_authorizes():
 def test_not_ready_packet_is_rejected():
     assembly = assemble()
     values = checklist(assembly)
-    values["retry_policy"] = {"status": "pending", "evidence_payload": None, "evidence_digest": None}
+    values["retry_policy"] = {
+        "status": "pending",
+        "evidence_payload": None,
+        "evidence_digest": None,
+    }
     packet = build_strict_run_packet(assembly=assembly, checklist=values)
     with pytest.raises(StrictAuthorizationRequestError, match="not ready"):
-        build_strict_authorization_request(packet=packet, assembly=assembly, generated_at="2026-09-13T00:00:00Z")
+        build_strict_authorization_request(
+            packet=packet, assembly=assembly, generated_at="2026-09-13T00:00:00Z"
+        )
 
 
 def test_unbound_or_mismatched_packet_is_rejected():
@@ -51,15 +61,23 @@ def test_unbound_or_mismatched_packet_is_rejected():
     )
     packet = ready_packet(first)
     with pytest.raises(StrictAuthorizationRequestError, match="not bound"):
-        build_strict_authorization_request(packet=packet, assembly=second, generated_at="2026-09-13T00:00:00Z")
+        build_strict_authorization_request(
+            packet=packet, assembly=second, generated_at="2026-09-13T00:00:00Z"
+        )
 
 
 def test_pending_live_blockers_are_visible_and_pending():
     assembly = assemble()
-    artifact = build_strict_authorization_request(packet=ready_packet(assembly), assembly=assembly, generated_at="2026-09-13T00:00:00Z")
+    artifact = build_strict_authorization_request(
+        packet=ready_packet(assembly), assembly=assembly, generated_at="2026-09-13T00:00:00Z"
+    )
     blockers = artifact.to_dict()["pending_live_blockers"]
     assert blockers
-    assert {item["checklist_id"] for item in blockers} >= {"provider_authenticity", "provider_billing", "strict_live_execution"}
+    assert {item["checklist_id"] for item in blockers} >= {
+        "provider_authenticity",
+        "provider_billing",
+        "strict_live_execution",
+    }
     assert all(item["status"] == "pending" for item in blockers)
     assert artifact.to_dict()["packet_status_snapshot"]["strict_live_execution"] == "pending"
 
@@ -71,35 +89,55 @@ def _canonical_artifact_values(artifact, mutate):
 
 
 def test_empty_pending_live_blockers_are_rejected():
-    artifact = build_strict_authorization_request(packet=ready_packet(), assembly=assemble(), generated_at="2026-09-13T00:00:00Z")
-    forged = _canonical_artifact_values(artifact, lambda values: values.update({"pending_live_blockers": []}))
+    artifact = build_strict_authorization_request(
+        packet=ready_packet(), assembly=assemble(), generated_at="2026-09-13T00:00:00Z"
+    )
+    forged = _canonical_artifact_values(
+        artifact, lambda values: values.update({"pending_live_blockers": []})
+    )
     with pytest.raises(StrictAuthorizationRequestError, match="do not match"):
         parse_strict_authorization_request(forged)
 
 
 def test_missing_pending_live_blocker_is_rejected():
-    artifact = build_strict_authorization_request(packet=ready_packet(), assembly=assemble(), generated_at="2026-09-13T00:00:00Z")
-    forged = _canonical_artifact_values(artifact, lambda values: values["pending_live_blockers"].pop())
+    artifact = build_strict_authorization_request(
+        packet=ready_packet(), assembly=assemble(), generated_at="2026-09-13T00:00:00Z"
+    )
+    forged = _canonical_artifact_values(
+        artifact, lambda values: values["pending_live_blockers"].pop()
+    )
     with pytest.raises(StrictAuthorizationRequestError, match="do not match"):
         parse_strict_authorization_request(forged)
 
 
 def test_duplicate_pending_live_blocker_is_rejected():
-    artifact = build_strict_authorization_request(packet=ready_packet(), assembly=assemble(), generated_at="2026-09-13T00:00:00Z")
-    forged = _canonical_artifact_values(artifact, lambda values: values["pending_live_blockers"].append(values["pending_live_blockers"][0]))
+    artifact = build_strict_authorization_request(
+        packet=ready_packet(), assembly=assemble(), generated_at="2026-09-13T00:00:00Z"
+    )
+    forged = _canonical_artifact_values(
+        artifact,
+        lambda values: values["pending_live_blockers"].append(values["pending_live_blockers"][0]),
+    )
     with pytest.raises(StrictAuthorizationRequestError, match="unique"):
         parse_strict_authorization_request(forged)
 
 
 def test_extra_pending_live_blocker_is_rejected():
-    artifact = build_strict_authorization_request(packet=ready_packet(), assembly=assemble(), generated_at="2026-09-13T00:00:00Z")
+    artifact = build_strict_authorization_request(
+        packet=ready_packet(), assembly=assemble(), generated_at="2026-09-13T00:00:00Z"
+    )
 
     def add_provided_blocker(values):
-        values["pending_live_blockers"].append({
-            "checklist_id": "independent_reviewer",
-            "status": "pending",
-            "reason": "Independent reviewer execution/review must occur during the separate live step.",
-        })
+        values["pending_live_blockers"].append(
+            {
+                "checklist_id": "independent_reviewer",
+                "status": "pending",
+                "reason": (
+                    "Independent reviewer execution/review must occur during the separate live "
+                    "step."
+                ),
+            }
+        )
 
     forged = _canonical_artifact_values(artifact, add_provided_blocker)
     with pytest.raises(StrictAuthorizationRequestError, match="do not match"):
@@ -107,14 +145,21 @@ def test_extra_pending_live_blocker_is_rejected():
 
 
 def test_status_snapshot_mismatch_is_rejected():
-    artifact = build_strict_authorization_request(packet=ready_packet(), assembly=assemble(), generated_at="2026-09-13T00:00:00Z")
-    forged = _canonical_artifact_values(artifact, lambda values: values["packet_status_snapshot"].update({"provider_billing": "provided"}))
+    artifact = build_strict_authorization_request(
+        packet=ready_packet(), assembly=assemble(), generated_at="2026-09-13T00:00:00Z"
+    )
+    forged = _canonical_artifact_values(
+        artifact,
+        lambda values: values["packet_status_snapshot"].update({"provider_billing": "provided"}),
+    )
     with pytest.raises(StrictAuthorizationRequestError, match="do not match"):
         parse_strict_authorization_request(forged)
 
 
 def test_answer_domain_is_closed_without_a_selected_answer():
-    answer = build_strict_authorization_request(packet=ready_packet(), assembly=assemble(), generated_at="2026-09-13T00:00:00Z").to_dict()["answer_domain"]
+    answer = build_strict_authorization_request(
+        packet=ready_packet(), assembly=assemble(), generated_at="2026-09-13T00:00:00Z"
+    ).to_dict()["answer_domain"]
     assert answer["selected_answer"] is None
     assert answer["allowed_tokens"] == ["authorize_live_run", "decline_live_run", "revise_packet"]
 
@@ -122,14 +167,20 @@ def test_answer_domain_is_closed_without_a_selected_answer():
 @pytest.mark.parametrize("generated_at", [None, "", "2026-09-13", "not-a-timestamp"])
 def test_generated_at_must_be_explicit_timestamp(generated_at):
     with pytest.raises(StrictAuthorizationRequestError, match="generated_at"):
-        build_strict_authorization_request(packet=ready_packet(), assembly=assemble(), generated_at=generated_at)
+        build_strict_authorization_request(
+            packet=ready_packet(), assembly=assemble(), generated_at=generated_at
+        )
 
 
 def test_unsafe_options_and_packet_payload_strings_are_rejected():
     with pytest.raises(StrictAuthorizationRequestError, match="command"):
         assembly = assemble()
-        build_strict_authorization_request(packet=ready_packet(assembly), assembly=assembly,
-                                           generated_at="2026-09-13T00:00:00Z", safety_text="run pytest now")
+        build_strict_authorization_request(
+            packet=ready_packet(assembly),
+            assembly=assembly,
+            generated_at="2026-09-13T00:00:00Z",
+            safety_text="run pytest now",
+        )
 
 
 def test_private_key_marker_in_packet_is_rejected_by_authorization_builder():
@@ -140,15 +191,24 @@ def test_private_key_marker_in_packet_is_rejected_by_authorization_builder():
         "-----BEGIN OPENSSH PRIVATE KEY-----"
     )
     forged["checklist"]["independent_reviewer"]["evidence_digest"] = hashlib.sha256(
-        json.dumps(forged["checklist"]["independent_reviewer"]["evidence_payload"],
-                   sort_keys=True, separators=(",", ":"), ensure_ascii=True).encode()
+        json.dumps(
+            forged["checklist"]["independent_reviewer"]["evidence_payload"],
+            sort_keys=True,
+            separators=(",", ":"),
+            ensure_ascii=True,
+        ).encode()
     ).hexdigest()
     raw = json.dumps(forged, sort_keys=True, separators=(",", ":"), ensure_ascii=True)
-    packet = type(packet)(raw, hashlib.sha256(raw.encode()).hexdigest(), packet.assembly_sha256,
-                         _token=type(packet)._TOKEN)
+    packet = type(packet)(
+        raw,
+        hashlib.sha256(raw.encode()).hexdigest(),
+        packet.assembly_sha256,
+        _token=type(packet)._TOKEN,
+    )
     with pytest.raises(StrictAuthorizationRequestError, match="private-key"):
-        build_strict_authorization_request(packet=packet, assembly=assembly,
-                                           generated_at="2026-09-13T00:00:00Z")
+        build_strict_authorization_request(
+            packet=packet, assembly=assembly, generated_at="2026-09-13T00:00:00Z"
+        )
 
 
 def test_destructive_command_in_options_is_rejected_by_authorization_builder():
@@ -157,13 +217,19 @@ def test_destructive_command_in_options_is_rejected_by_authorization_builder():
         build_strict_authorization_request(
             packet=ready_packet(assembly),
             assembly=assembly,
-            generated_at="2026-09-13T00:00:00Z", safety_text="rm -rf /",
+            generated_at="2026-09-13T00:00:00Z",
+            safety_text="rm -rf /",
         )
 
 
 def test_private_names_are_not_in_generated_artifact_and_parser_is_canonical():
-    artifact = build_strict_authorization_request(packet=ready_packet(), assembly=assemble(), generated_at="2026-09-13T00:00:00Z")
-    assert not any(name in artifact.manifest_json.lower() for name in ("private_key", "prompt", "context", "rendered_context", "raw_response"))
+    artifact = build_strict_authorization_request(
+        packet=ready_packet(), assembly=assemble(), generated_at="2026-09-13T00:00:00Z"
+    )
+    assert not any(
+        name in artifact.manifest_json.lower()
+        for name in ("private_key", "prompt", "context", "rendered_context", "raw_response")
+    )
     assert parse_strict_authorization_request(artifact.manifest_json) == artifact
     with pytest.raises(StrictAuthorizationRequestError, match="canonical"):
         parse_strict_authorization_request(json.dumps(artifact.to_dict(), indent=2))
@@ -172,6 +238,13 @@ def test_private_names_are_not_in_generated_artifact_and_parser_is_canonical():
 def test_mutating_inputs_after_build_does_not_change_artifact():
     assembly = assemble()
     packet = ready_packet(assembly)
-    before = build_strict_authorization_request(packet=packet, assembly=assembly, generated_at="2026-09-13T00:00:00Z")
+    before = build_strict_authorization_request(
+        packet=packet, assembly=assembly, generated_at="2026-09-13T00:00:00Z"
+    )
     packet.to_dict()["checklist"]["provider_authenticity"]["status"] = "provided"
-    assert before.manifest_json == build_strict_authorization_request(packet=packet, assembly=assembly, generated_at="2026-09-13T00:00:00Z").manifest_json
+    assert (
+        before.manifest_json
+        == build_strict_authorization_request(
+            packet=packet, assembly=assembly, generated_at="2026-09-13T00:00:00Z"
+        ).manifest_json
+    )

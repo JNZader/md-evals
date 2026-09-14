@@ -10,8 +10,11 @@ import re
 from typing import TYPE_CHECKING
 
 from md_evals.models import (
-    Evaluator, EvaluatorResult,
-    RegexEvaluator, ExactMatchEvaluator, LLMJudgeEvaluator
+    Evaluator,
+    EvaluatorResult,
+    RegexEvaluator,
+    ExactMatchEvaluator,
+    LLMJudgeEvaluator,
 )
 
 if TYPE_CHECKING:
@@ -40,23 +43,23 @@ class EvaluatorEngine:
         self._judge_api_base = judge_api_base
         # Cache for judge adapters (keyed by model name)
         self._judge_adapters: dict[str, "LLMAdapter"] = {}
-    
+
     async def evaluate(
         self,
         output: str,
         evaluators: list[Evaluator],
     ) -> list[EvaluatorResult]:
         """Evaluate output against evaluators.
-        
+
         Args:
             output: LLM output to evaluate
             evaluators: List of evaluator configs
-            
+
         Returns:
             List of EvaluatorResults
         """
         results = []
-        
+
         for evaluator in evaluators:
             if isinstance(evaluator, RegexEvaluator):
                 result = self._evaluate_regex(output, evaluator)
@@ -68,7 +71,7 @@ class EvaluatorEngine:
                         evaluator_name=evaluator.name,
                         passed=False,
                         score=0.0,
-                        reason="LLM adapter not configured"
+                        reason="LLM adapter not configured",
                     )
                 else:
                     result = await self._evaluate_llm_judge(output, evaluator)
@@ -77,57 +80,46 @@ class EvaluatorEngine:
                     evaluator_name=getattr(evaluator, "name", "unknown"),
                     passed=False,
                     score=0.0,
-                    reason=f"Unknown evaluator type: {type(evaluator)}"
+                    reason=f"Unknown evaluator type: {type(evaluator)}",
                 )
-            
+
             results.append(result)
-        
+
         return results
-    
-    def _evaluate_regex(
-        self,
-        output: str,
-        evaluator: RegexEvaluator
-    ) -> EvaluatorResult:
+
+    def _evaluate_regex(self, output: str, evaluator: RegexEvaluator) -> EvaluatorResult:
         """Evaluate output with regex."""
         try:
             pattern = re.compile(evaluator.pattern, re.MULTILINE | re.IGNORECASE)
             match = pattern.search(output)
-            
+
             passed = match is not None if evaluator.pass_on_match else match is None
-            
+
             return EvaluatorResult(
                 evaluator_name=evaluator.name,
                 passed=passed,
                 score=1.0 if passed else 0.0,
-                reason=None if passed else evaluator.fail_message or "Pattern not found"
+                reason=None if passed else evaluator.fail_message or "Pattern not found",
             )
         except re.error as e:
             return EvaluatorResult(
-                evaluator_name=evaluator.name,
-                passed=False,
-                score=0.0,
-                reason=f"Invalid regex: {e}"
+                evaluator_name=evaluator.name, passed=False, score=0.0, reason=f"Invalid regex: {e}"
             )
-    
-    def _evaluate_exact_match(
-        self,
-        output: str,
-        evaluator: ExactMatchEvaluator
-    ) -> EvaluatorResult:
+
+    def _evaluate_exact_match(self, output: str, evaluator: ExactMatchEvaluator) -> EvaluatorResult:
         """Evaluate output with exact match."""
         if evaluator.case_sensitive:
             passed = evaluator.expected in output
         else:
             passed = evaluator.expected.lower() in output.lower()
-        
+
         return EvaluatorResult(
             evaluator_name=evaluator.name,
             passed=passed,
             score=1.0 if passed else 0.0,
-            reason=None if passed else "Exact match not found"
+            reason=None if passed else "Exact match not found",
         )
-    
+
     def _get_judge_adapter(self, evaluator: LLMJudgeEvaluator) -> "LLMAdapter":
         """Get or create an LLMAdapter for the judge model.
 
@@ -213,7 +205,7 @@ class EvaluatorEngine:
                 temperature=0.0,  # Deterministic
                 max_tokens=1000,
             )
-            
+
             # Parse JSON response
             try:
                 result_data = json.loads(response.content)
@@ -222,9 +214,9 @@ class EvaluatorEngine:
                     evaluator_name=evaluator.name,
                     passed=False,
                     score=0.0,
-                    reason="Failed to parse judge response as JSON"
+                    reason="Failed to parse judge response as JSON",
                 )
-            
+
             # Extract score and reasoning
             score = result_data.get("score", 0)
             if isinstance(score, str):
@@ -232,7 +224,7 @@ class EvaluatorEngine:
                     score = float(score)
                 except ValueError:
                     score = 0
-            
+
             # Normalize score to 0-1
             # Scores already in [0, 1] are passed through unchanged.
             # Scores > 1 are assumed to be on a 1-5 or 1-10 scale.
@@ -240,36 +232,32 @@ class EvaluatorEngine:
                 score = score / 5
             elif score > 5 and score <= 10:
                 score = score / 10
-            
+
             reasoning = result_data.get("reasoning", "")
-            
+
             # Determine if passed based on threshold
             passed = score >= evaluator.pass_threshold
-            
+
             return EvaluatorResult(
                 evaluator_name=evaluator.name,
                 passed=passed,
                 score=score,
                 reason=reasoning,
-                details=result_data
+                details=result_data,
             )
-            
+
         except Exception as e:
             return EvaluatorResult(
                 evaluator_name=evaluator.name,
                 passed=False,
                 score=0.0,
-                reason=f"LLM judge error: {e}"
+                reason=f"LLM judge error: {e}",
             )
-    
-    def _build_judge_prompt(
-        self,
-        output: str,
-        criteria: str,
-        output_schema: dict
-    ) -> str:
+
+    def _build_judge_prompt(self, output: str, criteria: str, output_schema: dict) -> str:
         """Build prompt for LLM judge."""
-        return f"""You are an expert evaluator. Your task is to evaluate the quality of an AI response.
+        return f"""You are an expert evaluator. Your task is to evaluate the quality of an AI
+response.
 
 ## Output to Evaluate
 ---

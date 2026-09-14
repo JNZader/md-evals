@@ -287,7 +287,8 @@ def test_rendering_has_no_io_process_network_environment_or_provider_dependency(
         if isinstance(node, (ast.Import, ast.ImportFrom))
     ]
     assert all(
-        isinstance(node, ast.Import) and all(alias.name in {"json", "re"} for alias in node.names)
+        isinstance(node, ast.Import)
+        and all(alias.name in {"json", "re"} for alias in node.names)
         or isinstance(node, ast.ImportFrom)
         and node.module == "copy"
         for node in imports

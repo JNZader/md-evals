@@ -24,7 +24,9 @@ class StrictRunAssemblyError(ValueError):
 
 _SHA256 = re.compile(r"(?:sha256:)?[0-9a-f]{64}\Z")
 _HEX256 = re.compile(r"[0-9a-f]{64}\Z")
-_SECRET_KEY = re.compile(r"(?:secret|token|password|credential|api[_-]?key|authorization|cookie)", re.I)
+_SECRET_KEY = re.compile(
+    r"(?:secret|token|password|credential|api[_-]?key|authorization|cookie)", re.I
+)
 _SECRET_VALUE = re.compile(r"(?:Bearer\s+|sk-[A-Za-z0-9]|gh[pousr]_[A-Za-z0-9]|AKIA[0-9A-Z]{16})")
 _DRIVE_PREFIX = re.compile(r"^[A-Za-z]:")
 _SENSITIVE_PATH_BASENAME = re.compile(
@@ -36,14 +38,58 @@ _GIT_STATUS_CHARS = frozenset(" MADRCUT?!")
 _BILLING_FORBIDDEN = re.compile(r"catalog|estimate|estimated|pricing|price|rate|quote|cost", re.I)
 _ISO_TIMESTAMP = re.compile(r"^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?Z$")
 _SCOPED_DIRTY_SCOPE = "scoped_relevant_files_with_global_dirty_disclosure"
-_SCOPED_DIRTY_KEYS = {"clean", "revision", "digest", "captured_at", "scope", "worktree_clean", "status_short_count", "relevant_files"}
+_SCOPED_DIRTY_KEYS = {
+    "clean",
+    "revision",
+    "digest",
+    "captured_at",
+    "scope",
+    "worktree_clean",
+    "status_short_count",
+    "relevant_files",
+}
 _SCOPED_DIRTY_FILE_KEYS = {"path", "git_status", "bytes", "sha256"}
-_ARM_KEYS = {"arm", "repository", "revision", "canonical_pack_snapshot_sha256", "selected_ids", "rendered_context", "rendered_context_sha256"}
-_PLAN_KEYS = {"profile", "purpose", "provider", "model", "backend_config_sha256", "limits", "repetitions", "planned_calls", "policy", "execution_authorized", "blockers", "required_backend_checks", "cases"}
+_ARM_KEYS = {
+    "arm",
+    "repository",
+    "revision",
+    "canonical_pack_snapshot_sha256",
+    "selected_ids",
+    "rendered_context",
+    "rendered_context_sha256",
+}
+_PLAN_KEYS = {
+    "profile",
+    "purpose",
+    "provider",
+    "model",
+    "backend_config_sha256",
+    "limits",
+    "repetitions",
+    "planned_calls",
+    "policy",
+    "execution_authorized",
+    "blockers",
+    "required_backend_checks",
+    "cases",
+}
 _CASE_KEYS = {"name", "prompt", "expected", "arms"}
 _LIMIT_KEYS = {"max_primary_calls", "per_call_timeout_seconds", "total_timeout_seconds"}
 _POLICY_KEYS = {"fallbacks", "adapter_retries"}
-_TOP_KEYS = {"profile", "state", "plan_manifest_sha256", "plan", "gold_reference", "reviewer_metadata", "billing_scaffold", "provider_billing_attestation", "repository_state", "cleanup_declaration", "consent", "execution_authorized"}
+_TOP_KEYS = {
+    "profile",
+    "state",
+    "plan_manifest_sha256",
+    "plan",
+    "gold_reference",
+    "reviewer_metadata",
+    "billing_scaffold",
+    "provider_billing_attestation",
+    "repository_state",
+    "cleanup_declaration",
+    "consent",
+    "execution_authorized",
+}
 
 
 def _fail(message: str) -> None:
@@ -58,7 +104,11 @@ def _exact_int(value: object, label: str, *, positive: bool = False) -> int:
 
 def _exact_bool(value: object, label: str, expected: bool | None = None) -> bool:
     if type(value) is not bool or (expected is not None and value is not expected):
-        _fail(f"{label} must be exactly {expected}" if expected is not None else f"{label} must be boolean")
+        _fail(
+            f"{label} must be exactly {expected}"
+            if expected is not None
+            else f"{label} must be boolean"
+        )
     return value
 
 
@@ -71,7 +121,9 @@ def _sha(value: object, label: str, *, hex_only: bool = False) -> str:
 
 def _canonical(value: object, label: str) -> str:
     try:
-        return json.dumps(value, sort_keys=True, separators=(",", ":"), ensure_ascii=True, allow_nan=False)
+        return json.dumps(
+            value, sort_keys=True, separators=(",", ":"), ensure_ascii=True, allow_nan=False
+        )
     except (TypeError, ValueError, RecursionError) as exc:
         raise StrictRunAssemblyError(f"{label} must be canonical JSON") from exc
 
@@ -100,7 +152,7 @@ def _reject_secrets(value: object, path: str = "manifest") -> None:
         for index, child in enumerate(value):
             _reject_secrets(child, f"{path}[{index}]")
     elif type(value) is str and _SECRET_VALUE.search(value):
-            _fail(f"{path} contains a secret-like value")
+        _fail(f"{path} contains a secret-like value")
 
 
 def _validate_scoped_path(path: object) -> str:
@@ -112,7 +164,11 @@ def _validate_scoped_path(path: object) -> str:
     if normalized != path or any(part in {"", ".", ".."} for part in path.split("/")):
         _fail("repository relevant file path must be relative and normalized")
     basename = PurePosixPath(path).name
-    if basename == ".env" or basename.startswith(".env.") or _SENSITIVE_PATH_BASENAME.search(basename) is not None:
+    if (
+        basename == ".env"
+        or basename.startswith(".env.")
+        or _SENSITIVE_PATH_BASENAME.search(basename) is not None
+    ):
         _fail("repository relevant file path is sensitive")
     return path
 
@@ -134,7 +190,19 @@ def _validate_arm(value: object) -> dict[str, Any]:
     if type(label) is not str or label not in {"CONTROL", "B_STRUCTURE", "C_MEMORY", "E_PAIRED"}:
         _fail("strict plan arm has an unsupported arm label")
     if label == "CONTROL":
-        if any(arm[key] is not None for key in ("repository", "revision", "canonical_pack_snapshot_sha256", "rendered_context", "rendered_context_sha256")) or arm["selected_ids"] != []:
+        if (
+            any(
+                arm[key] is not None
+                for key in (
+                    "repository",
+                    "revision",
+                    "canonical_pack_snapshot_sha256",
+                    "rendered_context",
+                    "rendered_context_sha256",
+                )
+            )
+            or arm["selected_ids"] != []
+        ):
             _fail("CONTROL arm must contain no context")
         return arm
     if label in {"B_STRUCTURE", "C_MEMORY"}:
@@ -144,7 +212,12 @@ def _validate_arm(value: object) -> dict[str, Any]:
         _fail("E_PAIRED arm must not have repository or revision")
     _sha(arm["canonical_pack_snapshot_sha256"], f"{label} pack snapshot digest")
     ids = arm["selected_ids"]
-    if type(ids) is not list or not ids or any(type(item) is not str or _HEX256.fullmatch(item) is None for item in ids) or len(ids) != len(set(ids)):
+    if (
+        type(ids) is not list
+        or not ids
+        or any(type(item) is not str or _HEX256.fullmatch(item) is None for item in ids)
+        or len(ids) != len(set(ids))
+    ):
         _fail(f"{label} selected IDs must be unique 64-hex strings")
     context = arm["rendered_context"]
     if type(context) is not str or not context:
@@ -168,7 +241,9 @@ def _bind_plan(plan: CapturedPilotPlan) -> tuple[dict[str, Any], str]:
     return _validate_plan(manifest, plan.manifest_json, digest), digest
 
 
-def _validate_plan(manifest: object, raw: str | None = None, digest: str | None = None) -> dict[str, Any]:
+def _validate_plan(
+    manifest: object, raw: str | None = None, digest: str | None = None
+) -> dict[str, Any]:
     plan = _closed(manifest, _PLAN_KEYS, "captured pilot plan")
     if raw is not None and _canonical(plan, "plan manifest") != raw:
         _fail("plan manifest is not canonical")
@@ -210,11 +285,22 @@ def _validate_plan(manifest: object, raw: str | None = None, digest: str | None 
         names.add(item["name"])
         _nonempty(item["prompt"], "plan case prompt")
         expected = item["expected"]
-        if type(expected) is not dict or set(expected) != {"answer", "citations", "abstain"} or type(expected["abstain"]) is not bool or type(expected["citations"]) is not list or not all(type(x) is str and _HEX256.fullmatch(x) for x in expected["citations"]) or len(expected["citations"]) != len(set(expected["citations"])):
+        if (
+            type(expected) is not dict
+            or set(expected) != {"answer", "citations", "abstain"}
+            or type(expected["abstain"]) is not bool
+            or type(expected["citations"]) is not list
+            or not all(type(x) is str and _HEX256.fullmatch(x) for x in expected["citations"])
+            or len(expected["citations"]) != len(set(expected["citations"]))
+        ):
             _fail("plan case expected gold has an invalid schema")
-        if expected["abstain"] is False and (type(expected["answer"]) is not str or not expected["answer"]):
+        if expected["abstain"] is False and (
+            type(expected["answer"]) is not str or not expected["answer"]
+        ):
             _fail("plan case expected answer is required")
-        if expected["abstain"] is True and (expected["answer"] is not None or expected["citations"] != []):
+        if expected["abstain"] is True and (
+            expected["answer"] is not None or expected["citations"] != []
+        ):
             _fail("plan case abstention has invalid gold")
         arms = item["arms"]
         if type(arms) is not list or len(arms) != 4:
@@ -223,7 +309,10 @@ def _validate_plan(manifest: object, raw: str | None = None, digest: str | None 
         if {arm["arm"] for arm in validated} != {"CONTROL", "B_STRUCTURE", "C_MEMORY", "E_PAIRED"}:
             _fail("strict plan must represent exactly four supported arms")
         item["arms"] = validated
-    if plan["planned_calls"] != len(cases) * 4 or limits["max_primary_calls"] < plan["planned_calls"]:
+    if (
+        plan["planned_calls"] != len(cases) * 4
+        or limits["max_primary_calls"] < plan["planned_calls"]
+    ):
         _fail("strict plan must contain exactly 12 cells")
     _reject_secrets(plan)
     return plan
@@ -234,40 +323,64 @@ def _payload_digest(payload: object, label: str) -> str:
 
 
 def _validate_gold(value: object, names: set[str]) -> dict[str, Any]:
-    result = _closed(value, {"version", "source_artifact", "per_task_references", "scoring_policy", "digest"}, "gold/reference")
+    result = _closed(
+        value,
+        {"version", "source_artifact", "per_task_references", "scoring_policy", "digest"},
+        "gold/reference",
+    )
     _nonempty(result["version"], "gold version")
-    source = _closed(result["source_artifact"], {"schema", "source_id", "artifact_digest", "artifact_payload"}, "gold source artifact")
+    source = _closed(
+        result["source_artifact"],
+        {"schema", "source_id", "artifact_digest", "artifact_payload"},
+        "gold source artifact",
+    )
     _nonempty(source["schema"], "gold source schema")
     _nonempty(source["source_id"], "gold source ID")
     _sha(source["artifact_digest"], "gold source artifact digest", hex_only=True)
     if source["artifact_payload"] is None:
         _fail("gold source artifact payload is required")
-    if source["artifact_digest"] != _payload_digest(source["artifact_payload"], "gold source artifact payload"):
+    if source["artifact_digest"] != _payload_digest(
+        source["artifact_payload"], "gold source artifact payload"
+    ):
         _fail("gold source artifact digest does not match payload")
     result["source_artifact"] = source
     refs = result["per_task_references"]
     if type(refs) is not dict or set(refs) != names:
         _fail("gold references must cover every plan case")
     for name, reference in refs.items():
-        item = _closed(reference, {"reference_digest", "reference_label", "annotation_policy", "reference_payload"}, f"gold reference for {name}")
+        item = _closed(
+            reference,
+            {"reference_digest", "reference_label", "annotation_policy", "reference_payload"},
+            f"gold reference for {name}",
+        )
         _sha(item["reference_digest"], f"gold reference digest for {name}", hex_only=True)
         _nonempty(item["reference_label"], f"gold reference label for {name}")
         _nonempty(item["annotation_policy"], f"annotation policy for {name}")
         if item["reference_payload"] is None:
             _fail(f"gold reference payload is required for {name}")
-        if item["reference_digest"] != _payload_digest(item["reference_payload"], f"gold reference payload for {name}"):
+        if item["reference_digest"] != _payload_digest(
+            item["reference_payload"], f"gold reference payload for {name}"
+        ):
             _fail(f"gold reference digest does not match payload for {name}")
         refs[name] = item
     _nonempty(result["scoring_policy"], "scoring policy")
     _sha(result["digest"], "gold digest", hex_only=True)
-    payload = {key: result[key] for key in ("version", "source_artifact", "per_task_references", "scoring_policy")}
-    if result["digest"] != hashlib.sha256(_canonical(payload, "gold/reference").encode()).hexdigest():
+    payload = {
+        key: result[key]
+        for key in ("version", "source_artifact", "per_task_references", "scoring_policy")
+    }
+    if (
+        result["digest"]
+        != hashlib.sha256(_canonical(payload, "gold/reference").encode()).hexdigest()
+    ):
         _fail("gold digest does not match gold/reference content")
     _reject_secrets(result, "gold_reference")
     return result
 
 
-def _validate_declarations(manifest: object, *, state: str, subject: str | None = None, raw: str | None = None) -> dict[str, Any]:
+def _validate_declarations(
+    manifest: object, *, state: str, subject: str | None = None, raw: str | None = None
+) -> dict[str, Any]:
     result = _closed(manifest, _TOP_KEYS, "strict assembly")
     if result["profile"] != "StrictRunAssembly.v2":
         _fail("candidate is not a StrictRunAssembly.v2 artifact")
@@ -282,12 +395,21 @@ def _validate_declarations(manifest: object, *, state: str, subject: str | None 
     names = {case["name"] for case in plan["cases"]}
     result["gold_reference"] = _validate_gold(result["gold_reference"], names)
     result["reviewer_metadata"] = _validate_review(result["reviewer_metadata"])
-    result["billing_scaffold"] = _validate_scaffold(result["billing_scaffold"], plan_sha=result["plan_manifest_sha256"], plan_provider=plan["provider"], plan_model=plan["model"])
+    result["billing_scaffold"] = _validate_scaffold(
+        result["billing_scaffold"],
+        plan_sha=result["plan_manifest_sha256"],
+        plan_provider=plan["provider"],
+        plan_model=plan["model"],
+    )
     if state == "candidate":
         if result["provider_billing_attestation"] is not None:
             _fail("candidate cannot contain final provider billing evidence")
     else:
-        result["provider_billing_attestation"] = _validate_billing(result["provider_billing_attestation"], plan_provider=plan["provider"], plan_model=plan["model"])
+        result["provider_billing_attestation"] = _validate_billing(
+            result["provider_billing_attestation"],
+            plan_provider=plan["provider"],
+            plan_model=plan["model"],
+        )
     result["repository_state"] = _validate_repository(result["repository_state"])
     result["cleanup_declaration"] = _validate_cleanup(result["cleanup_declaration"])
     consent = _closed(result["consent"], {"required", "subject_manifest_sha256"}, "consent")
@@ -305,26 +427,52 @@ def _validate_declarations(manifest: object, *, state: str, subject: str | None 
 
 
 def _validate_review(value: object) -> dict[str, Any]:
-    result = _closed(value, {"operator_identity", "reviewer_identity", "interpretation_authority_identity"}, "reviewer metadata")
+    result = _closed(
+        value,
+        {"operator_identity", "reviewer_identity", "interpretation_authority_identity"},
+        "reviewer metadata",
+    )
     for key, item in result.items():
         _nonempty(item, key)
-    if result["reviewer_identity"] in {result["operator_identity"], result["interpretation_authority_identity"]}:
+    if result["reviewer_identity"] in {
+        result["operator_identity"],
+        result["interpretation_authority_identity"],
+    }:
         _fail("reviewer must be independent")
     return result
 
 
-def _validate_scaffold(value: object, *, plan_sha: str, plan_provider: str, plan_model: str) -> dict[str, Any]:
+def _validate_scaffold(
+    value: object, *, plan_sha: str, plan_provider: str, plan_model: str
+) -> dict[str, Any]:
     try:
         result = validate_billing_scaffold(value)
     except ValueError as exc:
         _fail(str(exc))
-    if result["plan_sha256"] != plan_sha or result["provider"] != plan_provider or result["model"] != plan_model:
+    if (
+        result["plan_sha256"] != plan_sha
+        or result["provider"] != plan_provider
+        or result["model"] != plan_model
+    ):
         _fail("billing scaffold is not bound to the plan")
     return result
 
 
 def _validate_billing(value: object, *, plan_provider: str, plan_model: str) -> dict[str, Any]:
-    result = _closed(value, {"provider_charge_attested", "provider_identity", "attestation_kind", "attestation_id", "attested_at", "evidence_payload", "evidence_digest"}, "billing attestation")
+    result = _closed(
+        value,
+        {
+            "provider_charge_attested",
+            "provider_identity",
+            "attestation_kind",
+            "attestation_id",
+            "attested_at",
+            "evidence_payload",
+            "evidence_digest",
+        },
+        "billing attestation",
+    )
+
     def scan(item: object) -> None:
         if type(item) is str and _BILLING_FORBIDDEN.search(item):
             _fail("catalog or estimated billing evidence cannot attest to a provider charge")
@@ -334,6 +482,7 @@ def _validate_billing(value: object, *, plan_provider: str, plan_model: str) -> 
         elif type(item) is list:
             for child in item:
                 scan(child)
+
     scan(result)
     _exact_bool(result["provider_charge_attested"], "provider charge attestation", False)
     _nonempty(result["provider_identity"], "billing provider identity")
@@ -345,7 +494,20 @@ def _validate_billing(value: object, *, plan_provider: str, plan_model: str) -> 
         _nonempty(result[key], f"billing {key}")
     if _ISO_TIMESTAMP.fullmatch(result["attested_at"]) is None:
         _fail("billing attested_at must be an ISO timestamp")
-    evidence = _closed(result["evidence_payload"], {"provider", "model", "charge_assertion", "source", "observed_at", "external_evidence_digest", "local_ledger_digest", "authenticity_unproven_by_validator"}, "billing evidence payload")
+    evidence = _closed(
+        result["evidence_payload"],
+        {
+            "provider",
+            "model",
+            "charge_assertion",
+            "source",
+            "observed_at",
+            "external_evidence_digest",
+            "local_ledger_digest",
+            "authenticity_unproven_by_validator",
+        },
+        "billing evidence payload",
+    )
     if evidence["provider"] != plan_provider or evidence["model"] != plan_model:
         _fail("billing evidence provider/model does not match plan")
     if evidence["charge_assertion"] not in {"charged", "zero_charge"}:
@@ -356,7 +518,11 @@ def _validate_billing(value: object, *, plan_provider: str, plan_model: str) -> 
         _fail("billing evidence observed_at must be an ISO timestamp")
     _sha(evidence["external_evidence_digest"], "external evidence digest", hex_only=True)
     _sha(evidence["local_ledger_digest"], "local ledger digest", hex_only=True)
-    _exact_bool(evidence["authenticity_unproven_by_validator"], "billing authenticity_unproven_by_validator", True)
+    _exact_bool(
+        evidence["authenticity_unproven_by_validator"],
+        "billing authenticity_unproven_by_validator",
+        True,
+    )
     result["evidence_payload"] = evidence
     _sha(result["evidence_digest"], "billing evidence digest", hex_only=True)
     if result["evidence_digest"] != _payload_digest(evidence, "billing evidence payload"):
@@ -405,7 +571,16 @@ def _validate_repository(value: object, *, digest_hex_only: bool = False) -> dic
 
 
 def _validate_cleanup(value: object) -> dict[str, Any]:
-    result = _closed(value, {"retention_policy", "deletion_deadline", "deletion_evidence_required", "deletion_evidence_placeholder"}, "cleanup declaration")
+    result = _closed(
+        value,
+        {
+            "retention_policy",
+            "deletion_deadline",
+            "deletion_evidence_required",
+            "deletion_evidence_placeholder",
+        },
+        "cleanup declaration",
+    )
     for key in ("retention_policy", "deletion_deadline", "deletion_evidence_placeholder"):
         _nonempty(result[key], key)
     _exact_bool(result["deletion_evidence_required"], "deletion evidence required", True)
@@ -415,13 +590,16 @@ def _validate_cleanup(value: object) -> dict[str, Any]:
 @dataclass(frozen=True, init=False)
 class StrictRunAssembly:
     """An immutable canonical manifest and its artifact digest."""
+
     manifest_json: str
     sha256: str
     plan_sha256: str
 
     _TOKEN = object()
 
-    def __init__(self, manifest_json: str, sha256: str, plan_sha256: str, *, _token: object = None) -> None:
+    def __init__(
+        self, manifest_json: str, sha256: str, plan_sha256: str, *, _token: object = None
+    ) -> None:
         if _token is not StrictRunAssembly._TOKEN:
             _fail("StrictRunAssembly must be created by the builder or parser")
         object.__setattr__(self, "manifest_json", manifest_json)
@@ -432,15 +610,44 @@ class StrictRunAssembly:
         return json.loads(self.manifest_json)
 
 
-def build_strict_run_assembly(*, plan: CapturedPilotPlan, gold_reference: dict[str, Any], reviewer_metadata: dict[str, str], billing_scaffold: dict[str, Any] | None = None, billing_attestation: dict[str, Any] | None = None, repository_state: dict[str, Any], cleanup_declaration: dict[str, Any]) -> StrictRunAssembly:
+def build_strict_run_assembly(
+    *,
+    plan: CapturedPilotPlan,
+    gold_reference: dict[str, Any],
+    reviewer_metadata: dict[str, str],
+    billing_scaffold: dict[str, Any] | None = None,
+    billing_attestation: dict[str, Any] | None = None,
+    repository_state: dict[str, Any],
+    cleanup_declaration: dict[str, Any],
+) -> StrictRunAssembly:
     if billing_scaffold is None:
         billing_scaffold = billing_attestation
     if billing_scaffold is None:
         _fail("billing_scaffold is required before live execution")
     plan_manifest, plan_digest = _bind_plan(plan)
     names = {case["name"] for case in plan_manifest["cases"]}
-    manifest = {"profile": "StrictRunAssembly.v2", "state": "candidate", "plan_manifest_sha256": plan_digest, "plan": plan_manifest, "gold_reference": _validate_gold(gold_reference, names), "reviewer_metadata": _validate_review(reviewer_metadata), "billing_scaffold": _validate_scaffold(billing_scaffold, plan_sha=plan_digest, plan_provider=plan_manifest["provider"], plan_model=plan_manifest["model"]), "provider_billing_attestation": None, "repository_state": _validate_repository(repository_state), "cleanup_declaration": _validate_cleanup(cleanup_declaration), "consent": {"required": True, "subject_manifest_sha256": None}, "execution_authorized": False}
-    manifest_json = _canonical(_validate_declarations(manifest, state="candidate"), "strict assembly")
+    manifest = {
+        "profile": "StrictRunAssembly.v2",
+        "state": "candidate",
+        "plan_manifest_sha256": plan_digest,
+        "plan": plan_manifest,
+        "gold_reference": _validate_gold(gold_reference, names),
+        "reviewer_metadata": _validate_review(reviewer_metadata),
+        "billing_scaffold": _validate_scaffold(
+            billing_scaffold,
+            plan_sha=plan_digest,
+            plan_provider=plan_manifest["provider"],
+            plan_model=plan_manifest["model"],
+        ),
+        "provider_billing_attestation": None,
+        "repository_state": _validate_repository(repository_state),
+        "cleanup_declaration": _validate_cleanup(cleanup_declaration),
+        "consent": {"required": True, "subject_manifest_sha256": None},
+        "execution_authorized": False,
+    }
+    manifest_json = _canonical(
+        _validate_declarations(manifest, state="candidate"), "strict assembly"
+    )
     digest = hashlib.sha256(manifest_json.encode()).hexdigest()
     return StrictRunAssembly(manifest_json, digest, plan_digest, _token=StrictRunAssembly._TOKEN)
 
@@ -459,25 +666,42 @@ def parse_strict_run_assembly(manifest_json: str) -> StrictRunAssembly:
     _validate_declarations(
         manifest,
         state=state,
-        subject=None if state == "candidate" else manifest.get("consent", {}).get("subject_manifest_sha256"),
+        subject=None
+        if state == "candidate"
+        else manifest.get("consent", {}).get("subject_manifest_sha256"),
         raw=manifest_json,
     )
     digest = hashlib.sha256(manifest_json.encode()).hexdigest()
-    return StrictRunAssembly(manifest_json, digest, manifest["plan_manifest_sha256"], _token=StrictRunAssembly._TOKEN)
+    return StrictRunAssembly(
+        manifest_json, digest, manifest["plan_manifest_sha256"], _token=StrictRunAssembly._TOKEN
+    )
 
 
-def finalize_strict_run_assembly(candidate: StrictRunAssembly, consent_digest: str, *, provider_billing_attestation: dict[str, Any] | None = None) -> StrictRunAssembly:
+def finalize_strict_run_assembly(
+    candidate: StrictRunAssembly,
+    consent_digest: str,
+    *,
+    provider_billing_attestation: dict[str, Any] | None = None,
+) -> StrictRunAssembly:
     if not isinstance(candidate, StrictRunAssembly):
         _fail("candidate must be a StrictRunAssembly")
     try:
         candidate_manifest = candidate.to_dict()
     except (json.JSONDecodeError, TypeError, RecursionError) as exc:
         raise StrictRunAssemblyError("candidate manifest must be canonical JSON") from exc
-    if candidate_manifest.get("state") == "finalized" or candidate_manifest.get("consent", {}).get("subject_manifest_sha256") is not None:
+    if (
+        candidate_manifest.get("state") == "finalized"
+        or candidate_manifest.get("consent", {}).get("subject_manifest_sha256") is not None
+    ):
         _fail("candidate is already finalized")
-    if _sha(consent_digest, "consent digest", hex_only=True) != candidate.sha256 or hashlib.sha256(candidate.manifest_json.encode()).hexdigest() != candidate.sha256:
+    if (
+        _sha(consent_digest, "consent digest", hex_only=True) != candidate.sha256
+        or hashlib.sha256(candidate.manifest_json.encode()).hexdigest() != candidate.sha256
+    ):
         _fail("consent is not bound to this candidate manifest subject")
-    manifest = _validate_declarations(candidate_manifest, state="candidate", raw=candidate.manifest_json)
+    manifest = _validate_declarations(
+        candidate_manifest, state="candidate", raw=candidate.manifest_json
+    )
     if provider_billing_attestation is None:
         _fail("finalization requires validated live provider billing evidence")
     manifest["provider_billing_attestation"] = _validate_billing(
@@ -489,8 +713,16 @@ def finalize_strict_run_assembly(candidate: StrictRunAssembly, consent_digest: s
         _fail("candidate plan digest does not match embedded plan")
     manifest["state"] = "finalized"
     manifest["consent"]["subject_manifest_sha256"] = candidate.sha256
-    final_json = _canonical(_validate_declarations(manifest, state="finalized", subject=candidate.sha256), "final strict assembly")
-    return StrictRunAssembly(final_json, hashlib.sha256(final_json.encode()).hexdigest(), candidate.plan_sha256, _token=StrictRunAssembly._TOKEN)
+    final_json = _canonical(
+        _validate_declarations(manifest, state="finalized", subject=candidate.sha256),
+        "final strict assembly",
+    )
+    return StrictRunAssembly(
+        final_json,
+        hashlib.sha256(final_json.encode()).hexdigest(),
+        candidate.plan_sha256,
+        _token=StrictRunAssembly._TOKEN,
+    )
 
 
 prepare_strict_run_assembly = build_strict_run_assembly

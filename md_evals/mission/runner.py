@@ -161,15 +161,19 @@ class MissionRunner:
             try:
                 from md_evals.llm import inject_skill
 
-                final_prompt, system_prompt = inject_skill(
-                    prompt, config.skill_under_test
-                )
+                final_prompt, system_prompt = inject_skill(prompt, config.skill_under_test)
                 response = await self._llm_adapter.complete(
                     prompt=final_prompt,
                     system_prompt=system_prompt,
                 )
                 response_content = response.content
-            except (LLMError, LLMTimeoutError, FileNotFoundError, ConnectionError, TimeoutError) as exc:
+            except (
+                LLMError,
+                LLMTimeoutError,
+                FileNotFoundError,
+                ConnectionError,
+                TimeoutError,
+            ) as exc:
                 duration = int((time.monotonic() - start) * 1000)
                 return MissionTestResult(
                     test_name=test_case.name,
@@ -264,9 +268,7 @@ class MissionRunner:
             }
 
     @staticmethod
-    def _eval_exact_match(
-        criterion: MissionPassCriteria, content: str
-    ) -> dict[str, Any]:
+    def _eval_exact_match(criterion: MissionPassCriteria, content: str) -> dict[str, Any]:
         """Evaluate exact-match criterion."""
         expected = criterion.expected or ""
         if criterion.case_sensitive:

@@ -138,9 +138,9 @@ def _build_svg_radar(dimensions: list[dict[str, Any]], size: int = 400) -> str:
         labels.append(
             f'<text x="{x:.1f}" y="{y:.1f}" fill="#9CA3AF" '
             f'font-size="12" text-anchor="{anchor}" dominant-baseline="central">'
-            f'{html.escape(name)} '
+            f"{html.escape(name)} "
             f'<tspan fill="{color}" font-weight="bold">{html.escape(grade)}</tspan>'
-            f'</text>'
+            f"</text>"
         )
 
     svg = f"""\
@@ -361,9 +361,7 @@ class HTMLExporter:
 
             evidence_html = ""
             if evidence:
-                items = "".join(
-                    f"<li>{html.escape(str(e))}</li>" for e in evidence
-                )
+                items = "".join(f"<li>{html.escape(str(e))}</li>" for e in evidence)
                 evidence_html = f'<ul class="evidence-list">{items}</ul>'
 
             dim_rows += f"""\
@@ -387,7 +385,9 @@ class HTMLExporter:
             for f in findings:
                 sev = f.get("severity", "info")
                 msg = html.escape(f.get("message", ""))
-                sev_color = {"error": "#EF4444", "warning": "#EAB308", "info": "#3B82F6"}.get(sev, "#9CA3AF")
+                sev_color = {"error": "#EF4444", "warning": "#EAB308", "info": "#3B82F6"}.get(
+                    sev, "#9CA3AF"
+                )
                 findings_html += f'<li style="color:{sev_color}">[{sev.upper()}] {msg}</li>'
 
             precheck_html = f"""\
@@ -472,12 +472,16 @@ class HTMLExporter:
             grade_color = GRADE_COLORS.get(grade, "#EF4444")
             threshold_class = "pass" if meets else "fail"
             threshold_text = "PASS" if meets else "FAIL"
+            grade_label = (
+                f'<span class="grade-label" style="color:{grade_color};margin-left:0.5rem">'
+                f"{html.escape(grade)}</span>"
+            )
             skill_cards += f"""\
 <div class="card">
   <div style="display:flex;justify-content:space-between;align-items:center">
     <div>
       <strong>{html.escape(skill_path)}</strong>
-      <span class="grade-label" style="color:{grade_color};margin-left:0.5rem">{html.escape(grade)}</span>
+      {grade_label}
       <span class="score-text">{eval_result.overall_score:.2f}</span>
     </div>
     <span class="{threshold_class}" style="font-weight:bold">{threshold_text}</span>

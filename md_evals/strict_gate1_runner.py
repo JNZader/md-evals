@@ -43,12 +43,25 @@ class StrictGate1Error(ValueError):
     """A strict Gate 1 artifact or admission precondition is invalid."""
 
 
-_STRICT_GATE1_INPUT_KEYS = frozenset({
-    "cases", "provider", "model", "backend_config_sha256", "limits",
-    "gold_reference", "reviewer_metadata", "billing_scaffold",
-    "repository_state", "cleanup_declaration", "checklist", "generated_at",
-})
-_LEGACY_STRICT_GATE1_INPUT_KEYS = (_STRICT_GATE1_INPUT_KEYS - {"billing_scaffold"}) | {"billing_attestation"}
+_STRICT_GATE1_INPUT_KEYS = frozenset(
+    {
+        "cases",
+        "provider",
+        "model",
+        "backend_config_sha256",
+        "limits",
+        "gold_reference",
+        "reviewer_metadata",
+        "billing_scaffold",
+        "repository_state",
+        "cleanup_declaration",
+        "checklist",
+        "generated_at",
+    }
+)
+_LEGACY_STRICT_GATE1_INPUT_KEYS = (_STRICT_GATE1_INPUT_KEYS - {"billing_scaffold"}) | {
+    "billing_attestation"
+}
 
 
 def load_strict_gate1_input(path: str | Path) -> dict[str, Any]:
@@ -112,7 +125,11 @@ def write_strict_gate1_artifacts(
         try:
             current_fd = os.open(os.sep if directory.is_absolute() else ".", flags)
             try:
-                parent_parts = directory.parent.parts[1:] if directory.is_absolute() else directory.parent.parts
+                parent_parts = (
+                    directory.parent.parts[1:]
+                    if directory.is_absolute()
+                    else directory.parent.parts
+                )
                 for part in parent_parts:
                     try:
                         next_fd = os.open(part, flags, dir_fd=current_fd)
@@ -131,7 +148,9 @@ def write_strict_gate1_artifacts(
         except StrictGate1Error:
             raise
         except OSError as exc:
-            raise StrictGate1Error("strict Gate 1 output directory must be a real directory") from exc
+            raise StrictGate1Error(
+                "strict Gate 1 output directory must be a real directory"
+            ) from exc
 
     try:
         files = {
@@ -154,7 +173,10 @@ def write_strict_gate1_artifacts(
         published = False
         try:
             targets = (*manifests, files["index"])
-            if any(not isinstance(filename, str) or Path(filename).name != filename for filename in targets):
+            if any(
+                not isinstance(filename, str) or Path(filename).name != filename
+                for filename in targets
+            ):
                 raise StrictGate1Error("strict Gate 1 artifact target is invalid")
 
             try:
@@ -164,7 +186,9 @@ def write_strict_gate1_artifacts(
             except FileNotFoundError:
                 output_fd = None
             except OSError as exc:
-                raise StrictGate1Error("strict Gate 1 output directory must be a real directory") from exc
+                raise StrictGate1Error(
+                    "strict Gate 1 output directory must be a real directory"
+                ) from exc
             if output_fd is not None:
                 existing = set(os.listdir(output_fd))
                 if existing & set(targets):
@@ -177,7 +201,8 @@ def write_strict_gate1_artifacts(
                 "files": files,
             }
             contents = manifests | {
-                files["index"]: json.dumps(index, ensure_ascii=True, indent=2, sort_keys=True) + "\n"
+                files["index"]: json.dumps(index, ensure_ascii=True, indent=2, sort_keys=True)
+                + "\n"
             }
             stage_name = f".{output_name}.strict-gate1-{secrets.token_hex(12)}.tmpdir"
             os.mkdir(stage_name, 0o700, dir_fd=parent_fd)
@@ -187,8 +212,10 @@ def write_strict_gate1_artifacts(
             try:
                 for filename, content in contents.items():
                     descriptor = os.open(
-                        filename, os.O_WRONLY | os.O_CREAT | os.O_EXCL | os.O_NOFOLLOW,
-                        0o600, dir_fd=stage_fd,
+                        filename,
+                        os.O_WRONLY | os.O_CREAT | os.O_EXCL | os.O_NOFOLLOW,
+                        0o600,
+                        dir_fd=stage_fd,
                     )
                     try:
                         with os.fdopen(descriptor, "w", encoding="utf-8") as handle:
@@ -365,8 +392,10 @@ def _contains_dispatched_material(answer: object, cell: StrictGate1Cell) -> bool
         if source_text in answer_text:
             return True
         required = max(5, (len(source_tokens) * 3 + 4) // 5)
-        if any(" ".join(source_tokens[start:start + required]) in answer_text
-               for start in range(len(source_tokens) - required + 1)):
+        if any(
+            " ".join(source_tokens[start : start + required]) in answer_text
+            for start in range(len(source_tokens) - required + 1)
+        ):
             return True
         # A copied source can be padded or reordered to evade contiguous spans.
         # Require a substantial overlap and enough source tokens to avoid
@@ -385,7 +414,9 @@ def _contains_dispatched_material(answer: object, cell: StrictGate1Cell) -> bool
 _CELL_RESULT_SCHEMA = "strict-gate1-cell-result/v1"
 _SHA256 = re.compile(r"^[0-9a-f]{64}$")
 _ERROR_CODE = re.compile(r"^[a-z][a-z0-9_]{0,63}$")
-_PRIVATE_KEY = re.compile(r"-----BEGIN(?:\s+[A-Z0-9]+)?\s+PRIVATE KEY-----|OPENSSH PRIVATE KEY", re.I)
+_PRIVATE_KEY = re.compile(
+    r"-----BEGIN(?:\s+[A-Z0-9]+)?\s+PRIVATE KEY-----|OPENSSH PRIVATE KEY", re.I
+)
 _SECRET_KEY = re.compile(r"(?:private[_-]?key|secret|token|password|credential|api[_-]?key)", re.I)
 _PRIVATE_FIELD = re.compile(r"^(?:prompt|context|rendered[_-]?context|raw[_-]?response)$", re.I)
 _SECRET_VALUE = re.compile(
@@ -403,10 +434,15 @@ def _contains_unsafe_result_value(value: object, key: str = "") -> bool:
     if _SECRET_KEY.search(key) or _PRIVATE_FIELD.search(key):
         return True
     if isinstance(value, dict):
-        return any(_contains_unsafe_result_value(child, str(child_key)) for child_key, child in value.items())
+        return any(
+            _contains_unsafe_result_value(child, str(child_key))
+            for child_key, child in value.items()
+        )
     if isinstance(value, (list, tuple)):
         return any(_contains_unsafe_result_value(child) for child in value)
-    return isinstance(value, str) and bool(_PRIVATE_KEY.search(value) or _SECRET_VALUE.search(value))
+    return isinstance(value, str) and bool(
+        _PRIVATE_KEY.search(value) or _SECRET_VALUE.search(value)
+    )
 
 
 def _freeze_result_value(value: Any) -> Any:
@@ -447,13 +483,22 @@ class StrictGate1CellResult:
             raise StrictGate1Error("strict cell result arm is invalid")
         if self.status == "completed":
             if not validate_answer_envelope(self.answer):
-                raise StrictGate1Error("completed strict cell result requires a valid answer envelope")
-            if type(self.raw_response_digest) is not str or _SHA256.fullmatch(self.raw_response_digest) is None:
+                raise StrictGate1Error(
+                    "completed strict cell result requires a valid answer envelope"
+                )
+            if (
+                type(self.raw_response_digest) is not str
+                or _SHA256.fullmatch(self.raw_response_digest) is None
+            ):
                 raise StrictGate1Error("completed strict cell result requires a response digest")
             if self.error_code is not None or self.error_message is not None:
                 raise StrictGate1Error("completed strict cell result cannot contain an error")
         elif self.status == "failed":
-            if self.answer is not None or not self._valid_error_code(self.error_code) or not self._valid_error_message(self.error_message):
+            if (
+                self.answer is not None
+                or not self._valid_error_code(self.error_code)
+                or not self._valid_error_message(self.error_message)
+            ):
                 raise StrictGate1Error("failed strict cell result requires an explicit safe error")
             if self.raw_response_digest is not None:
                 raise StrictGate1Error("failed strict cell result cannot contain a response digest")
@@ -466,19 +511,31 @@ class StrictGate1CellResult:
 
     @staticmethod
     def _valid_error_code(value: object) -> bool:
-        return type(value) is str and 0 < len(value) <= 64 and _ERROR_CODE.fullmatch(value) is not None
+        return (
+            type(value) is str and 0 < len(value) <= 64 and _ERROR_CODE.fullmatch(value) is not None
+        )
 
     @staticmethod
     def _valid_error_message(value: object) -> bool:
-        return type(value) is str and 0 < len(value) <= 160 and not _contains_unsafe_result_value(value)
+        return (
+            type(value) is str
+            and 0 < len(value) <= 160
+            and not _contains_unsafe_result_value(value)
+        )
 
     @classmethod
     def from_value(cls, value: object) -> "StrictGate1CellResult":
         if isinstance(value, cls):
             return value
         if type(value) is not dict or set(value) != {
-            "schema_version", "case_name", "arm", "status", "answer",
-            "raw_response_digest", "error_code", "error_message",
+            "schema_version",
+            "case_name",
+            "arm",
+            "status",
+            "answer",
+            "raw_response_digest",
+            "error_code",
+            "error_message",
         }:
             raise StrictGate1Error("adapter returned an invalid strict cell result schema")
         try:
@@ -539,7 +596,10 @@ async def run_strict_gate1(
         assembly = parse_strict_run_assembly(artifacts.assembly.manifest_json)
         packet = artifacts.packet
         validate_strict_run_packet_binding(packet, assembly)
-        if hashlib.sha256(artifacts.authorization_request.manifest_json.encode()).hexdigest() != artifacts.authorization_request.sha256:
+        if (
+            hashlib.sha256(artifacts.authorization_request.manifest_json.encode()).hexdigest()
+            != artifacts.authorization_request.sha256
+        ):
             raise StrictGate1Error("authorization request self-hash is invalid")
         request = parse_strict_authorization_request(artifacts.authorization_request.manifest_json)
     except StrictGate1Error:
@@ -547,11 +607,23 @@ async def run_strict_gate1(
     except (TypeError, ValueError) as exc:
         raise StrictGate1Error("artifacts are not validated and mutually bound") from exc
     request_manifest = request.to_dict()
-    if request_manifest["packet_sha256"] != packet.sha256 or request_manifest["assembly_sha256"] != assembly.sha256:
+    if (
+        request_manifest["packet_sha256"] != packet.sha256
+        or request_manifest["assembly_sha256"] != assembly.sha256
+    ):
         raise StrictGate1Error("authorization request is not bound to packet and assembly")
-    if artifacts.plan.sha256 != assembly.plan_sha256 or artifacts.plan.to_dict() != assembly.to_dict()["plan"]:
+    if (
+        artifacts.plan.sha256 != assembly.plan_sha256
+        or artifacts.plan.to_dict() != assembly.to_dict()["plan"]
+    ):
         raise StrictGate1Error("pilot plan is not bound to the assembly")
-    if any(value is not False for value in (request_manifest["execution_authorized"], request_manifest["live_execution_requested"])):
+    if any(
+        value is not False
+        for value in (
+            request_manifest["execution_authorized"],
+            request_manifest["live_execution_requested"],
+        )
+    ):
         raise StrictGate1Error("authorization artifact cannot authorize execution")
 
     plan = artifacts.plan.to_dict()
@@ -575,18 +647,28 @@ async def run_strict_gate1(
             if inspect.isawaitable(result):
                 result = await result
         except Exception:
-            results.append(StrictGate1CellResult(
-                case_name=cell.case_name, arm=cell.arm, status="failed",
-                error_code="adapter_exception", error_message="strict adapter failed",
-            ))
+            results.append(
+                StrictGate1CellResult(
+                    case_name=cell.case_name,
+                    arm=cell.arm,
+                    status="failed",
+                    error_code="adapter_exception",
+                    error_message="strict adapter failed",
+                )
+            )
             continue
         validated = StrictGate1CellResult.from_value(result)
         if validated.case_name != cell.case_name or validated.arm != cell.arm:
             raise StrictGate1Error("adapter result does not match the dispatched strict cell")
-        if validated.status == "completed" and _contains_dispatched_material(validated.answer, cell):
+        if validated.status == "completed" and _contains_dispatched_material(
+            validated.answer, cell
+        ):
             validated = StrictGate1CellResult(
-                case_name=cell.case_name, arm=cell.arm, status="failed",
-                error_code="public_material", error_message="answer contains dispatched material",
+                case_name=cell.case_name,
+                arm=cell.arm,
+                status="failed",
+                error_code="public_material",
+                error_message="answer contains dispatched material",
             )
         results.append(validated)
     return results

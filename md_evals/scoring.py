@@ -28,15 +28,17 @@ if TYPE_CHECKING:
 # ─── Constants ───
 
 
-BUILTIN_DIMENSIONS: frozenset[str] = frozenset({
-    "correctness",
-    "completeness",
-    "format",
-    "adherence",
-    "safety",
-    "efficiency",
-    "robustness",
-})
+BUILTIN_DIMENSIONS: frozenset[str] = frozenset(
+    {
+        "correctness",
+        "completeness",
+        "format",
+        "adherence",
+        "safety",
+        "efficiency",
+        "robustness",
+    }
+)
 """Built-in rubric dimensions recognized by the scoring engine.
 
 Rubrics may use any subset of these, plus custom dimensions. The set is
@@ -185,9 +187,7 @@ def calculate_overall_grade(
         ValueError: If ``dimensions`` is empty.
     """
     if not dimensions:
-        raise ValueError(
-            "Cannot calculate overall grade from an empty dimensions list."
-        )
+        raise ValueError("Cannot calculate overall grade from an empty dimensions list.")
 
     total_weight = sum(d.weight for d in dimensions)
 
@@ -283,9 +283,7 @@ def eval_result_to_dict(result: EvalResult) -> dict[str, Any]:
         except TypeError:
             # PreCheckResult may not be a dataclass in all cases
             pre_check_dict = (
-                result.pre_check.__dict__
-                if hasattr(result.pre_check, "__dict__")
-                else None
+                result.pre_check.__dict__ if hasattr(result.pre_check, "__dict__") else None
             )
 
     return {

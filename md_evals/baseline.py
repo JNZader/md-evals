@@ -128,9 +128,7 @@ class BaselineManager:
             List of RegressionItem findings.
         """
         # Build baseline lookup
-        bl_map: dict[str, BaselineReport] = {
-            f"{b.treatment}::{b.test_name}": b for b in baseline
-        }
+        bl_map: dict[str, BaselineReport] = {f"{b.treatment}::{b.test_name}": b for b in baseline}
 
         # Group current results
         grouped: dict[str, list[ExecutionResult]] = {}

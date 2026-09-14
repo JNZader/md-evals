@@ -247,8 +247,18 @@ async def test_status_failures_are_safe_single_attempt_errors(status):
     [
         {"text": "answer", "fallbackUsed": False},
         {"text": "answer", "resolvedProvider": "wrong", "fallbackUsed": False},
-        {"text": "answer", "resolvedProvider": "fixture-provider", "resolvedModel": "wrong", "fallbackUsed": False},
-        {"text": "answer", "resolvedProvider": "fixture-provider", "resolvedModel": "fixture-model", "fallbackUsed": 0},
+        {
+            "text": "answer",
+            "resolvedProvider": "fixture-provider",
+            "resolvedModel": "wrong",
+            "fallbackUsed": False,
+        },
+        {
+            "text": "answer",
+            "resolvedProvider": "fixture-provider",
+            "resolvedModel": "fixture-model",
+            "fallbackUsed": 0,
+        },
         {"text": "answer", "resolvedProvider": "fixture-provider", "fallbackUsed": True},
         {"text": 3, "resolvedProvider": "fixture-provider", "fallbackUsed": False},
     ],

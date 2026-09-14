@@ -98,7 +98,12 @@ def test_one_case_has_four_calls_preserves_orders_and_accepts_hidden_gold():
     item = plan.to_dict()["cases"][0]
     assert plan.to_dict()["planned_calls"] == 4
     assert item["expected"] == hidden
-    assert [arm["arm"] for arm in item["arms"]] == ["CONTROL", "B_STRUCTURE", "C_MEMORY", "E_PAIRED"]
+    assert [arm["arm"] for arm in item["arms"]] == [
+        "CONTROL",
+        "B_STRUCTURE",
+        "C_MEMORY",
+        "E_PAIRED",
+    ]
     assert item["arms"][0]["rendered_context"] is None
 
 

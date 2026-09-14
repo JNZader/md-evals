@@ -132,7 +132,9 @@ def test_recognized_summary_schema_passes_export_flags():
     assert_public_noncanonical_live_ledger_safe(recovered_summary())
 
 
-@pytest.mark.parametrize("mapping", [MappingProxyType({"status": "ok"}), UserDict({"status": "ok"})])
+@pytest.mark.parametrize(
+    "mapping", [MappingProxyType({"status": "ok"}), UserDict({"status": "ok"})]
+)
 def test_non_json_mapping_types_are_rejected(mapping):
     assert_rejected(mapping)
 
@@ -140,8 +142,18 @@ def test_non_json_mapping_types_are_rejected(mapping):
 @pytest.mark.parametrize(
     "key",
     [
-        "request_data", "response_data", "raw_response", "rawResponse", "prompt", "prompts",
-        "context", "contexts", "rendered_context", "request", "response", "raw",
+        "request_data",
+        "response_data",
+        "raw_response",
+        "rawResponse",
+        "prompt",
+        "prompts",
+        "context",
+        "contexts",
+        "rendered_context",
+        "request",
+        "response",
+        "raw",
     ],
 )
 def test_recognized_ledger_rejects_raw_fields(key):
@@ -182,13 +194,33 @@ def test_usage_allows_only_known_public_nested_sections():
 @pytest.mark.parametrize(
     "key",
     [
-        "authheader", "authheaders", "authorizationheader", "authorizationheaders",
-        "bearertoken", "bearertokens", "accesstoken", "accesstokens",
-        "refreshtoken", "refreshtokens", "xapikey", "xapikeys", "privatekey",
-        "requestbody", "responsebody", "requestmetadata", "responsemetadata",
-        "authorization", "raw_prompts_stored", "raw_response_bodies_stored",
-        "authorization_header", "bearerToken",
-        "api-key", "x-api-key", "private_key", "request_data", "responseBody",
+        "authheader",
+        "authheaders",
+        "authorizationheader",
+        "authorizationheaders",
+        "bearertoken",
+        "bearertokens",
+        "accesstoken",
+        "accesstokens",
+        "refreshtoken",
+        "refreshtokens",
+        "xapikey",
+        "xapikeys",
+        "privatekey",
+        "requestbody",
+        "responsebody",
+        "requestmetadata",
+        "responsemetadata",
+        "authorization",
+        "raw_prompts_stored",
+        "raw_response_bodies_stored",
+        "authorization_header",
+        "bearerToken",
+        "api-key",
+        "x-api-key",
+        "private_key",
+        "request_data",
+        "responseBody",
     ],
 )
 def test_flexible_sections_reject_sensitive_key_variants(key):
@@ -201,8 +233,13 @@ def test_flexible_sections_reject_sensitive_key_variants(key):
 @pytest.mark.parametrize(
     "value",
     [
-        "Bearer abc", "sk-test", "ghp_test", "github_pat_test", "AKIA1234567890ABCDEF",
-        "ASIA1234567890ABCDEF", "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIxIn0.signature",
+        "Bearer abc",
+        "sk-test",
+        "ghp_test",
+        "github_pat_test",
+        "AKIA1234567890ABCDEF",
+        "ASIA1234567890ABCDEF",
+        "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIxIn0.signature",
         "-----BEGIN PRIVATE KEY-----",
     ],
 )

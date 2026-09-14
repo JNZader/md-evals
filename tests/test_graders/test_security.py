@@ -131,9 +131,7 @@ class TestPathTraversalPrevention:
 
     def test_file_exists_grader_traversal_raises(self, tmp_path: Path):
         """FileExistsGrader with traversal path must raise ValueError."""
-        grader = FileExistsGrader(
-            name="traversal", path="../../../etc/passwd"
-        )
+        grader = FileExistsGrader(name="traversal", path="../../../etc/passwd")
         with pytest.raises(ValueError, match="Path traversal detected"):
             grader.grade(tmp_path)
 
@@ -149,17 +147,13 @@ class TestPathTraversalPrevention:
 
     def test_file_size_grader_traversal_raises(self, tmp_path: Path):
         """FileSizeGrader with traversal path must raise ValueError."""
-        grader = FileSizeGrader(
-            name="traversal", path="../../../etc/passwd"
-        )
+        grader = FileSizeGrader(name="traversal", path="../../../etc/passwd")
         with pytest.raises(ValueError, match="Path traversal detected"):
             grader.grade(tmp_path)
 
     def test_json_valid_grader_traversal_raises(self, tmp_path: Path):
         """JSONValidGrader with traversal path must raise ValueError."""
-        grader = JSONValidGrader(
-            name="traversal", path="../../../etc/passwd"
-        )
+        grader = JSONValidGrader(name="traversal", path="../../../etc/passwd")
         with pytest.raises(ValueError, match="Path traversal detected"):
             grader.grade(tmp_path)
 

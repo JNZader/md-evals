@@ -93,7 +93,9 @@ class TestLinterCustomConfig:
     def test_very_long_lines(self, tmp_path):
         skill = tmp_path / "SKILL.md"
         long_line = "x" * 250
-        skill.write_text(f"# Skill\n\n## Description\n{long_line}\n\n## Rules\n- R\n\n## Examples\n- E\n")
+        skill.write_text(
+            f"# Skill\n\n## Description\n{long_line}\n\n## Rules\n- R\n\n## Examples\n- E\n"
+        )
         engine = LinterEngine()
         report = engine.run(str(skill))
         long_line_violations = [v for v in report.violations if v.rule == "very-long-line"]

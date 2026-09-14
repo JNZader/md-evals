@@ -62,7 +62,11 @@ class OfflineWorkerInput:
         return cls(value["prompt"], value["context"], value["schema_version"])
 
     def to_dict(self) -> dict[str, object]:
-        return {"schema_version": self.schema_version, "prompt": self.prompt, "context": self.context}
+        return {
+            "schema_version": self.schema_version,
+            "prompt": self.prompt,
+            "context": self.context,
+        }
 
 
 @dataclass(frozen=True)
@@ -77,7 +81,11 @@ class OfflineWorkerResult:
 
     def __post_init__(self) -> None:
         if self.schema_version != OUTPUT_SCHEMA or self.status not in {
-            "completed", "malformed_output", "timeout", "cancelled", "failed"
+            "completed",
+            "malformed_output",
+            "timeout",
+            "cancelled",
+            "failed",
         }:
             raise ValueError("invalid worker output envelope")
         if self.status == "completed":
@@ -107,9 +115,7 @@ class OfflineWorkerResult:
 
 def _valid_public_error(value: object) -> bool:
     return (
-        type(value) is str
-        and 0 < len(value) <= _MAX_ERROR_LENGTH
-        and not _contains_secret(value)
+        type(value) is str and 0 < len(value) <= _MAX_ERROR_LENGTH and not _contains_secret(value)
     )
 
 
@@ -175,7 +181,11 @@ def run_offline_worker(
 ) -> OfflineWorkerResult:
     """Run one injected local callable and fail closed on every invalid boundary result."""
     try:
-        frozen = request if isinstance(request, OfflineWorkerInput) else OfflineWorkerInput.from_dict(request)
+        frozen = (
+            request
+            if isinstance(request, OfflineWorkerInput)
+            else OfflineWorkerInput.from_dict(request)
+        )
     except (TypeError, ValueError, KeyError) as exc:
         return _failure("failed", "invalid_input", str(exc))
     if not callable(worker):
@@ -183,17 +193,31 @@ def run_offline_worker(
     try:
         raw = worker(frozen)
     except asyncio.CancelledError:
-        return _failure("cancelled", "cancelled", "worker cancelled", (frozen.prompt, frozen.context or ""))
+        return _failure(
+            "cancelled", "cancelled", "worker cancelled", (frozen.prompt, frozen.context or "")
+        )
     except TimeoutError:
-        return _failure("timeout", "timeout", "worker timed out", (frozen.prompt, frozen.context or ""))
+        return _failure(
+            "timeout", "timeout", "worker timed out", (frozen.prompt, frozen.context or "")
+        )
     except Exception as exc:  # noqa: BLE001 - operational boundary must be explicit.
-        return _failure("failed", "worker_exception", str(exc), (frozen.prompt, frozen.context or ""))
+        return _failure(
+            "failed", "worker_exception", str(exc), (frozen.prompt, frozen.context or "")
+        )
     if type(raw) is not dict or set(raw) != {"answer", "schema_version"}:
-        return _failure("malformed_output", "invalid_output_schema", "worker output schema rejected")
+        return _failure(
+            "malformed_output", "invalid_output_schema", "worker output schema rejected"
+        )
     if raw["schema_version"] != OUTPUT_SCHEMA or not validate_answer_envelope(raw["answer"]):
-        return _failure("malformed_output", "invalid_answer_envelope", "worker answer envelope rejected")
+        return _failure(
+            "malformed_output", "invalid_answer_envelope", "worker answer envelope rejected"
+        )
     if _contains_secret(raw["answer"]):
-        return _failure("malformed_output", "secret_material", "worker output contains secret material")
+        return _failure(
+            "malformed_output", "secret_material", "worker output contains secret material"
+        )
     if _contains_private(raw["answer"], (frozen.prompt, frozen.context or "")):
-        return _failure("malformed_output", "private_material", "worker output contains private input material")
+        return _failure(
+            "malformed_output", "private_material", "worker output contains private input material"
+        )
     return OfflineWorkerResult("completed", answer=raw["answer"])

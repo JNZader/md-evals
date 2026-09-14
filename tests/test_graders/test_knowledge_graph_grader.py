@@ -178,26 +178,20 @@ class TestCheckClaim:
 
     def test_grounded_claim(self):
         graph = self._build_graph()
-        check = check_claim_against_graph(
-            "Python was released in 1991.", graph
-        )
+        check = check_claim_against_graph("Python was released in 1991.", graph)
         assert check.grounded is True
         assert check.confidence > 0.0
         assert "Python" in check.mentioned_entities
 
     def test_ungrounded_claim_no_entities(self):
         graph = self._build_graph()
-        check = check_claim_against_graph(
-            "The weather is nice today.", graph
-        )
+        check = check_claim_against_graph("The weather is nice today.", graph)
         assert check.grounded is False
         assert check.mentioned_entities == []
 
     def test_relation_based_grounding(self):
         graph = self._build_graph()
-        check = check_claim_against_graph(
-            "Guido van Rossum created Python.", graph
-        )
+        check = check_claim_against_graph("Guido van Rossum created Python.", graph)
         assert check.grounded is True
         assert "Guido van Rossum" in check.mentioned_entities
 
@@ -214,9 +208,7 @@ class TestCheckClaim:
         graph = KnowledgeGraph()
         graph.add_entity("Python")
         graph.add_fact("Python", "is a high-level programming language")
-        check = check_claim_against_graph(
-            "Python is a low-level assembly language.", graph
-        )
+        check = check_claim_against_graph("Python is a low-level assembly language.", graph)
         assert check.grounded is False, (
             f"Contradictory claim should not be grounded, got confidence={check.confidence:.2f}"
         )
@@ -264,7 +256,10 @@ class TestKnowledgeGraphGrader:
         grader = KnowledgeGraphGrader(
             name="fact_check",
             graph=graph,
-            content="Python uses quantum entanglement for memory management. Python compiles to COBOL bytecode.",
+            content=(
+                "Python uses quantum entanglement for memory management. "
+                "Python compiles to COBOL bytecode."
+            ),
             pass_threshold=0.5,
             ignore_claims_without_entities=False,
         )
@@ -361,7 +356,10 @@ class TestKnowledgeGraphGrader:
                 {"source": "Microsoft", "type": "created", "target": "TypeScript"},
             ],
             "facts": [
-                {"entity": "TypeScript", "statement": "TypeScript adds static typing to JavaScript."},
+                {
+                    "entity": "TypeScript",
+                    "statement": "TypeScript adds static typing to JavaScript.",
+                },
             ],
         }
         graph = KnowledgeGraph.from_dict(data)

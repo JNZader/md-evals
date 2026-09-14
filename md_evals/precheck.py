@@ -89,12 +89,14 @@ class SecurityPatternCheck:
         findings = []
         for i, line in enumerate(content.splitlines(), 1):
             if self.regex.search(line):
-                findings.append(PreCheckFinding(
-                    check="security_antipattern",
-                    message=f"{self.message} (line {i})",
-                    severity=self.severity,
-                    line=i,
-                ))
+                findings.append(
+                    PreCheckFinding(
+                        check="security_antipattern",
+                        message=f"{self.message} (line {i})",
+                        severity=self.severity,
+                        line=i,
+                    )
+                )
         return findings
 
 
@@ -112,14 +114,14 @@ class PreCheckEngine:
     def __init__(self, rubric: RubricConfig):
         self.rubric = rubric
         # Create LinterEngine with rubric config
-        self.linter = LinterEngine(LinterConfig(
-            max_lines=rubric.pre_check.max_lines,
-            fail_on_violation=True,
-        ))
+        self.linter = LinterEngine(
+            LinterConfig(
+                max_lines=rubric.pre_check.max_lines,
+                fail_on_violation=True,
+            )
+        )
         # Compile security patterns once
-        self.security_checks = [
-            SecurityPatternCheck(p) for p in rubric.pre_check.security_patterns
-        ]
+        self.security_checks = [SecurityPatternCheck(p) for p in rubric.pre_check.security_patterns]
 
     def run(self, skill_path: str) -> PreCheckResult:
         """Run all deterministic checks on a SKILL.md file.
@@ -150,17 +152,17 @@ class PreCheckEngine:
 
         # Step 2: Convert LinterViolation -> PreCheckFinding
         for v in linter_report.violations:
-            findings.append(PreCheckFinding(
-                check=v.rule,  # "max-lines", "empty-file", etc.
-                message=v.message,
-                severity=v.severity,
-                line=v.line,
-            ))
+            findings.append(
+                PreCheckFinding(
+                    check=v.rule,  # "max-lines", "empty-file", etc.
+                    message=v.message,
+                    severity=v.severity,
+                    line=v.line,
+                )
+            )
 
         # Step 3: Security checks (only if file was readable)
-        has_fatal = any(
-            f.check in ("file-not-found", "read-error") for f in findings
-        )
+        has_fatal = any(f.check in ("file-not-found", "read-error") for f in findings)
         if not has_fatal:
             try:
                 content = Path(skill_path).read_text(encoding="utf-8")

@@ -151,9 +151,7 @@ async def list_history(
     if date_to:
         base = base.where(Evaluation.created_at <= date_to)
     if model:
-        base = base.where(
-            Evaluation.eval_config["defaults"]["model"].as_string() == model
-        )
+        base = base.where(Evaluation.eval_config["defaults"]["model"].as_string() == model)
 
     # Count total
     count_q = select(func.count()).select_from(base.subquery())
@@ -162,11 +160,7 @@ async def list_history(
 
     # Paginate
     offset = (page - 1) * per_page
-    query = (
-        base.order_by(Evaluation.created_at.desc())
-        .offset(offset)
-        .limit(per_page)
-    )
+    query = base.order_by(Evaluation.created_at.desc()).offset(offset).limit(per_page)
     result = await db.execute(query)
     rows = result.scalars().all()
 
@@ -231,7 +225,9 @@ async def get_eval(
     eval_id: str,
     current_user: CurrentUser,
     db: AsyncSession = Depends(get_db),
-    expand: str | None = Query(default=None, description="Comma-separated expansions (e.g. 'scoring')"),
+    expand: str | None = Query(
+        default=None, description="Comma-separated expansions (e.g. 'scoring')"
+    ),
 ) -> EvalDetailResponse:
     """Get full results for a completed evaluation.
 
@@ -276,6 +272,3 @@ async def get_eval(
         completed_at=evaluation.completed_at,
         scoring=scoring,
     )
-
-
-

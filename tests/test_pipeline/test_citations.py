@@ -254,18 +254,12 @@ class TestCitationPenalty:
 
     def test_penalty_bounded_at_0_2(self):
         """Penalty never exceeds 0.2 even with many unverified."""
-        citations = [
-            Citation(line=i, text="t", supports="x", verified=False)
-            for i in range(100)
-        ]
+        citations = [Citation(line=i, text="t", supports="x", verified=False) for i in range(100)]
         penalty = citation_penalty(citations)
         assert penalty == 0.2
 
     def test_penalty_bounded_at_0_0(self):
         """Penalty never goes below 0.0."""
-        citations = [
-            Citation(line=i, text="t", supports="x", verified=True)
-            for i in range(1, 100)
-        ]
+        citations = [Citation(line=i, text="t", supports="x", verified=True) for i in range(1, 100)]
         penalty = citation_penalty(citations)
         assert penalty == 0.0
