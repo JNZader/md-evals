@@ -27,6 +27,11 @@ BEARER_ENV = "GATE1_GATEWAY_BEARER"
 GATEWAY_BASE = "http://127.0.0.1:3456"
 _OUTPUT_MARKER = ".gate1-utility-execute"
 Completion = Callable[[dict[str, Any]], LLMResponse]
+_TRANSPORT_ERROR_NAMES = frozenset({"LLMError", "LLMTimeoutError", "UtilityTransportError"})
+
+
+class UtilityTransportError(Exception):
+    """Fail-closed transport failure; does not import LiteLLM."""
 
 
 def _cell_prompt(cell: Mapping[str, Any]) -> str:
@@ -45,14 +50,23 @@ def _raw(response: LLMResponse) -> Mapping[str, Any]:
     return raw if isinstance(raw, Mapping) else {}
 
 
+def _billing_label(raw: Mapping[str, Any]) -> str:
+    evidence = raw.get("costEvidence")
+    if not isinstance(evidence, Mapping):
+        return "unverified"
+    cost = evidence.get("estimatedCost")
+    if type(cost) in {int, float} and type(cost) is not bool and cost == 0:
+        return "explicit-zero"
+    return "nonzero"
+
+
 def _abort_reason(response: LLMResponse, provider: str, model: str) -> str | None:
     raw = _raw(response)
     evidence = raw.get("costEvidence")
-    if not isinstance(evidence, Mapping):
-        return "costEvidence missing"
-    cost = evidence.get("estimatedCost")
-    if type(cost) is bool or type(cost) not in {int, float} or cost != 0:
-        return "estimatedCost is not 0"
+    if isinstance(evidence, Mapping):
+        cost = evidence.get("estimatedCost")
+        if type(cost) is bool or type(cost) not in {int, float} or cost != 0:
+            return "estimatedCost is not 0"
     if raw.get("fallbackUsed") is True:
         return "fallbackUsed"
     if raw.get("resolvedProvider") != provider or raw.get("resolvedModel") != model:
@@ -102,7 +116,20 @@ def run_utility_execute(
         assert isinstance(cell, dict)
         work = dict(cell)
         work["prompt"] = _cell_prompt(cell)
-        response = completion(work)
+        try:
+            response = completion(work)
+        except Exception as exc:
+            if type(exc).__name__ not in _TRANSPORT_ERROR_NAMES:
+                raise
+            record = {
+                "task": cell["task"],
+                "arm": cell["arm"],
+                "repetition": cell["repetition"],
+                "status": "aborted",
+                "reason": str(exc)[:200],
+            }
+            records.append(record)
+            return {"status": "aborted", "cells": records}
         reason = _abort_reason(response, provider, model)
         record = {
             "task": cell["task"],
@@ -114,6 +141,7 @@ def run_utility_execute(
             record["reason"] = reason
             records.append(record)
             return {"status": "aborted", "cells": records}
+        record["billing"] = _billing_label(_raw(response))
         records.append(record)
     return {"status": "complete", "cells": records}
 
