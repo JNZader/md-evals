@@ -127,6 +127,35 @@ def test_captured_import_records_exist(captured):
     Draft202012Validator(schema).validate(pack)
 
 
+def test_file_dep_profile_lists_unsupported_symbols_calls_and_cross_service(captured):
+    pack = adapt(captured)
+    ok_structure = [
+        provider
+        for provider in pack["providers"]
+        if provider["kind"] == "structure" and provider["status"] == "ok"
+    ]
+    unsupported = [
+        provider for provider in pack["providers"] if provider["status"] == "unsupported"
+    ]
+    assert len(ok_structure) == 1
+    assert [item["claim"] for item in pack["evidence"]] == [
+        "imports:src/consumer.ts:src/base.ts",
+        "imports:src/entry.js:src/consumer.ts",
+    ]
+    assert len(unsupported) == 3
+    listed = []
+    for capability in ("symbols", "calls", "cross_service"):
+        matches = [provider for provider in unsupported if capability in provider["detail"]]
+        assert len(matches) == 1
+        assert matches[0]["status"] == "unsupported"
+        assert matches[0]["detail"]
+        assert "extracted" not in matches[0]["detail"] or "not extracted" in matches[0]["detail"]
+        listed.append(capability)
+    assert listed == ["symbols", "calls", "cross_service"]
+    schema = capture_schema(json.loads((BASE / "context-pack.schema.json").read_bytes()))
+    Draft202012Validator(schema).validate(pack)
+
+
 def test_schema_changes_only_version_two_revision_patterns_and_id():
     base = json.loads((BASE / "context-pack.schema.json").read_bytes())
     original = deepcopy(base)
@@ -282,7 +311,7 @@ def test_ids_and_traces_bind_the_actual_revision_and_provider(captured, change):
         ),
         (
             "tests/integration/test_context_broker_offline.py",
-            "f4def449bfd83375698d92fc0fb673756b7fa4344a25341b801448eaac21e299",
+            "c38cf32c0d112d1babcf5b6e41d3ff3f22b5e43894d2bf212eb8a1c3e4d687dd",
         ),
     ],
 )

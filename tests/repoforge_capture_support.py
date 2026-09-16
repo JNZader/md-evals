@@ -228,6 +228,17 @@ def _adapt(graph_bytes, sources, manifest, anchor, limit):
             ),
         }
     ]
+    for capability in ("symbols", "calls", "cross_service"):
+        providers.append(
+            {
+                "kind": "structure",
+                "instance": f"{instance}:unsupported:{capability}",
+                "status": "unsupported",
+                "detail": (
+                    f"{capability} unsupported: file-dep imports only; not extracted"
+                ),
+            }
+        )
     adapter = {"name": "md-evals-capture-adapter", "version": "1", "instance": f"sha256:{anchor}"}
     kept = []
     for record in records:

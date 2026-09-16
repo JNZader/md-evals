@@ -202,14 +202,14 @@ def require(condition, reason):
         raise ContractError(reason)
 
 
-def validate_contract(pack, case, arm):
-    """Bind structural validation to an independent synthetic source manifest."""
+def validate_representation(pack, case, arm, *, freshness="fresh", git_state="clean"):
+    """Bind citations and selection; freshness/git_state are explicit representation states."""
     require(not list(Draft202012Validator(SCHEMA).iter_errors(pack)), "schema")
     require(pack["repository"] == case["repository"], "repository")
     require(pack["revision"] == case["revision"], "revision")
     require(pack["producer"] == PRODUCER, "producer")
-    require(pack["freshness"] == "fresh", "freshness")
-    require(pack["git_state"] == "clean", "worktree")
+    require(pack["freshness"] == freshness, "freshness")
+    require(pack["git_state"] == git_state, "worktree")
     providers, records = retrieval(case, arm)
     require(pack["providers"] == providers, "provider")
     for provider in providers:
@@ -223,14 +223,17 @@ def validate_contract(pack, case, arm):
     for record in pack["evidence"]:
         require(record["repository"] == case["repository"], "repository")
         require(record["revision"] == case["revision"], "revision")
-        require(record["freshness"] == "fresh", "freshness")
-        require(record["git_state"] == "clean", "worktree")
+        require(record["freshness"] == freshness, "freshness")
+        require(record["git_state"] == git_state, "worktree")
         lines = case["files"].get(record["path"], "").splitlines()
         require(0 < record["line"] <= len(lines), "citation")
         require(lines[record["line"] - 1] == record["quote"], "citation")
         require(record["id"] == digest(identity(record)), "evidence_id")
         require(record["id"] in expected, "evidence_id")
-        require(record == expected[record["id"]], "evidence")
+        require(
+            record == dict(expected[record["id"]], freshness=freshness, git_state=git_state),
+            "evidence",
+        )
     ids = [record["id"] for record in pack["evidence"]]
     require(len(ids) == len(set(ids)), "evidence_id")
     kept, dropped = prefix_within_budget(records, pack["budget"]["limit"])
@@ -242,6 +245,11 @@ def validate_contract(pack, case, arm):
     require(budget["truncated"] == bool(dropped), "budget")
     require(budget["dropped_ids"] == [record["id"] for record in dropped], "budget")
     require(pack["trace"] == traces(case, providers, records, pack["producer"]), "trace")
+
+
+def validate_contract(pack, case, arm):
+    """Ablation identity still requires fresh and clean packs."""
+    validate_representation(pack, case, arm, freshness="fresh", git_state="clean")
 
 
 def mutate(pack, path, value):
@@ -307,6 +315,30 @@ def test_independent_contract_mutations(path, value, reason):
     mutate(pack, path, value)
     with pytest.raises(ContractError, match=f"^{reason}$"):
         validate_contract(pack, case, "D_UNION")
+
+
+@pytest.mark.parametrize(
+    "field,value,identity_reason",
+    [
+        ("freshness", "stale", "freshness"),
+        ("git_state", "dirty", "worktree"),
+    ],
+)
+def test_stale_and_dirty_are_valid_representations_not_upgraded(field, value, identity_reason):
+    case = CASES[0]
+    pack = make_pack(case, "D_UNION")
+    validate_contract(pack, case, "D_UNION")
+    pack[field] = value
+    for record in pack["evidence"]:
+        record[field] = value
+    assert list(Draft202012Validator(SCHEMA).iter_errors(pack)) == []
+    assert pack[field] == value
+    assert {record[field] for record in pack["evidence"]} == {value}
+    assert pack[field] != ("fresh" if field == "freshness" else "clean")
+    with pytest.raises(ContractError, match=f"^{identity_reason}$"):
+        validate_contract(pack, case, "D_UNION")
+    expected = {"freshness": "fresh", "git_state": "clean", field: value}
+    validate_representation(pack, case, "D_UNION", **expected)
 
 
 def test_duplicate_evidence_is_rejected():

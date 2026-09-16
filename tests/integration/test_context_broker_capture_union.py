@@ -169,6 +169,17 @@ def test_exact_records_providers_and_full_traces(captured, mode, indices):
                 detail=encoded(detail).decode(),
             )
         )
+        for capability in ("symbols", "calls", "cross_service"):
+            providers.append(
+                dict(
+                    kind="structure",
+                    instance=f"{GRAPH_INSTANCE}:unsupported:{capability}",
+                    status="unsupported",
+                    detail=(
+                        f"{capability} unsupported: file-dep imports only; not extracted"
+                    ),
+                )
+            )
         anchors["structure"] = GRAPH_ANCHOR
     if mode != "structure-only":
         providers.append(
