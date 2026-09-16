@@ -333,6 +333,6 @@ def test_live_authorized_constructs_adapter_and_does_not_touch_escritorio(
     assert constructed["allow_fallback_metadata"] is False
     assert constructed["tools"] == "none"
     defaults = constructed["defaults"]
-    assert defaults.timeout == 180
+    assert defaults.timeout == 300
     assert defaults.retry_attempts == 1
     assert _escritorio_utility_paths() == before

@@ -67,7 +67,7 @@ def test_build_plan_prints_locked_twenty_four_cell_preregister():
     assert plan["n"] == 2
     assert tuple(plan["arms"]) == ARMS
     assert tuple(plan["tasks"]) == TASKS
-    assert plan["timeout_seconds"] == 180
+    assert plan["timeout_seconds"] == 300
     assert plan["spend_cap_usd"] == 0
     assert plan["retry"] == 0
     assert plan["fallback"] == "forbidden"
@@ -83,7 +83,7 @@ def test_build_plan_prints_locked_twenty_four_cell_preregister():
     assert [(cell["repetition"], cell["task"], cell["arm"]) for cell in cells] == expected
     for cell in cells:
         assert cell["repetition"] in (1, 2)
-        assert cell["timeout"] == 180
+        assert cell["timeout"] == 300
         assert cell["model"] == MODEL
         assert cell["provider"] == PROVIDER
         if cell["arm"] == "CONTROL":
