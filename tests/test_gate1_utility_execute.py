@@ -223,6 +223,33 @@ def test_abort_missing_cost_evidence_stops_remaining(deny_network):
     assert len(result["cells"]) == 1
 
 
+def test_abort_transport_error_stops_remaining_without_traceback(deny_network):
+    from md_evals.gate1_utility_execute import (
+        UtilityTransportError,
+        run_utility_execute,
+    )
+
+    calls = 0
+
+    def completion(cell):
+        nonlocal calls
+        calls += 1
+        raise UtilityTransportError("Bridge request failed")
+
+    result = run_utility_execute(completion=completion, authorize=True)
+    assert calls == 1
+    assert result["status"] == "aborted"
+    assert result["cells"] == [
+        {
+            "task": "conflict",
+            "arm": "CONTROL",
+            "repetition": 1,
+            "status": "aborted",
+            "reason": "Bridge request failed",
+        }
+    ]
+
+
 def test_abort_nonzero_estimated_cost_stops_remaining(deny_network):
     from md_evals.gate1_utility_execute import run_utility_execute
 

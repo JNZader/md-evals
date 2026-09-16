@@ -27,6 +27,11 @@ BEARER_ENV = "GATE1_GATEWAY_BEARER"
 GATEWAY_BASE = "http://127.0.0.1:3456"
 _OUTPUT_MARKER = ".gate1-utility-execute"
 Completion = Callable[[dict[str, Any]], LLMResponse]
+_TRANSPORT_ERROR_NAMES = frozenset({"LLMError", "LLMTimeoutError", "UtilityTransportError"})
+
+
+class UtilityTransportError(Exception):
+    """Fail-closed transport failure; does not import LiteLLM."""
 
 
 def _cell_prompt(cell: Mapping[str, Any]) -> str:
@@ -102,7 +107,20 @@ def run_utility_execute(
         assert isinstance(cell, dict)
         work = dict(cell)
         work["prompt"] = _cell_prompt(cell)
-        response = completion(work)
+        try:
+            response = completion(work)
+        except Exception as exc:
+            if type(exc).__name__ not in _TRANSPORT_ERROR_NAMES:
+                raise
+            record = {
+                "task": cell["task"],
+                "arm": cell["arm"],
+                "repetition": cell["repetition"],
+                "status": "aborted",
+                "reason": str(exc)[:200],
+            }
+            records.append(record)
+            return {"status": "aborted", "cells": records}
         reason = _abort_reason(response, provider, model)
         record = {
             "task": cell["task"],
