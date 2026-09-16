@@ -50,14 +50,23 @@ def _raw(response: LLMResponse) -> Mapping[str, Any]:
     return raw if isinstance(raw, Mapping) else {}
 
 
+def _billing_label(raw: Mapping[str, Any]) -> str:
+    evidence = raw.get("costEvidence")
+    if not isinstance(evidence, Mapping):
+        return "unverified"
+    cost = evidence.get("estimatedCost")
+    if type(cost) in {int, float} and type(cost) is not bool and cost == 0:
+        return "explicit-zero"
+    return "nonzero"
+
+
 def _abort_reason(response: LLMResponse, provider: str, model: str) -> str | None:
     raw = _raw(response)
     evidence = raw.get("costEvidence")
-    if not isinstance(evidence, Mapping):
-        return "costEvidence missing"
-    cost = evidence.get("estimatedCost")
-    if type(cost) is bool or type(cost) not in {int, float} or cost != 0:
-        return "estimatedCost is not 0"
+    if isinstance(evidence, Mapping):
+        cost = evidence.get("estimatedCost")
+        if type(cost) is bool or type(cost) not in {int, float} or cost != 0:
+            return "estimatedCost is not 0"
     if raw.get("fallbackUsed") is True:
         return "fallbackUsed"
     if raw.get("resolvedProvider") != provider or raw.get("resolvedModel") != model:
@@ -132,6 +141,7 @@ def run_utility_execute(
             record["reason"] = reason
             records.append(record)
             return {"status": "aborted", "cells": records}
+        record["billing"] = _billing_label(_raw(response))
         records.append(record)
     return {"status": "complete", "cells": records}
 

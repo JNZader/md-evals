@@ -197,7 +197,7 @@ def test_run_executes_twenty_four_plan_cells_in_order(deny_network, tmp_path):
     assert any(path.is_file() for path in marker_hits)
 
 
-def test_abort_missing_cost_evidence_stops_remaining(deny_network):
+def test_missing_cost_evidence_is_unverified_and_continues(deny_network):
     from md_evals.gate1_utility_execute import run_utility_execute
 
     calls = 0
@@ -217,10 +217,9 @@ def test_abort_missing_cost_evidence_stops_remaining(deny_network):
         )
 
     result = run_utility_execute(completion=completion, authorize=True)
-    assert calls == 1
-    assert result["status"] == "aborted"
-    assert result["cells"][0]["status"] == "aborted"
-    assert len(result["cells"]) == 1
+    assert calls == 24
+    assert result["status"] == "complete"
+    assert {cell["billing"] for cell in result["cells"]} == {"unverified"}
 
 
 def test_abort_transport_error_stops_remaining_without_traceback(deny_network):
