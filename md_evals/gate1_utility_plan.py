@@ -12,7 +12,7 @@ import json
 import sys
 
 PROVIDER = "opencode-cli"
-MODEL = "opencode/muse-spark-1.3-contributor-free"
+MODEL = "gemini-3.7-flash-medium"
 GATEWAY = "http://127.0.0.1:3456/v1/generate"
 ARMS = ("CONTROL", "B_STRUCTURE", "C_MEMORY", "D_SHADOW")
 TASKS = ("conflict", "stale_dirty", "locate")

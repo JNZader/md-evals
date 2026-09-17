@@ -62,7 +62,7 @@ def test_build_plan_prints_locked_twenty_four_cell_preregister():
     assert plan["canonical_status"] == "utility-preregister/not-executed"
     assert plan["execution_authorized"] is False
     assert plan["provider"] == "opencode-cli" == PROVIDER
-    assert plan["model"] == "opencode/muse-spark-1.3-contributor-free" == MODEL
+    assert plan["model"] == "gemini-3.7-flash-medium" == MODEL
     assert plan["gateway"] == GATEWAY
     assert plan["n"] == 2
     assert tuple(plan["arms"]) == ARMS
