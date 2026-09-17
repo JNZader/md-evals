@@ -1,0 +1,26 @@
+[
+  {
+    "id": 1,
+    "state": "active",
+    "type": "decision",
+    "title": "consumer must import VALUE from base",
+    "entities": ["src/consumer.ts", "VALUE"],
+    "content": "consumer must import VALUE from base"
+  },
+  {
+    "id": 2,
+    "state": "superseded",
+    "type": "decision",
+    "title": "old local copy in consumer",
+    "entities": ["src/consumer.ts"],
+    "content": "old local copy in consumer"
+  },
+  {
+    "id": 3,
+    "state": "active",
+    "type": "discovery",
+    "title": "ghostFn in consumer",
+    "entities": ["ghostFn", "src/consumer.ts"],
+    "content": "ghostFn in consumer"
+  }
+]

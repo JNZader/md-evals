@@ -190,7 +190,7 @@ def test_run_executes_twenty_four_plan_cells_in_order(deny_network, tmp_path):
     assert result["status"] == "complete"
     control = prompts[0]
     structured = prompts[1]
-    assert "conflict" in control and "CONTROL" in control and "1" in control
+    assert "locate" in control and "CONTROL" in control and "1" in control
     assert "Question:" in control
     assert "producer_output:" not in control
     assert PRODUCERS["B_STRUCTURE"] in structured
@@ -244,7 +244,7 @@ def test_abort_transport_error_stops_remaining_without_traceback(deny_network):
     assert result["status"] == "aborted"
     assert result["cells"] == [
         {
-            "task": "conflict",
+            "task": "locate",
             "arm": "CONTROL",
             "repetition": 1,
             "status": "aborted",
@@ -347,7 +347,7 @@ def test_live_authorized_constructs_adapter_and_does_not_touch_escritorio(
 
 B_JSON = '{"nodes":[{"id":"injected"}]}'
 C_MEMORY_HIT = "engram-hit:conflict"
-ORCHESTRATION = "orchestration: smart-context (RepoForge first, Engram second)"
+ORCHESTRATION = "orchestration: smart-context (graph entities then memory)"
 
 
 def _injected_produce(cell):
@@ -421,7 +421,7 @@ def test_default_produce_control_is_empty_without_subprocess(deny_network, monke
         raise AssertionError("CONTROL must not subprocess")
 
     monkeypatch.setattr("md_evals.gate1_utility_execute.subprocess.run", fail)
-    assert default_produce({"arm": "CONTROL", "task": "conflict"}) == ""
+    assert default_produce({"arm": "CONTROL", "task": "locate"}) == ""
 
 
 def test_default_produce_b_structure_argv_caps_and_unavailable(deny_network, monkeypatch):
@@ -436,7 +436,7 @@ def test_default_produce_b_structure_argv_caps_and_unavailable(deny_network, mon
         return types.SimpleNamespace(returncode=0, stdout="{" + "x" * 9000 + "}", stderr="")
 
     monkeypatch.setattr("md_evals.gate1_utility_execute.subprocess.run", fake_run)
-    out = default_produce({"arm": "B_STRUCTURE", "task": "conflict"})
+    out = default_produce({"arm": "B_STRUCTURE", "task": "locate"})
     argv = recorded["argv"]
     assert argv[:2] == ["repoforge", "graph"]
     assert "-w" in argv
@@ -452,64 +452,82 @@ def test_default_produce_b_structure_argv_caps_and_unavailable(deny_network, mon
         raise FileNotFoundError("repoforge")
 
     monkeypatch.setattr("md_evals.gate1_utility_execute.subprocess.run", missing)
-    unavailable = default_produce({"arm": "B_STRUCTURE", "task": "conflict"})
+    unavailable = default_produce({"arm": "B_STRUCTURE", "task": "locate"})
     assert unavailable.startswith("PRODUCER_UNAVAILABLE: B_STRUCTURE:")
 
     def boom(*_args, **_kwargs):
         return types.SimpleNamespace(returncode=2, stdout="", stderr="graph failed")
 
     monkeypatch.setattr("md_evals.gate1_utility_execute.subprocess.run", boom)
-    nonzero = default_produce({"arm": "B_STRUCTURE", "task": "stale_dirty"})
+    nonzero = default_produce({"arm": "B_STRUCTURE", "task": "decision"})
     assert nonzero.startswith("PRODUCER_UNAVAILABLE: B_STRUCTURE:")
     assert "graph failed" in nonzero
 
 
-def test_default_produce_c_memory_search_argv_and_unavailable(deny_network, monkeypatch):
+def test_default_produce_c_memory_loads_fixture_without_engram(deny_network, monkeypatch):
     from md_evals.gate1_utility_execute import default_produce
 
-    recorded: dict[str, object] = {}
+    def fail(*_args, **_kwargs):
+        raise AssertionError("C must not subprocess engram")
 
-    def fake_run(argv, **kwargs):
-        recorded["argv"] = list(argv)
-        recorded["kwargs"] = kwargs
-        assert kwargs.get("shell") in (None, False)
-        return types.SimpleNamespace(returncode=0, stdout="hit\n", stderr="")
-
-    monkeypatch.setattr("md_evals.gate1_utility_execute.subprocess.run", fake_run)
-    out = default_produce({"arm": "C_MEMORY", "task": "locate"})
-    argv = recorded["argv"]
-    assert argv[0] == "engram"
-    assert argv[1] == "search"
-    assert "locate" in argv
-    assert "save" not in argv
-    assert recorded["kwargs"]["timeout"] == 30
-    assert out.strip() == "hit"
-
-    def missing(*_args, **_kwargs):
-        raise FileNotFoundError("engram")
-
-    monkeypatch.setattr("md_evals.gate1_utility_execute.subprocess.run", missing)
-    unavailable = default_produce({"arm": "C_MEMORY", "task": "locate"})
-    assert unavailable.startswith("PRODUCER_UNAVAILABLE: C_MEMORY:")
+    monkeypatch.setattr("md_evals.gate1_utility_execute.subprocess.run", fail)
+    decision = default_produce({"arm": "C_MEMORY", "task": "decision"})
+    assert "engram" not in decision.lower()
+    assert "consumer must import VALUE from base" in decision
+    assert "ghostFn" not in decision
+    locate = json.loads(default_produce({"arm": "C_MEMORY", "task": "locate"}))
+    assert locate == []
+    mismatch = default_produce({"arm": "C_MEMORY", "task": "mismatch"})
+    assert "ghostFn" in mismatch
+    assert "consumer must import VALUE from base" not in mismatch
 
 
-def test_default_produce_d_shadow_joins_b_and_c(deny_network, monkeypatch):
+def test_default_produce_d_selects_memories_by_graph_entities_not_concat(
+    deny_network, monkeypatch
+):
     from md_evals.gate1_utility_execute import default_produce
 
-    calls: list[list[str]] = []
+    def fail(*_args, **_kwargs):
+        raise AssertionError("D must use injected graph JSON, not live subprocess")
 
-    def fake_run(argv, **kwargs):
-        calls.append(list(argv))
-        assert kwargs.get("shell") in (None, False)
-        if argv[0] == "repoforge":
-            return types.SimpleNamespace(returncode=0, stdout=B_JSON, stderr="")
-        if argv[0] == "engram":
-            return types.SimpleNamespace(returncode=0, stdout=C_MEMORY_HIT, stderr="")
-        raise AssertionError(argv)
-
-    monkeypatch.setattr("md_evals.gate1_utility_execute.subprocess.run", fake_run)
-    out = default_produce({"arm": "D_SHADOW", "task": "conflict"})
-    assert [call[0] for call in calls] == ["repoforge", "engram"]
-    assert B_JSON in out
-    assert C_MEMORY_HIT in out
+    monkeypatch.setattr("md_evals.gate1_utility_execute.subprocess.run", fail)
+    graph = {
+        "nodes": [
+            {
+                "id": "src/consumer.ts",
+                "name": "consumer",
+                "file_path": "src/consumer.ts",
+                "exports": ["current", "VALUE"],
+            }
+        ],
+        "edges": [{"source": "src/consumer.ts", "target": "src/base.ts"}],
+    }
+    out = default_produce(
+        {"arm": "D_SHADOW", "task": "mismatch"},
+        graph_json=json.dumps(graph),
+    )
+    assert "src/consumer.ts" in out
+    assert "consumer must import VALUE from base" in out
+    assert "old local copy in consumer" in out
+    assert "ghostFn" in out
+    assert C_MEMORY_HIT not in out
     assert ORCHESTRATION in out
+    isolated = default_produce(
+        {"arm": "D_SHADOW", "task": "locate"},
+        graph_json=json.dumps(
+            {
+                "nodes": [
+                    {
+                        "id": "src/entry.js",
+                        "name": "entry",
+                        "file_path": "src/entry.js",
+                        "exports": ["run"],
+                    }
+                ],
+                "edges": [],
+            }
+        ),
+    )
+    assert "consumer must import VALUE from base" not in isolated
+    assert "ghostFn" not in isolated
+    assert ORCHESTRATION in isolated

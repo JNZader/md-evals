@@ -1,7 +1,9 @@
 """Fail-closed Gate 1 utility transport execute.
 
 Tests inject ``produce(cell) -> str``; live CLI passes ``default_produce``.
-``default_produce`` subprocesses to repoforge/engram (argv list, timeout 30s).
+``default_produce`` subprocesses RepoForge for B (argv list, timeout 30s).
+C loads fixture memories.json and never subprocesses engram. D parses graph
+entities then selects overlapping memories (inject ``graph_json`` in tests).
 Tests mock subprocess and never contact the gateway.
 This is transport execute, not a utility verdict.
 
@@ -35,7 +37,9 @@ _TRANSPORT_ERROR_NAMES = frozenset({"LLMError", "LLMTimeoutError", "UtilityTrans
 _PRODUCER_TIMEOUT_SECONDS = 30
 _PRODUCER_OUTPUT_CAP = 8000
 _DEFAULT_WORKSPACE = Path("tests/fixtures/context_broker/repoforge_capture")
-_ORCHESTRATION_LINE = "orchestration: smart-context (RepoForge first, Engram second)"
+_ORCHESTRATION_LINE = "orchestration: smart-context (graph entities then memory)"
+_REPO_ROOT = Path(__file__).resolve().parents[1]
+_MEMORIES_PATH = _REPO_ROOT / "tests/fixtures/context_broker/gate1_utility/memories.json"
 
 
 class UtilityTransportError(Exception):
@@ -47,15 +51,15 @@ TASK_QUESTIONS = {
         "Question: Which file imports src/base.ts? "
         "Reply with exactly one repository path. No extra prose."
     ),
-    "conflict": (
-        "Question: Do memories in producer_output conflict? "
-        "If there is no producer_output, answer NO_CONFLICT. "
-        "Reply CONFLICT or NO_CONFLICT as the first token."
+    "decision": (
+        "Question: Which active decision applies to src/consumer.ts? "
+        "If there is no producer_output, answer NONE. "
+        "Reply NONE or the decision title as the first token."
     ),
-    "stale_dirty": (
-        "Question: Is producer_output stale, dirty, clean, or unknown? "
-        "If there is no producer_output, answer UNKNOWN. "
-        "Reply STALE, DIRTY, CLEAN, or UNKNOWN as the first token."
+    "mismatch": (
+        "Question: Does memory name a symbol absent from the graph? "
+        "If there is no producer_output, answer NO_CONFLICT. "
+        "Reply CONFLICT, NO_CONFLICT, or UNKNOWN as the first token."
     ),
 }
 
@@ -115,13 +119,80 @@ def _produce_b_structure() -> str:
     )
 
 
+def _load_memories() -> list[Any]:
+    payload = json.loads(_MEMORIES_PATH.read_text(encoding="utf-8"))
+    if not isinstance(payload, list):
+        raise ValueError("memories.json must be a list")
+    return payload
+
+
 def _produce_c_memory(cell: Mapping[str, Any]) -> str:
-    query = str(cell.get("task", "gate1")).strip()[:80] or "gate1"
-    return _run_argv(["engram", "search", query], "C_MEMORY")
+    task = str(cell.get("task", ""))
+    memories = _load_memories()
+    if task == "decision":
+        selected = [item for item in memories if item.get("type") == "decision"]
+    elif task == "mismatch":
+        selected = [
+            item
+            for item in memories
+            if "ghostFn" in json.dumps(item, ensure_ascii=True)
+        ]
+    else:
+        selected = []
+    return _cap_output(json.dumps(selected))
 
 
-def default_produce(cell: Mapping[str, Any]) -> str:
-    """Run the arm producer. Live CLI only; tests mock subprocess."""
+def _graph_tokens(graph: Mapping[str, Any]) -> set[str]:
+    tokens: set[str] = set()
+    for node in graph.get("nodes", []):
+        if not isinstance(node, Mapping):
+            continue
+        for key in ("id", "name", "file_path"):
+            value = node.get(key)
+            if value:
+                tokens.add(str(value))
+        exports = node.get("exports") or []
+        if isinstance(exports, list):
+            tokens.update(str(item) for item in exports if item)
+    for edge in graph.get("edges", []):
+        if not isinstance(edge, Mapping):
+            continue
+        for key in ("id", "name", "source", "target", "file_path"):
+            value = edge.get(key)
+            if value:
+                tokens.add(str(value))
+    return tokens
+
+
+def _select_overlapping_memories(graph: Mapping[str, Any]) -> list[Any]:
+    tokens = _graph_tokens(graph)
+    selected: list[Any] = []
+    for item in _load_memories():
+        if not isinstance(item, Mapping):
+            continue
+        entities = item.get("entities") or []
+        if not isinstance(entities, list):
+            continue
+        if any(str(entity) in tokens for entity in entities if entity):
+            selected.append(item)
+    return selected
+
+
+def _produce_d_shadow(graph_json: str | None = None) -> str:
+    raw = graph_json if graph_json is not None else _produce_b_structure()
+    if raw.startswith("PRODUCER_UNAVAILABLE:"):
+        return raw
+    try:
+        parsed = json.loads(raw)
+    except json.JSONDecodeError:
+        parsed = {}
+    graph = parsed if isinstance(parsed, dict) else {}
+    payload = {"graph": graph, "memories": _select_overlapping_memories(graph)}
+    return _cap_output(f"{json.dumps(payload)}\n{_ORCHESTRATION_LINE}")
+
+
+def default_produce(cell: Mapping[str, Any], graph_json: str | None = None) -> str:
+    """Run the arm producer. Live CLI only; tests mock subprocess or inject graph."""
     arm = str(cell.get("arm", ""))
     if arm == "CONTROL":
         return ""
@@ -130,7 +201,7 @@ def default_produce(cell: Mapping[str, Any]) -> str:
     if arm == "C_MEMORY":
         return _produce_c_memory(cell)
     if arm == "D_SHADOW":
-        return f"{_produce_b_structure()}\n{_produce_c_memory(cell)}\n{_ORCHESTRATION_LINE}"
+        return _produce_d_shadow(graph_json=graph_json)
     return _unavailable(arm, "unknown arm")
 
 

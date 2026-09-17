@@ -13,12 +13,12 @@ import pytest
 from md_evals.gate1_utility_plan import MODEL, PROVIDER, build_plan, main
 
 ARMS = ("CONTROL", "B_STRUCTURE", "C_MEMORY", "D_SHADOW")
-TASKS = ("conflict", "stale_dirty", "locate")
+TASKS = ("locate", "decision", "mismatch")
 GATEWAY = "http://127.0.0.1:3456/v1/generate"
 PRODUCERS = {
     "B_STRUCTURE": "repoforge graph -w . --v2 --format json",
-    "C_MEMORY": "Engram search+get",
-    "D_SHADOW": "smart-context skill",
+    "C_MEMORY": "fixture memories.json",
+    "D_SHADOW": "smart-context (graph entities then memory)",
 }
 FORBIDDEN_ARMS = ("E_PAIRED", "D_UNION")
 MODULE_PATH = Path(__file__).resolve().parents[1] / "md_evals" / "gate1_utility_plan.py"
