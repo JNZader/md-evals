@@ -12,7 +12,7 @@ import json
 import sys
 
 PROVIDER = "opencode-cli"
-MODEL = "gemini-3.7-flash-medium"
+MODEL = "opencode-go/glm-5.3-flash"
 GATEWAY = "http://127.0.0.1:3456/v1/generate"
 ARMS = ("CONTROL", "B_STRUCTURE", "C_MEMORY", "D_SHADOW")
 TASKS = ("conflict", "stale_dirty", "locate")
