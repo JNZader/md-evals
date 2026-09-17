@@ -15,7 +15,7 @@ PROVIDER = "opencode-cli"
 MODEL = "gemini-3.7-flash-medium"
 GATEWAY = "http://127.0.0.1:3456/v1/generate"
 ARMS = ("CONTROL", "B_STRUCTURE", "C_MEMORY", "D_SHADOW")
-TASKS = ("conflict", "stale_dirty", "locate")
+TASKS = ("locate", "decision", "mismatch")
 N = 2
 TIMEOUT_SECONDS = 300
 BUDGET_TOKENS = 4000
@@ -27,8 +27,8 @@ TOOLS = ["Read", "rg/Grep"]
 CANONICAL_STATUS = "utility-preregister/not-executed"
 PRODUCERS = {
     "B_STRUCTURE": "repoforge graph -w . --v2 --format json",
-    "C_MEMORY": "Engram search+get",
-    "D_SHADOW": "smart-context skill",
+    "C_MEMORY": "fixture memories.json",
+    "D_SHADOW": "smart-context (graph entities then memory)",
 }
 BLOCKED_REASON = (
     "live execute is not implemented; this is a utility preregister, not smoke-dev"

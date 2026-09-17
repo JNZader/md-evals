@@ -14,8 +14,11 @@ from pathlib import Path
 from typing import Any
 
 ARMS = ("CONTROL", "B_STRUCTURE", "C_MEMORY", "D_SHADOW")
-TASKS = ("conflict", "stale_dirty", "locate")
-LOCATE_GOLD = ("src/base.ts", "src/consumer.ts", "src/entry.js")
+TASKS = ("locate", "decision", "mismatch")
+GOLD_PATH = (
+    Path(__file__).resolve().parents[1]
+    / "tests/fixtures/context_broker/gate1_utility/gold.json"
+)
 
 
 def _first_token(answer: str) -> str:
@@ -25,14 +28,23 @@ def _first_token(answer: str) -> str:
     return stripped.split()[0].strip(",.;:")
 
 
-def grade_answer(task: str, answer: str) -> bool:
-    text = answer.lower()
-    if task == "locate":
-        return any(name.lower() in text for name in LOCATE_GOLD)
-    if task == "conflict":
-        return _first_token(answer) in {"CONFLICT", "NO_CONFLICT"}
-    if task == "stale_dirty":
-        return _first_token(answer) in {"STALE", "DIRTY", "CLEAN", "UNKNOWN"}
+def _load_gold() -> dict[str, Any]:
+    payload = json.loads(GOLD_PATH.read_text(encoding="utf-8"))
+    if not isinstance(payload, dict):
+        raise ValueError("gold.json must be an object")
+    return payload
+
+
+def grade_answer(task: str, answer: str, arm: str) -> bool:
+    spec = _load_gold().get(task, {}).get(arm)
+    if not isinstance(spec, dict):
+        return False
+    contains = spec.get("contains")
+    if isinstance(contains, str):
+        return contains in answer
+    expected = spec.get("first_token")
+    if isinstance(expected, str):
+        return _first_token(answer) == expected
     return False
 
 
@@ -52,7 +64,7 @@ def grade_results(payload: dict[str, Any]) -> dict[str, Any]:
         answer = cell.get("answer")
         if task not in TASKS or arm not in ARMS or not isinstance(answer, str):
             continue
-        per_task[task][arm].append(grade_answer(task, answer))
+        per_task[task][arm].append(grade_answer(task, answer, arm))
         scored += 1
     rates: dict[str, dict[str, float | None]] = {}
     wins: list[str] = []

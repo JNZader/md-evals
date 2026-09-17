@@ -1,0 +1,20 @@
+{
+  "locate": {
+    "CONTROL": {"contains": "src/consumer.ts"},
+    "B_STRUCTURE": {"contains": "src/consumer.ts"},
+    "C_MEMORY": {"contains": "src/consumer.ts"},
+    "D_SHADOW": {"contains": "src/consumer.ts"}
+  },
+  "decision": {
+    "CONTROL": {"first_token": "NONE"},
+    "B_STRUCTURE": {"first_token": "NONE"},
+    "C_MEMORY": {"contains": "consumer must import VALUE from base"},
+    "D_SHADOW": {"contains": "consumer must import VALUE from base"}
+  },
+  "mismatch": {
+    "CONTROL": {"first_token": "NO_CONFLICT"},
+    "B_STRUCTURE": {"first_token": "NO_CONFLICT"},
+    "C_MEMORY": {"first_token": "UNKNOWN"},
+    "D_SHADOW": {"first_token": "CONFLICT"}
+  }
+}
