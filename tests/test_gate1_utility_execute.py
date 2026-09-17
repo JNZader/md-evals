@@ -194,8 +194,10 @@ def test_run_executes_twenty_four_plan_cells_in_order(deny_network, tmp_path):
     assert "producer" not in control.lower()
     assert PRODUCERS["B_STRUCTURE"] in structured
     assert _escritorio_utility_paths() == before
-    marker_hits = list((tmp_path / "run").rglob("*"))
-    assert any(path.is_file() for path in marker_hits)
+    results = json.loads((tmp_path / "run" / "results.json").read_text(encoding="utf-8"))
+    assert results["status"] == "complete"
+    assert len(results["cells"]) == 24
+    assert all(cell["answer"] == "offline" for cell in results["cells"])
 
 
 def test_missing_cost_evidence_is_unverified_and_continues(deny_network):
