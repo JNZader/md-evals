@@ -1,7 +1,9 @@
 """Fail-closed Gate 1 utility transport execute.
 
-Producers are declared, not executed. This slice does not shell out to
-repoforge or Engram. This is transport execute, not a utility verdict.
+Tests inject ``produce(cell) -> str``; live CLI passes ``default_produce``.
+``default_produce`` subprocesses to repoforge/engram (argv list, timeout 30s).
+Tests mock subprocess and never contact the gateway.
+This is transport execute, not a utility verdict.
 
 Default and ``--plan`` only print ``build_plan()``. Live gateway POST happens
 only with ``--live --authorize-utility-gate1`` and GATE1_GATEWAY_BEARER.
@@ -14,6 +16,7 @@ import argparse
 import asyncio
 import json
 import os
+import subprocess
 import sys
 from collections.abc import Callable, Mapping
 from datetime import datetime, timezone
@@ -27,14 +30,19 @@ BEARER_ENV = "GATE1_GATEWAY_BEARER"
 GATEWAY_BASE = "http://127.0.0.1:3456"
 _OUTPUT_MARKER = ".gate1-utility-execute"
 Completion = Callable[[dict[str, Any]], LLMResponse]
+Produce = Callable[[Mapping[str, Any]], str]
 _TRANSPORT_ERROR_NAMES = frozenset({"LLMError", "LLMTimeoutError", "UtilityTransportError"})
+_PRODUCER_TIMEOUT_SECONDS = 30
+_PRODUCER_OUTPUT_CAP = 8000
+_DEFAULT_WORKSPACE = Path("tests/fixtures/context_broker/repoforge_capture")
+_ORCHESTRATION_LINE = "orchestration: smart-context (RepoForge first, Engram second)"
 
 
 class UtilityTransportError(Exception):
     """Fail-closed transport failure; does not import LiteLLM."""
 
 
-def _cell_prompt(cell: Mapping[str, Any]) -> str:
+def _cell_prompt(cell: Mapping[str, Any], producer_output: str | None = None) -> str:
     lines = [
         f"task: {cell['task']}",
         f"arm: {cell['arm']}",
@@ -42,7 +50,68 @@ def _cell_prompt(cell: Mapping[str, Any]) -> str:
     ]
     if cell.get("arm") != "CONTROL" and "producer" in cell:
         lines.append(f"producer: {cell['producer']}")
+    if cell.get("arm") != "CONTROL" and producer_output is not None:
+        lines.append(f"producer_output: {producer_output}")
     return "\n".join(lines)
+
+
+def _workspace() -> Path:
+    return _DEFAULT_WORKSPACE if _DEFAULT_WORKSPACE.exists() else Path.cwd()
+
+
+def _unavailable(arm: str, reason: str) -> str:
+    short = " ".join(str(reason).split())[:120]
+    return f"PRODUCER_UNAVAILABLE: {arm}: {short}"
+
+
+def _cap_output(text: str) -> str:
+    return text[:_PRODUCER_OUTPUT_CAP]
+
+
+def _run_argv(argv: list[str], arm: str) -> str:
+    try:
+        completed = subprocess.run(
+            argv,
+            capture_output=True,
+            text=True,
+            timeout=_PRODUCER_TIMEOUT_SECONDS,
+            check=False,
+        )
+    except FileNotFoundError:
+        return _unavailable(arm, f"missing binary {argv[0]}")
+    except subprocess.TimeoutExpired:
+        return _unavailable(arm, "timeout")
+    if completed.returncode != 0:
+        reason = (completed.stderr or completed.stdout or f"exit {completed.returncode}").strip()
+        return _unavailable(arm, reason or f"exit {completed.returncode}")
+    return _cap_output(completed.stdout or "")
+
+
+def _produce_b_structure() -> str:
+    workspace = _workspace()
+    return _run_argv(
+        ["repoforge", "graph", "-w", str(workspace), "--v2", "--format", "json"],
+        "B_STRUCTURE",
+    )
+
+
+def _produce_c_memory(cell: Mapping[str, Any]) -> str:
+    query = str(cell.get("task", "gate1")).strip()[:80] or "gate1"
+    return _run_argv(["engram", "search", query], "C_MEMORY")
+
+
+def default_produce(cell: Mapping[str, Any]) -> str:
+    """Run the arm producer. Live CLI only; tests mock subprocess."""
+    arm = str(cell.get("arm", ""))
+    if arm == "CONTROL":
+        return ""
+    if arm == "B_STRUCTURE":
+        return _produce_b_structure()
+    if arm == "C_MEMORY":
+        return _produce_c_memory(cell)
+    if arm == "D_SHADOW":
+        return f"{_produce_b_structure()}\n{_produce_c_memory(cell)}\n{_ORCHESTRATION_LINE}"
+    return _unavailable(arm, "unknown arm")
 
 
 def _raw(response: LLMResponse) -> Mapping[str, Any]:
@@ -98,12 +167,15 @@ def run_utility_execute(
     completion: Completion,
     authorize: bool = False,
     output_dir: Path | None = None,
+    produce: Produce | None = None,
 ) -> dict[str, Any]:
     """Run 24 plan cells sequentially with an injected completion.
 
     ``authorize`` is required by the live CLI path. Tests inject completion so
     this never opens a gateway socket. Abort remaining cells on missing
     costEvidence, non-zero estimatedCost, fallbackUsed, or pin mismatch.
+    ``produce`` defaults to empty output in tests; live CLI passes
+    ``default_produce``.
     """
     del authorize
     plan = build_plan()
@@ -115,7 +187,10 @@ def run_utility_execute(
     for cell in plan["cells"]:
         assert isinstance(cell, dict)
         work = dict(cell)
-        work["prompt"] = _cell_prompt(cell)
+        producer_output: str | None = None
+        if cell.get("arm") != "CONTROL":
+            producer_output = produce(work) if produce is not None else ""
+        work["prompt"] = _cell_prompt(cell, producer_output=producer_output)
         try:
             response = completion(work)
         except Exception as exc:
@@ -220,7 +295,10 @@ def main(argv: list[str] | None = None) -> int:
         timestamp = datetime.now(timezone.utc).strftime("%Y%m%d-%H%M%S")
         output_dir = Path.home() / "Escritorio" / f"gate-1-utility-{timestamp}-{args.run_id}"
         result = run_utility_execute(
-            completion=complete, authorize=True, output_dir=output_dir
+            completion=complete,
+            authorize=True,
+            output_dir=output_dir,
+            produce=default_produce,
         )
         print(json.dumps(result, indent=2))
         return 0 if result["status"] == "complete" else 2
