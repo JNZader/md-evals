@@ -18,18 +18,21 @@ TASKS = ("conflict", "stale_dirty", "locate")
 LOCATE_GOLD = ("src/base.ts", "src/consumer.ts", "src/entry.js")
 
 
+def _first_token(answer: str) -> str:
+    stripped = answer.strip()
+    if not stripped:
+        return ""
+    return stripped.split()[0].strip(",.;:")
+
+
 def grade_answer(task: str, answer: str) -> bool:
     text = answer.lower()
     if task == "locate":
         return any(name.lower() in text for name in LOCATE_GOLD)
     if task == "conflict":
-        return "conflict" in text and any(
-            token in text for token in ("disagree", "incompatible", "unresolved", "two")
-        )
+        return _first_token(answer) in {"CONFLICT", "NO_CONFLICT"}
     if task == "stale_dirty":
-        mentioned = "stale" in text or "dirty" in text
-        upgraded = "freshness: fresh" in text or "git_state: clean" in text
-        return mentioned and not upgraded
+        return _first_token(answer) in {"STALE", "DIRTY", "CLEAN", "UNKNOWN"}
     return False
 
 

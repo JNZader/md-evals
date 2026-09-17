@@ -191,7 +191,8 @@ def test_run_executes_twenty_four_plan_cells_in_order(deny_network, tmp_path):
     control = prompts[0]
     structured = prompts[1]
     assert "conflict" in control and "CONTROL" in control and "1" in control
-    assert "producer" not in control.lower()
+    assert "Question:" in control
+    assert "producer_output:" not in control
     assert PRODUCERS["B_STRUCTURE"] in structured
     assert _escritorio_utility_paths() == before
     results = json.loads((tmp_path / "run" / "results.json").read_text(encoding="utf-8"))
@@ -388,7 +389,7 @@ def test_injected_produce_is_called_per_non_control_cell(deny_network):
     assert result["status"] == "complete"
     assert seen == expected
     assert len(seen) == 18
-    assert all("producer_output" not in prompt for prompt in prompts["CONTROL"])
+    assert all("producer_output:" not in prompt for prompt in prompts["CONTROL"])
     assert all(
         B_JSON in prompt and "producer_output:" in prompt
         for prompt in prompts["B_STRUCTURE"]
@@ -409,7 +410,7 @@ def test_without_produce_control_has_no_producer_output(deny_network):
     run_utility_execute(completion=completion)
     control = prompts[0]
     structured = prompts[1]
-    assert "producer_output" not in control
+    assert "producer_output:" not in control
     assert "producer_output:" in structured
 
 

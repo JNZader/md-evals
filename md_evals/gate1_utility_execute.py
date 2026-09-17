@@ -42,11 +42,31 @@ class UtilityTransportError(Exception):
     """Fail-closed transport failure; does not import LiteLLM."""
 
 
+TASK_QUESTIONS = {
+    "locate": (
+        "Question: Which file imports src/base.ts? "
+        "Reply with exactly one repository path. No extra prose."
+    ),
+    "conflict": (
+        "Question: Do memories in producer_output conflict? "
+        "If there is no producer_output, answer NO_CONFLICT. "
+        "Reply CONFLICT or NO_CONFLICT as the first token."
+    ),
+    "stale_dirty": (
+        "Question: Is producer_output stale, dirty, clean, or unknown? "
+        "If there is no producer_output, answer UNKNOWN. "
+        "Reply STALE, DIRTY, CLEAN, or UNKNOWN as the first token."
+    ),
+}
+
+
 def _cell_prompt(cell: Mapping[str, Any], producer_output: str | None = None) -> str:
+    task = str(cell["task"])
     lines = [
-        f"task: {cell['task']}",
+        f"task: {task}",
         f"arm: {cell['arm']}",
         f"repetition: {cell['repetition']}",
+        TASK_QUESTIONS[task],
     ]
     if cell.get("arm") != "CONTROL" and "producer" in cell:
         lines.append(f"producer: {cell['producer']}")

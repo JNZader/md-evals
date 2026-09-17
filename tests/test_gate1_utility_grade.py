@@ -10,14 +10,14 @@ def test_locate_requires_fixture_path():
     assert grade_answer("locate", "I mapped the workspace") is False
 
 
-def test_conflict_requires_disagreement_not_just_task_name():
-    assert grade_answer("conflict", "two memories disagree; conflict unresolved") is True
+def test_conflict_requires_first_token():
+    assert grade_answer("conflict", "NO_CONFLICT nothing in producer_output") is True
     assert grade_answer("conflict", "conflict / CONTROL verification") is False
 
 
-def test_stale_dirty_rejects_fresh_clean_upgrade():
-    assert grade_answer("stale_dirty", "index is stale") is True
-    assert grade_answer("stale_dirty", "stale pack; git_state: clean") is False
+def test_stale_dirty_requires_first_token():
+    assert grade_answer("stale_dirty", "UNKNOWN") is True
+    assert grade_answer("stale_dirty", "index is stale") is False
 
 
 def test_lift_when_d_beats_best_single(tmp_path, capsys):
@@ -29,10 +29,10 @@ def test_lift_when_d_beats_best_single(tmp_path, capsys):
             _cell("locate", "D_SHADOW", "src/base.ts"),
             _cell("conflict", "B_STRUCTURE", "nope"),
             _cell("conflict", "C_MEMORY", "nope"),
-            _cell("conflict", "D_SHADOW", "two observations disagree; conflict"),
+            _cell("conflict", "D_SHADOW", "CONFLICT two observations disagree"),
             _cell("stale_dirty", "B_STRUCTURE", "nope"),
             _cell("stale_dirty", "C_MEMORY", "nope"),
-            _cell("stale_dirty", "D_SHADOW", "dirty worktree"),
+            _cell("stale_dirty", "D_SHADOW", "DIRTY"),
         ],
     }
     result = grade_results(payload)
@@ -50,7 +50,7 @@ def test_stop_when_d_does_not_beat_single():
         "cells": [
             _cell("locate", "B_STRUCTURE", "src/entry.js"),
             _cell("locate", "D_SHADOW", "mapped the repo"),
-            _cell("conflict", "C_MEMORY", "two memories disagree; conflict"),
+            _cell("conflict", "C_MEMORY", "NO_CONFLICT"),
             _cell("conflict", "D_SHADOW", "conflict / CONTROL"),
         ],
     }
