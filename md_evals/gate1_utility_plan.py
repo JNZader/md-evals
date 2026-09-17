@@ -11,8 +11,8 @@ import argparse
 import json
 import sys
 
-PROVIDER = "opencode-cli"
-MODEL = "gemini-3.7-flash-medium"
+PROVIDER = "google"
+MODEL = "gemini-3.1-pro-high"
 GATEWAY = "http://127.0.0.1:3456/v1/generate"
 ARMS = ("CONTROL", "B_STRUCTURE", "C_MEMORY", "D_SHADOW")
 TASKS = ("conflict", "stale_dirty", "locate")
