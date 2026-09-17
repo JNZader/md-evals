@@ -143,11 +143,28 @@ def _abort_reason(response: LLMResponse, provider: str, model: str) -> str | Non
     return None
 
 
+ANSWER_CAP = 8000
+
+
 def _write_marker(output_dir: Path) -> None:
     output_dir.mkdir(parents=True, exist_ok=True)
     (output_dir / _OUTPUT_MARKER).write_text(
         "Gate 1 utility execute output\n", encoding="utf-8"
     )
+
+
+def _checkpoint(output_dir: Path | None, payload: Mapping[str, Any]) -> None:
+    if output_dir is None:
+        return
+    (output_dir / "results.json").write_text(
+        json.dumps(payload, indent=2) + "\n", encoding="utf-8"
+    )
+
+
+def _clip_answer(content: str) -> str:
+    if len(content) <= ANSWER_CAP:
+        return content
+    return content[:ANSWER_CAP]
 
 
 def preflight_manifest(environ: Mapping[str, str] | None = None) -> dict[str, Any]:
@@ -204,21 +221,29 @@ def run_utility_execute(
                 "reason": str(exc)[:200],
             }
             records.append(record)
-            return {"status": "aborted", "cells": records}
+            payload = {"status": "aborted", "cells": records}
+            _checkpoint(output_dir, payload)
+            return payload
         reason = _abort_reason(response, provider, model)
         record = {
             "task": cell["task"],
             "arm": cell["arm"],
             "repetition": cell["repetition"],
             "status": "aborted" if reason else "complete",
+            "answer": _clip_answer(response.content),
         }
         if reason:
             record["reason"] = reason
             records.append(record)
-            return {"status": "aborted", "cells": records}
+            payload = {"status": "aborted", "cells": records}
+            _checkpoint(output_dir, payload)
+            return payload
         record["billing"] = _billing_label(_raw(response))
         records.append(record)
-    return {"status": "complete", "cells": records}
+        _checkpoint(output_dir, {"status": "in_progress", "cells": records})
+    payload = {"status": "complete", "cells": records}
+    _checkpoint(output_dir, payload)
+    return payload
 
 
 def _parser() -> argparse.ArgumentParser:
